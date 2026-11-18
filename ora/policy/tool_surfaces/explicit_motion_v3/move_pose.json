@@ -1,0 +1,802 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_pose",
+  "description": "Submit a complete pose target through the Supervisor.\nUse when: moving the public TCP to a stated position and orientation. This surface drives one right arm: send the target fields directly, with no targets wrapper and no arm choice. Each arm names its two choices as enums -- position_mode (hold_current, absolute, delta) and orientation_mode (hold_current, absolute_quaternion, axis_angle_delta, world_axes) -- and sends that mode's fields beside them in the arguments themselves. absolute takes position_m; delta takes translation_m and position_frame; absolute_quaternion takes orientation_xyzw; world_axes takes approach_world and jaw_line_world; axis_angle_delta takes rotation_axis, rotation_angle_deg and orientation_frame -- rotation_angle_deg is in DEGREES, and no field here takes radians. To hold one half while changing the other, set its mode to hold_current. Label the target free_space, precision or contact_approach by physical intent, not by controller name. speed (optional) is fast, normal or careful. fast is the default and the normal choice. normal (about 0.3 m/s and 60 deg/s) is for moves near objects, and while holding an object (fast's hard accelerations can make it slip). careful (about 0.1 m/s and 20 deg/s) is for the last 1 to 3 cm of an approach, contact or placing; for that last bit, slow_approaching: true (fast or normal) slows only the final 2 cm of the same move to careful and is preferred over a whole careful move; use it when placing a held object. Slower speeds use more control ticks, so use them only where they help. These are guidance, not enforced. Instead of speed you may give speed_m_s, any number above 0: the top speed of the grip site in m/s, with a turn-rate cap of 200 deg/s per m/s (at least 20 deg/s), both reached in 0.25 s. Whatever the speed, each joint's own speed is the real ceiling (at most 31.5 deg/s on this arm, at every speed): where a hand move needs large joint turns, or for a high speed_m_s, the arm moves slower than asked, so a fast request may not be reached; a slow one practically always is. Every control tick a move runs uses one of the round's native actions (remaining_budget.native_actions_remaining). From LIBERO's start pose, six recorded first moves took a median of 74 control ticks at fast, 74 at normal and 113 at careful. last_action_effect.detail.motion.speed.planned_peak_linear_m_s says the top speed a global route's plan reaches.\nEffect: compiles the request once. free_space uses global CuRobo; when its plan keeps the grip site within 2 cm of the straight line to the target and turns the hand at most 45 degrees, the move runs along that straight line on OSC instead (the plan checked the gripper's path there, not the arm's posture; arms.right.route_choice in the receipt says which route ran and why), then one bounded local OSC settle when the measured endpoint misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees. precision within 50 mm and 15 degrees uses bounded OSC; larger precision uses global CuRobo and the same settle. contact_approach within 50 mm and 15 degrees uses bounded OSC. A larger contact_approach is staged: global CuRobo to a pre-contact pose on the way that leaves at most 35 mm and 10 degrees, then bounded OSC for the rest. The local segment runs only after the pre-contact segment converges; otherwise the receipt's precontact field names why, and the arm stays where that segment ended. A failed local route never silently falls back to global. A bounded OSC segment can stop early, and a stopped move is not_reached with the arm where it stopped. precision stops at contact_stop when the measured force passes 40 N. contact_approach pushes on purpose, so force alone does not end it, and a push that is still advancing goes on: it stops at contact_stop when the force stays more than 40 N above the segment's lowest reading for 3 control ticks and the distance to the target falls by less than 0.5 mm over them. It stops at tracking_diverged, with or without contact, when that distance has risen for 2 ticks and stands more than 5 mm above the lowest it reached: the hand is leaving the target, which a repeat of the same move will not cure. last_action_effect.detail.contact_motion gives the force and force_stop_threshold_n, or position_error_growth_m and position_error_growth_limit_m. The speed holds on every route. A global route is timed so the grip site keeps the speed's caps, one joint target per 50 ms control tick (fast: no Cartesian speed limit, the joints alone); a bounded local OSC segment, which follows no planned path, instead caps its commanded step per control tick at the same linear and turn speeds, with no ramps, and may then take more ticks. Before anything moves, a global route is refused (plan_rejected, with no controller write) when its grip site would turn more than 45 degrees beyond the turn from its start to its planned end orientation (paced_path_wrist_unwind: the wrist would unwind the long way round, typically at its last joint's limit. Other paths to the same pose are tried first, and with open jaws the move runs at its jaw twin instead, the orientation turned a half-turn about the approach axis, which grips the same: last_action_effect.detail.motion.wrist.jaw_flip_retry then says so and arrival is judged at the twin. Refused anyway, or while the jaws hold something, ask for a target orientation nearer the current one) or when it needs more than 2000 control ticks at the requested speed (paced_motion_budget: use a faster speed or split the move); last_action_effect.detail.motion.refused gives the numbers. A move is never cut part way, so it never stops in the middle of a wrist turn.\nReturns: an immediate acknowledgement with status=submitted, action and compiled_pose; compiled_pose.targets contains the compiled requested target, not a measured arrival. The later receipt separates refusal, arrival and recoverable non-arrival, and available contact feedback includes requested versus measured motion, force/progress evidence and truthful unknown values. The subsequent Supervisor receipt and fresh causal observation separately report execution route, phase outcomes and measured residuals. The later receipt's last_action_effect.detail.motion reports speed (speed -- custom with speed_m_s -- speed_m_s when given, slow_approaching, the caps linear_m_s, angular_deg_s and joint_speed_deg_s and, for a global route, planned_peak_linear_m_s and planned_peak_angular_deg_s: the top speed and turn rate the planned path reaches under every cap, joints included; with slow_approaching also slow_approach_m and the slow caps) and, for a global route, wrist (the last wrist joint from the measured joints through every planned control tick: start_deg, end_deg, min_deg, max_deg, travel_deg and min_limit_margin_deg to its joint limit, since the two ends alone can hide a swing; and the grip site's path_turn_deg and requested_turn_deg), planned_ticks and duration_s. A pre-admission error submits no action.\nDoes not: ask the policy to choose CuRobo versus local OSC; change an exact requested orientation; command a gripper; move an omitted arm; infer contact, retention or task success; retry a failed local stage through another backend.\nOn error: Refused: an unknown field, a mode without its companion fields or a field of another mode, each naming the field; hold_current for both halves, a target equal to the measured pose, a rotation_angle_deg outside [-180, 180] or an orientation_xyzw whose norm lies outside [0.98, 1.02], each as invalid_motion_arguments without a field; a target outside the bound action workspace (workspace_bounds) unless the grip site is already outside it and the target only reduces the violation; the episode's terminal boundary (episode_terminal). Also refused as invalid_motion_arguments naming the field: a speed other than fast, normal or careful; a speed_m_s that is not a number above 0 or comes with a speed; slow_approaching with speed careful or with speed_m_s at or below 0.1 (it has no effect there). position_mode delta without translation_m is refused at translation_m; a field belonging to another mode is refused by name. planner_failed describes a bounded planner search failure; planning_diagnostics distinguishes target IK convergence/admission from trajectory search when the backend exposes it; plan_rejected means zero controller writes; not_reached means execution started but measured convergence or endpoint verification failed. Use the named phase and fresh evidence rather than repeating the same target blindly. Failure diagnosis: planner_error identifies a failed planner service or implementation, not an unreachable target; invalid_start_state requires correcting the measured start; planner_failed reports ordinary search failure. not_reached preserves endpoint and controller evidence independently of official task termination. Read the fresh observation before proposing another action. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame. compiled_pose.targets.<arm>.observed_clearance (also on move_to, rotate_wrist and rotate_pitch): the jaw footprint's lowest point at the target (fingers, plus the held object's localized extent when the jaws hold a named target) minus the highest surface the current depth images show beneath it or within radius_m; negative means that surface is higher; occluded surfaces are unknown; not a collision check. The jaws count as holding when the last gripper command was close and the measured jaw separation exceeds 3 mm, which does not confirm a grasp. world_axes compiles approach_world (the grip site's local +Z) and jaw_line_world (its local +X) into orientation_xyzw. compiled_pose.targets.<arm>.target_axes_world, on move_pose, move_to, rotate_wrist and rotate_pitch, gives the submitted orientation's world approach and jaw-line directions. Global planner routes, here and on every tool that routes globally, and every IK check on this backend avoid a collision world rebuilt for each request from the current depth images of both cameras: the robot removed, the space around the goal hand cleared (contact at the goal is not checked), a held object moving with the hand, and space no camera sees, such as behind objects, counted as free. A target with a fingertip more than 1 cm below the supporting surface under it is refused before planning, and planning_diagnostics says by how much. The bounded local OSC segments do not check the world. Before submission each target gets a read-only reach pre-check, compiled_pose.targets.<arm>.reach_along_request. On this backend it is approximate and is not what move_pose runs: one IK solve for the grip site from the measured joints, with joint limits, Panda self-collision and that collision world (ik_model libero_reach_ik_depth_world_v1, matches_move_pose_admission false). move_pose plans a full CuRobo trajectory where it routes globally and moves by bounded OSC, which no IK check models, where it routes locally. Its disagreement with move_pose has not yet been measured. If the target does not solve, it also reports the farthest solving fraction of the straight path from the current pose, and that pose. It never blocks or changes the move. When the target does not solve, reach_along_request also carries nearest_reachable_orientation: the smallest turn of the requested orientation (15 to 75 degrees in 15-degree steps, about axes perpendicular to the approach axis) that the same pre-check solves with the grip site held where the request put it, as a pose with approach_world and tilt_from_straight_down_deg, or none_within_sweep; endpoint IK only, with the pre-check's error. Fixed texts stated once here and left out of results and effects: compiled_pose.targets.<arm>.observed_clearance.claim_boundary (move_pose, move_to, rotate_wrist and rotate_pitch) is \"From the current depth images and their calibration only; points inside the measured jaws, the held object and the space above them are excluded as robot, other robot links are not; occluded surfaces and object undersides are unknown; points up to the footprint's top within radius_m count; not a collision check or a contact prediction, and the move is submitted unchanged.\"; compiled_pose.targets.<arm>.reach_along_request.claim_boundary is \"Read-only IK at sampled points of the straight interpolation from the measured pose to the target; reachability is not proven monotone between samples, and no path, collision, payload or arrival claim. One IK solve per pose by the IK solver of the global planner move_pose uses, seeded from the measured joints or a chained query's solution, with joint limits, Panda self-collision and a collision world built from the current depth images of both cameras: the robot removed, the space around the goal hand cleared, a held object moving with the hand, and space no camera sees counted as free. A pose with a fingertip more than 1 cm below the supporting surface under it is unsolved. The solution's grip site is checked against the 0.005 m / 2.86 deg arrival bound. It plans no trajectory and does not model the bounded OSC route, so move_pose can still refuse or fail to reach a pose reported reachable, and a pose reported unreachable may still be reachable: the seed search is finite.\" for an unsolved target and, for a solved one, the same text from \"One IK solve per pose\" on; reach_along_request.nearest_reachable_orientation.claim_boundary is \"Read-only IK at each candidate endpoint by the same reach check as reach_along_request (its ik_model and matches_move_pose_admission apply), from the measured joints: the requested orientation turned about axes perpendicular to its approach axis, holding the jaw centre; no path, collision, payload or arrival claim, and an orientation outside the sweep may solve.\"; last_action_effect.detail.planning_diagnostics.note is \"Counts overlap; raw joint bounds do not isolate self-collision or other constraints. Self-collision and the depth collision world are not separated.\".",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "description": "This surface drives one right arm, so the arguments are that arm's target with no targets wrapper and no arm choice.",
+    "required": [
+      "position_mode",
+      "orientation_mode"
+    ],
+    "properties": {
+      "position_mode": {
+        "type": "string",
+        "enum": [
+          "hold_current",
+          "absolute",
+          "delta"
+        ],
+        "description": "Choose with its companion fields in the same target: hold_current takes no position fields; absolute REQUIRES position_m; delta REQUIRES translation_m AND position_frame. A mode alone supplies no values."
+      },
+      "position_m": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number",
+          "description": "One finite metre component."
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "REQUIRED with position_mode=absolute. [x,y,z] in world metres. Omit for other position modes. Null means omitted."
+      },
+      "translation_m": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number",
+          "description": "One finite metre component."
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "REQUIRED with position_mode=delta, together with position_frame. [dx,dy,dz] in metres. Omit for other position modes. Null means omitted."
+      },
+      "position_frame": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "world",
+          "end_effector",
+          null
+        ],
+        "description": "REQUIRED with position_mode=delta, together with translation_m. world uses fixed world axes; end_effector uses current controlled-frame axes. Never inferred. Omit for other position modes. Null means omitted."
+      },
+      "orientation_mode": {
+        "type": "string",
+        "enum": [
+          "hold_current",
+          "absolute_quaternion",
+          "axis_angle_delta",
+          "world_axes"
+        ],
+        "description": "Choose with its companion fields in the same target: hold_current takes no orientation fields; absolute_quaternion REQUIRES orientation_xyzw; axis_angle_delta REQUIRES rotation_axis AND rotation_angle_deg AND orientation_frame; world_axes REQUIRES approach_world AND jaw_line_world. A mode alone supplies no values."
+      },
+      "orientation_xyzw": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number",
+          "description": "One finite quaternion component."
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "description": "REQUIRED with orientation_mode=absolute_quaternion. Unit quaternion [x,y,z,w]. Omit for other orientation modes. Null means omitted."
+      },
+      "rotation_axis": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "x",
+          "y",
+          "z",
+          null
+        ],
+        "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_angle_deg, orientation_frame. An x, y or z axis in orientation_frame. Omit for other orientation modes. Null means omitted."
+      },
+      "rotation_angle_deg": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, orientation_frame. Signed DEGREES, not radians. Omit for other orientation modes. Null means omitted."
+      },
+      "orientation_frame": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "world",
+          "end_effector",
+          null
+        ],
+        "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, rotation_angle_deg. world or current end_effector axes. Never inferred. Omit for other orientation modes. Null means omitted."
+      },
+      "approach_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "REQUIRED with orientation_mode=world_axes, together with jaw_line_world. World direction [x,y,z] of the approach axis. Omit for other orientation modes. Null means omitted."
+      },
+      "jaw_line_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "REQUIRED with orientation_mode=world_axes, together with approach_world. World direction [x,y,z] of the jaw line, made perpendicular to approach_world. Omit for other orientation modes. Null means omitted."
+      },
+      "interaction": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "free_space",
+          "precision",
+          "contact_approach",
+          null
+        ],
+        "description": "Physical intent, never a controller name. Omitted means free_space. Null means omitted."
+      },
+      "speed": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "fast",
+          "normal",
+          "careful",
+          null
+        ],
+        "description": "Optional; default fast (the normal choice). normal: about 0.3 m/s, for moves near objects and while holding an object. careful: about 0.1 m/s, for the last 1 to 3 cm of an approach, contact or placing. Slower speeds use more control ticks. Leave it out when you give speed_m_s. Null means omitted."
+      },
+      "speed_m_s": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Optional, instead of speed: the top speed of the grip site in m/s, any number above 0 (turn rate capped at 200 deg/s per m/s, at least 20 deg/s). Each joint's own speed (at most 31.5 deg/s on this arm) stays the ceiling, so a high value may not be reached; last_action_effect.detail.motion.speed.planned_peak_linear_m_s says what a global route's plan reaches. Slower speeds use more control ticks. Null means omitted."
+      },
+      "slow_approaching": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "Optional; default false. true slows only the last 2 cm of the path to the careful speed inside the same move (with speed fast or normal, or speed_m_s above 0.1; refused with careful). Preferred over a whole careful move for the end of an approach, contact or placing. Null means omitted."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "move_pose"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "properties": {
+          "targets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "reach_along_request": {
+                  "type": "object",
+                  "description": "Read-only reach pre-check of the submitted target by this backend's reach check (ik_model), from the measured joints. matches_move_pose_admission says whether that check is the IK move_pose admits through for this request; when it is not, the check is a reference only. When the target does not solve, the straight interpolation from the measured pose is sampled.",
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "target_reachable",
+                        "ik_model",
+                        "matches_move_pose_admission",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "target_reachable": {
+                          "const": true
+                        },
+                        "ik_model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "matches_move_pose_admission": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "target_reachable",
+                        "reason",
+                        "requested_translation_m",
+                        "requested_rotation_rad",
+                        "farthest_reachable_fraction",
+                        "farthest_reachable_translation_m",
+                        "farthest_reachable_pose",
+                        "samples",
+                        "claim_boundary",
+                        "ik_model",
+                        "matches_move_pose_admission",
+                        "nearest_reachable_orientation"
+                      ],
+                      "properties": {
+                        "target_reachable": {
+                          "const": false
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "requested_translation_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "requested_rotation_rad": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "farthest_reachable_fraction": {
+                          "type": "number",
+                          "enum": [
+                            0.0,
+                            0.125,
+                            0.25,
+                            0.375,
+                            0.5,
+                            0.625,
+                            0.75,
+                            0.875
+                          ]
+                        },
+                        "farthest_reachable_translation_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "farthest_reachable_pose": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "position_m",
+                            "orientation_xyzw"
+                          ],
+                          "properties": {
+                            "position_m": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 3,
+                              "maxItems": 3
+                            },
+                            "orientation_xyzw": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 4,
+                              "maxItems": 4
+                            }
+                          }
+                        },
+                        "samples": {
+                          "type": "array",
+                          "minItems": 7,
+                          "maxItems": 7,
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "fraction",
+                              "reachable",
+                              "reason"
+                            ],
+                            "properties": {
+                              "fraction": {
+                                "type": "number"
+                              },
+                              "reachable": {
+                                "type": "boolean"
+                              },
+                              "reason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "ik_model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "matches_move_pose_admission": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "nearest_reachable_orientation": {
+                          "type": "object",
+                          "description": "The reachable turn of the requested orientation with the smallest angle, holding the nominal jaw centre, from read-only IK at the endpoint.",
+                          "oneOf": [
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "rotation_from_request_deg",
+                                "tilt_from_straight_down_deg",
+                                "approach_world",
+                                "pose",
+                                "jaw_center_m",
+                                "reachable_turns_at_rotation",
+                                "queries",
+                                "claim_boundary"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "found"
+                                },
+                                "rotation_from_request_deg": {
+                                  "type": "number",
+                                  "enum": [
+                                    15,
+                                    30,
+                                    45,
+                                    60,
+                                    75
+                                  ]
+                                },
+                                "tilt_from_straight_down_deg": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 180
+                                },
+                                "approach_world": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "pose": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "position_m",
+                                    "orientation_xyzw"
+                                  ],
+                                  "properties": {
+                                    "position_m": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "minItems": 3,
+                                      "maxItems": 3
+                                    },
+                                    "orientation_xyzw": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "minItems": 4,
+                                      "maxItems": 4
+                                    }
+                                  }
+                                },
+                                "jaw_center_m": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "reachable_turns_at_rotation": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 12
+                                },
+                                "queries": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                },
+                                "claim_boundary": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              }
+                            },
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "largest_rotation_deg",
+                                "jaw_center_m",
+                                "queries",
+                                "claim_boundary"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "none_within_sweep"
+                                },
+                                "largest_rotation_deg": {
+                                  "const": 75
+                                },
+                                "jaw_center_m": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "queries": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                },
+                                "claim_boundary": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              }
+                            },
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "failure"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "unavailable"
+                                },
+                                "failure": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "failure"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unavailable"
+                        },
+                        "failure": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "observed_clearance": {
+                  "type": "object",
+                  "description": "Read-only, from the current depth images: the jaw footprint's lowest point at this target minus the highest observed surface beneath it or within radius_m; negative means that surface is higher. Not a collision check.",
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "clearance_m",
+                        "highest_surface",
+                        "footprint_lowest_m",
+                        "footprint_lowest_part",
+                        "radius_m",
+                        "footprint_observed_fraction",
+                        "robot_points_excluded",
+                        "held_object",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "measured"
+                        },
+                        "clearance_m": {
+                          "type": "number"
+                        },
+                        "highest_surface": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "position_m",
+                            "camera",
+                            "observation_id",
+                            "depth_points"
+                          ],
+                          "properties": {
+                            "position_m": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 3,
+                              "maxItems": 3
+                            },
+                            "camera": {
+                              "type": "string"
+                            },
+                            "observation_id": {
+                              "type": "string"
+                            },
+                            "depth_points": {
+                              "type": "integer",
+                              "minimum": 1
+                            }
+                          }
+                        },
+                        "footprint_lowest_m": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 3,
+                          "maxItems": 3
+                        },
+                        "footprint_lowest_part": {
+                          "type": "string",
+                          "enum": [
+                            "fingers",
+                            "held_object"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "footprint_observed_fraction": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "robot_points_excluded": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "held_object": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "target_ref",
+                            "extent_included",
+                            "recentered_under_jaws"
+                          ],
+                          "description": "null unless the jaws measure as holding: the target the policy named when they closed and whether its localized extent is part of the footprint.",
+                          "properties": {
+                            "target_ref": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "extent_included": {
+                              "type": "boolean"
+                            },
+                            "recentered_under_jaws": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "reason",
+                        "footprint_lowest_m",
+                        "footprint_lowest_part",
+                        "radius_m",
+                        "footprint_observed_fraction",
+                        "robot_points_excluded",
+                        "held_object",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unknown"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "depth_unavailable",
+                            "footprint_unobserved"
+                          ]
+                        },
+                        "footprint_lowest_m": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 3,
+                          "maxItems": 3
+                        },
+                        "footprint_lowest_part": {
+                          "type": "string",
+                          "enum": [
+                            "fingers",
+                            "held_object"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "footprint_observed_fraction": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "robot_points_excluded": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "held_object": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "target_ref",
+                            "extent_included",
+                            "recentered_under_jaws"
+                          ],
+                          "description": "null unless the jaws measure as holding: the target the policy named when they closed and whether its localized extent is part of the footprint.",
+                          "properties": {
+                            "target_ref": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "extent_included": {
+                              "type": "boolean"
+                            },
+                            "recentered_under_jaws": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "reason",
+                        "radius_m",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unknown"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "geometry_unavailable",
+                            "reference_failed"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "target_axes_world": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "approach",
+                    "jaw_line"
+                  ],
+                  "description": "World directions of the approach axis and jaw line of the submitted target orientation, computed from its compiled quaternion.",
+                  "properties": {
+                    "approach": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "jaw_line": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

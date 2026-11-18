@@ -1,0 +1,123 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robocasa",
+ "task": "OpenDrawer",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robocasa OpenDrawer at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "a9e152e2eea16d342dac40e4577fb4c68b932854"
+ ],
+ "task_language": "Open the left drawer. (The side word is sampled per scene: left or right.)",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robocasa/environments/kitchen/atomic/kitchen_drawer.py",
+   "sha256": "7b29347c1af004d0af54c22c746e8e9c840d221ba4a55682f6df050de05fb8c3"
+  },
+  {
+   "role": "drawer_state_normalization",
+   "path": "robocasa/models/fixtures/cabinets.py",
+   "sha256": "5c49fa3fb08f64263879fae2b51beb47cfe54951ff5ba3259aaff63c0b1d5661"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robocasa/utils/object_utils.py",
+   "sha256": "3a7ddb8ba503c5f397baa1513b7b5f370c3c3b2a6a67fa723e83c9472c58af4a"
+  },
+  {
+   "role": "episode_success_timing",
+   "path": "robocasa/environments/kitchen/kitchen.py",
+   "sha256": "35b1395ce65d51b993296aff1881fd5371542aec4c4e8ffc38c3f775327b5c56"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robocasa/OpenDrawer-s0-witness.json",
+   "sha256": "5f563cac9369098b6b6b01ca9b95bf96be990c5e117c6e6a96389819a816e298"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read ManipulateDrawer._check_success, Drawer.get_door_state/set_door_state and OU.normalize_joint_value; the only condition is the slide fraction of the one target drawer."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Read _setup_kitchen_references/_place_robot/_get_obj_cfgs: target drawer, side word and robot placement are sampled per seed; all drawers start closed; a tool/utensil object sits inside and one to three distractors sit on the counter."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "The slide joint sign is negative outward; door_state uses 0.55 x size[1] as full scale, so door_state can exceed one when the drawer is pulled further."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "Kitchen._check_success is evaluated after every control step; the ORA session latches the first success and ends the episode."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Drawer opening is visible in the base-mounted agentview and wrist cameras; no private state is needed to judge it."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness record: the predicate's own set_door_state at 1.0 and 0.96 gives check_success true on seed 0."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: 0.9 and 0.5 give false; reset state false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "ManipulateDrawer._check_success: every door_state value >= 0.95; Drawer.get_door_state normalizes the slide joint by 0.55 of the drawer depth (size[1]), so the bar is a slide of about 0.52 of the depth.",
+   "interpretation": "The drawer must be pulled out to about half its depth or more.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "ManipulateDrawer.get_ep_meta: the drawer side word in the language names which drawer; robot is placed beside that drawer.",
+   "interpretation": "Open the drawer the instruction names.",
+   "disposition": "task_intent_only",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "kitchen_drawer.py:_check_success and cabinets.py:Drawer.get_door_state.",
+   "interpretation": "Exact normalized fraction (0.95 of 0.55 depth) withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limit stays qualitative in public text; the object inside the drawer is irrelevant to the predicate."
+  }
+ ],
+ "public_clauses": [
+  "Pull the named drawer out until roughly half of its depth or more is exposed; a drawer opened only a little does not complete the task."
+ ],
+ "counterexamples": [
+  {
+   "case": "Drawer pulled out to 0.9 of the predicate's normalized opening (about 0.50 of the depth): check_success false.",
+   "expected": "witness case drawer_open_fraction_0.9"
+  },
+  {
+   "case": "Drawer at half the predicate's normalized opening: check_success false.",
+   "expected": "witness case drawer_open_fraction_0.5"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

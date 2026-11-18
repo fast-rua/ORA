@@ -1,0 +1,96 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "preview_move",
+  "description": "Render one candidate grip-site pose without executing it. Use when: reviewing an uncertain position or orientation before submitting it; skip a repeated preview whose evidence and candidate are unchanged. Effect: read-only world access; persists an observation-bound preview record. Returns: candidate status, preview_id, compiled_pose, candidate_agentview image and view_dimensions. Does not: show actual future world state, solve inverse kinematics or certify scene collision clearance, reachability or task success. On error: correct the named pose field or conflicting orientation representation using the current measured pose.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target_xyz_world_m": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "Absolute grip-site [x,y,z] in world metres; omit to hold measured current position. Mutually exclusive with translation_delta_mm."
+      },
+      "translation_delta_mm": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "Grip-site translation [x,y,z] in millimetres in translation_delta_frame; omit to hold position. Mutually exclusive with target_xyz_world_m."
+      },
+      "translation_delta_frame": {
+        "type": "string",
+        "enum": [
+          "world",
+          "grip_site"
+        ],
+        "default": "world",
+        "description": "Frame for translation_delta_mm: fixed world axes or measured action-start grip_site axes; omitted defaults to world."
+      },
+      "target_orientation_world_xyzw": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "description": "Absolute world grip-site quaternion [x,y,z,w]; omit to preserve current orientation. Mutually exclusive with axis-direction orientation fields."
+      },
+      "grip_site_z_axis_world": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "World direction [x,y,z] for local grip-site +Z; normalized by the shared pose compiler. Alternative to a quaternion; an omitted second axis preserves the closest compatible orientation."
+      },
+      "grip_site_x_axis_world": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "World direction [x,y,z] for local grip-site +X; normalized by the shared pose compiler. If +Z is supplied the two directions must be approximately orthogonal."
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "const": "candidate"
+      },
+      "preview_id": {
+        "type": "string"
+      },
+      "views": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "compiled_pose": {
+        "type": "object"
+      },
+      "view_dimensions": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "preview_id",
+      "views",
+      "compiled_pose",
+      "view_dimensions"
+    ],
+    "additionalProperties": false
+  }
+}

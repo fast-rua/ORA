@@ -33,26 +33,29 @@ NONINTERACTIVE_TASKS = frozenset((
     'organize_table', 'pack_objects_into_box', 'push_T', 'put_bottles_into_dustbin',
     'stack_bowls', 'stack_blocks',
 ))
+# Tasks whose scene prepares CUDA garments in the bridge (_prepare_cuda_garments).
+CLOTH_TASKS = frozenset(('fold_clothes', 'fold_clothes_random'))
 # Only source-declared, directly imported bases are admitted. Historical
 # monolithic sessions need none of these files to exist.
 TERMINAL_OWNERS = {
     'RobodojoRoundMixin': ('ora/environment/backends/robodojo/round_lifecycle.py', 'round_lifecycle'),
     'RobodojoObservationMixin': ('ora/environment/backends/robodojo/observation.py', 'observation'),
     'RobodojoExecutionCaptureMixin': ('ora/environment/backends/robodojo/execution_capture.py', 'execution_capture'),
+    'RobodojoVerdictMixin': ('ora/environment/backends/robodojo/round_verdict.py', 'round_verdict'),
 }
 
 # The scene smoke binds the whole worker kernel -- which is held to the
-# worker's import closure (orchestrator/robodojo_kernel_review.py) -- plus the
+# worker's import closure (tests/support/robodojo_kernel_review.py) -- plus the
 # host-side action executor the smoke drives. Former extras the closure check
 # moved into the kernel are no longer repeated here.
 DEPENDENCIES = tuple(sorted(set(legacy.WORKER_KERNEL_PATHS) | {
-    'ora/orchestrator/action_executor.py',
+    'ora/orchestrator/episode/action_executor.py',
 }))
 # Terminal/control closure members a card deliberately does not bind, with the
 # review. They are leaves: their own imports are not followed either. The
 # safety premise is that a card is only ever reused through a fresh scene
 # smoke whose DEPENDENCIES bind the whole kernel, so every entry here must be
-# a DEPENDENCIES member (tests/environments/robodojo/test_robodojo_revalidation.py checks it).
+# a DEPENDENCIES member (tests/ora/orchestrator/backends/robodojo/test_robodojo_revalidation.py checks it).
 CARD_EXCLUSIONS = {
     'ora/environment/backends/robodojo/motion_adapter.py':
         'align_plan planning adapter (probe_motion runs through sparse_motion, not this); its plans '
@@ -72,6 +75,7 @@ TERMINAL_FILES = (
     'ora/environment/base.py',
     'ora/environment/backends/robodojo/bridge.py',
     'ora/environment/backends/robodojo/common.py',
+    'ora/environment/backends/robodojo/official_terminal.py',
     'ora/environment/backends/robodojo/sparse_motion.py',
     'ora/environment/controllers/robodojo_arx.py',
 )
@@ -109,7 +113,7 @@ def revalidate_geometry_binding(current: dict, original: dict, *, source_commit:
         return {'original_descriptor': original, 'current_descriptor': current,
                 'comparison': 'identical_descriptor_binding'}
     from ora.agent.composition.embodiment import validate_embodiment_descriptor
-    from ora.agent.composition.embodiment_geometry import load_public_geometry_binding
+    from ora.agent.composition.embodiment.geometry import load_public_geometry_binding
     old_bytes = source_bytes(source_commit, original['path'])
     require(digest(old_bytes) == original['sha256'], 'original geometry descriptor source drift')
     old = validate_embodiment_descriptor(json.loads(old_bytes))
@@ -221,20 +225,27 @@ def _bridge_terminal_source(data: bytes, measured_task: str | None) -> bytes:
     A cloth scene keeps the full bridge dependency. Only the reviewed
     fold-clothes initialization branch is inactive for a card measured on a
     different task; native control, verdict, reset and all other bridge code
-    remain compared. A fold-clothes card keeps the entire bridge dependency.
+    remain compared. A fold_clothes or fold_clothes_random card keeps the
+    entire bridge dependency. The branch has two reviewed forms: the
+    fold_clothes-only test of bridges before the 2026-11-14 admission of
+    fold_clothes_random, projected exactly as before, and the two-task test
+    after it.
     """
     tree = ast.parse(data)
-    if measured_task is not None and measured_task != 'fold_clothes':
+    if measured_task is not None and measured_task not in CLOTH_TASKS:
         tree.body = [node for node in tree.body if not (
             isinstance(node, ast.FunctionDef) and node.name == '_prepare_cuda_garments')]
-        expected = ast.parse('if self.task_name == "fold_clothes":\n    _prepare_cuda_garments(self.scene_manager, self.num_envs)').body[0]
-        expected_dump = ast.dump(expected, include_attributes=False)
+        expected_dumps = {ast.dump(ast.parse(
+            f'if {test}:\n    _prepare_cuda_garments(self.scene_manager, self.num_envs)').body[0],
+            include_attributes=False) for test in (
+                'self.task_name == "fold_clothes"',
+                'self.task_name in ("fold_clothes", "fold_clothes_random")')}
         for cls in tree.body:
             if isinstance(cls, ast.ClassDef) and cls.name == 'EvaluationLifecycle':
                 for method in cls.body:
                     if isinstance(method, ast.FunctionDef) and method.name == '_post_setup_scene':
                         method.body = [node for node in method.body
-                            if ast.dump(node, include_attributes=False) != expected_dump]
+                            if ast.dump(node, include_attributes=False) not in expected_dumps]
     return ast.dump(tree, include_attributes=False).encode()
 
 
@@ -481,7 +492,7 @@ def validate_scene(runtime: dict, report: dict, plan: dict, root: Path, card: di
         # its smoke does not restart in place, and an older one that did may stay.
         require(checks.get('round_reset') in (True, CPU_SINGLE_ROUND_RESET),'scene smoke checks incomplete')
     original_plan = dict(plan); recorded_hash = original_plan.pop('plan_sha256')
-    from .spec import json_sha256
+    from .spec.values import json_sha256
     require(json_sha256(original_plan)==recorded_hash==report['plan_sha256'],'scene plan hash drift')
     require(plan['harness_commit']==report['source_commit'],'scene producer source drift')
     require(configuration_binding(runtime)==configuration_binding(plan['runtime']), 'scene configuration drift')
@@ -496,7 +507,7 @@ def validate_scene(runtime: dict, report: dict, plan: dict, root: Path, card: di
     registered=validate_scene_registration(reset['scene_registration'],native_action_limit=runtime['native_action_limit'])
     require(restart is None or restart['round_isolation']['passed'] is True,'round isolation failed')
     source_path=root/'environment/source-manifest.json'; source=json.loads(source_path.read_text())
-    from .robodojo_physics_attestation import require_physics_attestation
+    from .backends.robodojo.physics_attestation import require_physics_attestation
     physics=require_physics_attestation(runtime,source)
     scheduled=None
     if runtime.get('layout_schedule') is None:
@@ -505,7 +516,7 @@ def validate_scene(runtime: dict, report: dict, plan: dict, root: Path, card: di
     else:
         # A scheduled round is a new layout in a relaunched simulation, so its
         # identities differ by design; its own checks replace the comparison.
-        from .robodojo_layout_revalidation import validate_scheduled_scene
+        from .backends.robodojo.layout_revalidation import validate_scheduled_scene
         sync_path=root/'environment/render-synchronization.jsonl'
         synchronizations=[json.loads(line) for line in sync_path.read_text().splitlines() if line.strip()]
         scheduled=validate_scheduled_scene(runtime,report,source,synchronizations)
@@ -561,7 +572,7 @@ def validate_scene(runtime: dict, report: dict, plan: dict, root: Path, card: di
             **({} if runtime.get('physics_device','cuda:0')=='cuda:0' else {'physics_mode':physics})}
 
 
-def evaluate(runtime: dict, *, workspace_root: Path, harness_commit: str, card_reference: dict, smoke_reference: dict) -> dict:
+def evaluate(runtime: dict, *, workspace_root: Path, harness_commit: str, card_reference: dict, smoke_reference: dict, allow_kernel_drift: bool = False) -> dict:
     raw_card,_=legacy._read_record(card_reference,workspace_root=workspace_root,label='original terminal card')
     from ora.environment.benchmarks.robodojo import REVISION_FIELDS
     from ora.environment.benchmarks.robodojo_asset_revision import unchanged_card_assets
@@ -573,8 +584,11 @@ def evaluate(runtime: dict, *, workspace_root: Path, harness_commit: str, card_r
                  **{REVISION_FIELDS[k]: v for k, v in raw_card['source_revisions'].items()}}
     card=legacy.load_card_qualification(old_runtime,workspace_root=workspace_root,
         harness_commit=raw_card['harness_commit'],reference=card_reference)
-    require(terminal_dependencies(card['harness_commit'], card['measured_task']['task'])==terminal_dependencies(harness_commit, card['measured_task']['task']),
-            'official terminal/control dependency changed; targeted requalification required')
+    warnings = []
+    if terminal_dependencies(card['harness_commit'], card['measured_task']['task']) != terminal_dependencies(harness_commit, card['measured_task']['task']):
+        require(allow_kernel_drift, 'official terminal/control dependency changed; targeted requalification required')
+        warnings.append({'code': 'terminal_dependency_mismatch',
+                         'measured_commit': card['harness_commit'], 'plan_commit': harness_commit})
     old_config=dict(card['card_configuration']); current_config=card_configuration_binding(runtime)
     for field in ('cuda_visible_devices','renderer_gpu'):
         old_config.pop(field); current_config.pop(field)
@@ -583,7 +597,12 @@ def evaluate(runtime: dict, *, workspace_root: Path, harness_commit: str, card_r
     producer = dependency_map(report['source_commit'], runtime['task_variant'])
     current = dependency_map(harness_commit, runtime['task_variant'])
     changed = sorted(k for k in set(producer) | set(current) if producer.get(k) != current.get(k))
-    require(not changed, 'scene smoke execution dependencies require review: ' + ', '.join(changed))
+    require(not changed or allow_kernel_drift, 'scene smoke execution dependencies require review: ' + ', '.join(changed))
+    if changed:
+        warnings.append({'code': 'worker_kernel_mismatch', 'changed_paths': changed,
+                         'measured_commit': report['source_commit'], 'plan_commit': harness_commit,
+                         'recorded_worker_kernel_sha256': legacy.worker_kernel_sha256(report['source_commit']),
+                         'plan_worker_kernel_sha256': legacy.worker_kernel_sha256(harness_commit)})
     plan=json.loads((path.parent/'plan.json').read_text())
     view=validate_scene(runtime,report,plan,path.parent,card)
     return {**view,'schema':SCHEMA,'harness_commit':harness_commit,
@@ -594,7 +613,7 @@ def evaluate(runtime: dict, *, workspace_root: Path, harness_commit: str, card_r
             'raw_artifacts':[reference(p,workspace_root) for p in sorted(path.parent.rglob('*.json'))],
             'producer_dependencies':dependency_map(report['source_commit'], runtime['task_variant']),
             'terminal_dependencies':terminal_dependencies(card['harness_commit'], card['measured_task']['task']),
-            'coverage':scene_coverage(runtime)}
+            'coverage':scene_coverage(runtime), **({'warnings': warnings} if warnings else {})}
 
 
 def scene_coverage(runtime: dict) -> dict:
@@ -620,15 +639,16 @@ def _scheduled_layouts(runtime: dict) -> dict | None:
 
 
 def _schedule_checks() -> tuple[str, ...]:
-    from .robodojo_layout_revalidation import SCHEDULE_CHECKS
+    from .backends.robodojo.layout_revalidation import SCHEDULE_CHECKS
     return SCHEDULE_CHECKS
 
 
-def load(runtime: dict, *, workspace_root: Path, harness_commit: str) -> dict:
+def load(runtime: dict, *, workspace_root: Path, harness_commit: str, allow_kernel_drift: bool = False) -> dict:
     record,_=read_reference(runtime['infrastructure_qualification'],workspace_root)
     require(record.get('schema')==SCHEMA,'unknown revalidation schema')
     view=evaluate(runtime,workspace_root=workspace_root,harness_commit=harness_commit,
-                  card_reference=record['original_card'],smoke_reference=record['scene_smoke'])
+                  card_reference=record['original_card'],smoke_reference=record['scene_smoke'],
+                  allow_kernel_drift=allow_kernel_drift)
     # This certificate is a checker product. Re-evaluate its raw inputs at every
     # admission; a later unrelated source commit never rewrites the certificate.
     for key in ('producer_dependencies','terminal_dependencies','coverage','environment','device_binding','raw_artifacts'):

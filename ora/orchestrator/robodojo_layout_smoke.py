@@ -22,12 +22,12 @@ from __future__ import annotations
 import math
 import os
 from pathlib import Path
-import subprocess
 import time
 from typing import Any, Callable, Mapping
 
 from ora.environment.benchmarks.robodojo_layout_reach import layout_reach_objects
-from ora.orchestrator.robodojo_layout_revalidation import SCHEDULE_CHECKS
+from ora.orchestrator.backends.robodojo.layout_revalidation import SCHEDULE_CHECKS
+from ora.orchestrator.backends.robodojo.probe_episode import nvidia_smi
 
 #: Height of link6 above a layout object's spawn centre for the read-only
 #: top-down approach: the ARX contact point sits 0.1501 m along link6 +x, so
@@ -106,8 +106,7 @@ def unreachable_objects(reaches: list[Mapping[str, Any]]) -> list[str]:
 
 
 def worker_gpu_memory_mib(pid: int) -> int | None:
-    rows = subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid,used_memory',
-                                    '--format=csv,noheader,nounits'], text=True, timeout=15)
+    rows = nvidia_smi(['--query-compute-apps=pid,used_memory', '--format=csv,noheader,nounits'])
     used = [int(row.split(',')[1]) for row in rows.splitlines() if row.split(',')[0].strip() == str(pid)]
     return sum(used) if used else None
 

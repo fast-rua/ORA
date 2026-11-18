@@ -7,21 +7,17 @@ from typing import Any
 
 
 _EXPORTS = {
-    "ContextBundle": (".slots", "ContextBundle"),
-    "ContextSlot": (".slots", "ContextSlot"),
-    "ContextSource": (".slots", "ContextSource"),
-    "NativeContextPipeline": (".native", "NativeContextPipeline"),
-    "ContextCompactionRejected": (".projection", "ContextCompactionRejected"),
-    "causal_provider_value": (".projection", "causal_provider_value"),
-    "episode_index_keyframe": (".projection", "episode_index_keyframe"),
-    "RolloutCheckpointCompactor": (
-        ".rollout_compactor", "RolloutCheckpointCompactor",
-    ),
-    "ContextError": (".codex", "ContextError"),
-    "ContextPolicy": (".codex", "ContextPolicy"),
-    "ContextProjector": (".codex", "ContextProjector"),
-    "CurrentObservationContextPolicy": (".codex", "CurrentObservationContextPolicy"),
-    "build_context_policy": (".codex", "build_context_policy"),
+    # Produced by the policy layers, so they live in composition below context.
+    "ContextBundle": ("ora.agent.composition.prompt.slots", "ContextBundle"),
+    "ContextSlot": ("ora.agent.composition.prompt.slots", "ContextSlot"),
+    "ContextSource": ("ora.agent.composition.prompt.slots", "ContextSource"),
+    "causal_provider_value": (".causal_value", "causal_provider_value"),
+    "episode_index_keyframe": (".causal_value", "episode_index_keyframe"),
+    "ContextError": (".observation.projector", "ContextError"),
+    "ContextPolicy": (".observation.projector", "ContextPolicy"),
+    "ContextProjector": (".observation.projector", "ContextProjector"),
+    "CurrentObservationContextPolicy": (".observation.projector", "CurrentObservationContextPolicy"),
+    "build_context_policy": (".observation.projector", "build_context_policy"),
 }
 
 __all__ = sorted(_EXPORTS)

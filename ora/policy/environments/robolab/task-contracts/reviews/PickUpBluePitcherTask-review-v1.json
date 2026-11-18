@@ -1,0 +1,196 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "PickUpBluePitcherTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-16",
+ "scope": "robolab PickUpBluePitcherTask at the pinned revision; generated per predicate family (picked_up); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Pick up the large blue pitcher",
+ "family": "picked_up",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/pick_up_blue_pitcher.py",
+   "sha256": "254c6287a5ad881a67726ef89c27015f9df2fcc96c2d35dc6a8d5a545e4afea6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/blue.usda",
+   "sha256": "c33535281435c1211102f47f4cb0b0fad9015b2d42e91b7d1b9142493c354b9c"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/PickUpBluePitcherTask-s0-witness.json",
+   "sha256": "6a6756f028910e6de0a114d8f04541b95051502e7707e8a0138b9c1605e0d14a"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read PickUpBluePitcherTask terminations: success = object_picked_up(object='pitcher', surface='table', distance=0.05), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene blue.usda: pitcher among 4 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Gripper contact (any finger body) and every box corner above the table's top face by the lift margin, with the centroid over the table's footprint."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (1) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 6a6756f02891)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 6a6756f02891): held_and_lifted -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 6a6756f02891): reset_state -> False; lifted_not_held -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_picked_up(object='pitcher', surface='table', distance=0.05): object_grabbed (gripper contact) and object_above(table, z_margin=distance): every box corner above the table's top face by the margin, centroid over its footprint.",
+   "interpretation": "Held and lifted clear of the table.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0,
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_picked_up and its predicate_logic helpers.",
+   "interpretation": "Contact force bar and lift margin withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The blue pitcher must be held in the gripper and lifted so that all of it is clear above the table top, still over the table.",
+  "The task completes while it is held: once set down or dropped, it does not count."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "lifted_not_held: false.",
+   "expected": "witness case lifted_not_held"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": false,
+  "subtasks": "pick_blue_object(groups=['group1', 'group2'], logical=all) score=1.0",
+  "notes": []
+ },
+ "compatibility": {
+  "status": "ready_with_note",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "wide_object",
+    "detail": "no face of the blue pitcher fits the open gripper (85 mm); a grasp needs a rim, handle, stem or edge"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "lifted_not_held",
+    "expected": false,
+    "ops": [
+     {
+      "op": "lift",
+      "object": "pitcher",
+      "dz": 0.15
+     }
+    ],
+    "ticks": 2
+   },
+   {
+    "case": "held_and_lifted",
+    "expected": true,
+    "ops": [
+     {
+      "op": "grasp",
+      "object": "pitcher",
+      "order": [
+       0,
+       2,
+       1
+      ],
+      "flip": true,
+      "shift": 0.08
+     }
+    ],
+    "ticks": 40
+   }
+  ],
+  "visibility_objects": [
+   "pitcher"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks",
+  "plan_fix": "2026-11-15: the pitcher (19 cm across) is wider than the open jaw (8.5 cm); the generated grasp put its near 2 cm between the pads and the jaw closed on nothing (11-05 witness and the 11-15 probe). Other axis orders only registered contact by setting the pitcher across the open pads. The case holds it upright by the rim: its height along the approach (order [0, 2, 1], flipped upright), moved 8 cm along the jaw line so one wall lies between the pads, which close on it."
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1794791597.664344,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/PickUpBluePitcherTask-s0-witness.json",
+  "sha256": "6a6756f028910e6de0a114d8f04541b95051502e7707e8a0138b9c1605e0d14a",
+  "plan_sha256": "83692d84d356206119ee9f8a1abb8e0919009cde39505f29602fb13caa3cf7d7"
+ }
+}

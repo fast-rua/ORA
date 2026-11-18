@@ -1,0 +1,134 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "observe",
+  "description": "Read current actual RGB-D scene evidence from selected public views. Use when: another physical camera or derived point-cloud view would resolve uncertainty; the current agentview is already delivered automatically. Effect: read-only; stores derived overlays but neither recaptures nor advances the world. Returns: observation_id, views, view_dimensions, grip_xyz_m, aperture_mm and aperture_limits_mm, with actual-view image blocks; aperture_mm is the normalized Panda opening times nominal 80 mm, not a separately calibrated aperture. Does not: expose object identity, hidden state or task success; derived point clouds add no new sensor evidence. On error: choose agentview, wrist or a named point-cloud view and use the returned native dimensions for pixels.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "views": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string",
+          "enum": [
+            "agentview",
+            "wrist",
+            "pointcloud_top",
+            "pointcloud_front",
+            "pointcloud_side"
+          ]
+        },
+        "description": "Unique public view names; omitted or null selects agentview. Physical RGB views retain their returned native size; pointcloud_top/front/side are derived views."
+      },
+      "history_point_ids": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "description": "Previously solved point identifiers to overlay; omitted or null adds no history marks. Identifiers are local measurement references, not object identities."
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "$defs": {
+      "error": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "vector3nullable": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": [
+          "array",
+          "null"
+        ]
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "aperture_limits_mm": {
+            "additionalProperties": false,
+            "properties": {
+              "near_closed": {
+                "type": "number"
+              },
+              "open": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "near_closed",
+              "open"
+            ],
+            "type": "object"
+          },
+          "aperture_mm": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "grip_xyz_m": {
+            "$ref": "#/$defs/vector3nullable"
+          },
+          "observation_id": {
+            "type": "string"
+          },
+          "success": {
+            "const": true
+          },
+          "views": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "view_dimensions": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "observation_id",
+          "views",
+          "grip_xyz_m",
+          "aperture_mm"
+        ],
+        "type": "object"
+      },
+      {
+        "$ref": "#/$defs/error"
+      }
+    ]
+  }
+}

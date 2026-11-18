@@ -17,6 +17,7 @@ Positions are world metres; measured quaternions are [x,y,z,w]. Transform local 
 
 `left_tcp` local approach [1, 0, 0]; jaw-closing line [0, 1, 0]. Current world directions are supplied with measured state.
 `right_tcp` local approach [1, 0, 0]; jaw-closing line [0, 1, 0]. Current world directions are supplied with measured state.
+Local +approach points out of the gripper, from the palm toward the fingertips.
 
 ## Motion capabilities
 
@@ -25,10 +26,10 @@ The ToolSurface owns motion, workspace, window and acceptance limits. Holding a 
 ## Gripper semantics
 
 `left_gripper`: no single aperture is asserted across the tapered fingers.
-At reference finger qpos [0, 0] m, finger collision extent along local approach from the controlled point is [-50.43, 35.57] mm.
+At reference finger qpos [0, 0] m, the fingertips end 35.57 mm beyond the controlled point along +approach, and the fingers reach back 50.43 mm from it toward the wrist.
 At that reference opening, the mesh centerline gap at TCP depth is 4.8964 mm; the gap varies with depth and is not a general minimum grasp width.
 `right_gripper`: no single aperture is asserted across the tapered fingers.
-At reference finger qpos [0, 0] m, finger collision extent along local approach from the controlled point is [-50.43, 35.57] mm.
+At reference finger qpos [0, 0] m, the fingertips end 35.57 mm beyond the controlled point along +approach, and the fingers reach back 50.43 mm from it toward the wrist.
 At that reference opening, the mesh centerline gap at TCP depth is 4.8964 mm; the gap varies with depth and is not a general minimum grasp width.
 
 ## Sensors and cameras

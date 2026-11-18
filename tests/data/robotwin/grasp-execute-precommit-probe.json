@@ -1,0 +1,124 @@
+{
+ "description": "Recorded on a RoboTwin smoke of the toolkit switch: grasp_plan's first candidate, the grasp_execute call that chose it, the motion probe its precommit check sent the worker, and the refusal the toolkit returned before the probe projection kept the planner error object. Read-only extract of events.jsonl and native/toolkit-io/calls.jsonl; the worker's answer was not recorded.",
+ "grasp_execute": {
+  "arguments": {
+   "candidate_id": "grasp-044547225cc54a3ef687e6a5",
+   "rationale": "Top-ranked reachable candidate: jaw line radial to the bowl rim (177 deg to radial), approach 8.6 deg from vertical, grips the near-right wall with most clearance from the plate."
+  },
+  "refusal": {
+   "code": "grasp_proposal_failed",
+   "message": "undeclared nested object in public scalar field",
+   "retryable": true
+  }
+ },
+ "grasp_plan": {
+  "arguments": {
+   "arm": "right",
+   "max_candidates": 3,
+   "target_ref": "target-2469681154d4fc590007abca"
+  },
+  "arm": "right",
+  "candidate": {
+   "approach_delta": {
+    "interaction": "contact_approach",
+    "orientation_mode": "hold_current",
+    "position_frame": "end_effector",
+    "position_mode": "delta",
+    "translation_m": [
+     0.09999999999999999,
+     0.0,
+     0.0
+    ]
+   },
+   "candidate_id": "grasp-044547225cc54a3ef687e6a5",
+   "contact_pose": {
+    "orientation_xyzw": [
+     -0.1536773323204989,
+     0.7416204687657343,
+     0.1138306392307414,
+     0.6429812932044512
+    ],
+    "position_m": [
+     0.23769100189293332,
+     -0.12654899698888256,
+     0.7829071551365916
+    ]
+   },
+   "gripper_opening_m": 0.008972176350653172,
+   "ik_reachability": {
+    "approach": {
+     "reachable": true,
+     "reason": null
+    },
+    "approach_tilt_from_vertical_deg": 8.6,
+    "member": "exact",
+    "pregrasp": {
+     "reachable": true,
+     "reason": null
+    },
+    "reachable": true
+   },
+   "pregrasp_pose": {
+    "orientation_xyzw": [
+     -0.1536773323204989,
+     0.7416204687657343,
+     0.1138306392307414,
+     0.6429812932044512
+    ],
+    "position_m": [
+     0.2502826687169306,
+     -0.11839314026581767,
+     0.8817754105460317
+    ]
+   },
+   "rank": 0
+  }
+ },
+ "probe_request": {
+  "observation_id": "place_container_plate:episode-000:observation-0000",
+  "observation_sha256": "aeba707b1e0d04092adc43909238c5184cc6dcaca1633f2c3a179dd27f8b809e",
+  "planner_feedback": "ik_candidate_counts_v1",
+  "queries": [
+   {
+    "arm": "right",
+    "pose": {
+     "orientation_xyzw": [
+      -0.1536773323204989,
+      0.7416204687657343,
+      0.1138306392307414,
+      0.6429812932044512
+     ],
+     "position_m": [
+      0.2502826687169306,
+      -0.11839314026581767,
+      0.8817754105460317
+     ]
+    },
+    "query_id": "pregrasp"
+   },
+   {
+    "arm": "right",
+    "pose": {
+     "orientation_xyzw": [
+      -0.1536773323204989,
+      0.7416204687657343,
+      0.1138306392307414,
+      0.6429812932044512
+     ],
+     "position_m": [
+      0.23769100189293332,
+      -0.12654899698888256,
+      0.7829071551365916
+     ]
+    },
+    "query_id": "approach"
+   }
+  ],
+  "schema": "ora.motion-probe-request.v2",
+  "variant_policy": "parallel_jaw_equivalents"
+ },
+ "run_id": "ora-glue-code-robotwin-a8f90ec5431d--20261103T055118Z",
+ "seed": 100000,
+ "task": "place_container_plate",
+ "tool_surface": "robotwin_toolchain_b2_closed_noservo_v2"
+}

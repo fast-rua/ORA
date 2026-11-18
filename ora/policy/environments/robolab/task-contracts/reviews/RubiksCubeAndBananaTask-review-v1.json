@@ -1,0 +1,115 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "RubiksCubeAndBananaTask",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robolab RubiksCubeAndBananaTask at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Put the cube and the banana in the bowl",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/rubiks_cube_and_banana_task.py",
+   "sha256": "3687a21481ffb7482b42a801ab2950dbdb684c39cfc122dff3a8edbaf923f90f"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/RubiksCubeAndBananaTask-s0-witness.json",
+   "sha256": "bd246e004983ce7b34e0af5066da76a1397c2b3e9e1e0d725d461f163fcc0353"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read RubiksCubeAndBananaTerminations.success with logical all, object_in_container and gripper_detached."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene rubiks_cube_banana_bowl.usda with cube, banana, bowl and table."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Container test in the bowl's local frame; each object's centroid tested separately."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "Evaluated every control step; RoboLab freezes the episode at success and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Cube, banana and bowl are visible in the over-shoulder and wrist cameras."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness: banana then cube dropped into the bowl with the robot held away gives the success termination on seed 0."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: banana alone in the bowl and the reset state give false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "object_in_container(object=[rubiks_cube, banana], container=bowl, logical=all, require_contact_with=True).",
+   "interpretation": "Both objects inside the bowl, each touching it.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True for each object.",
+   "interpretation": "Release both.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_in_container and predicate_logic.gripper_detached.",
+   "interpretation": "Contact force bar and container box slack withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy; object order is free."
+  }
+ ],
+ "public_clauses": [
+  "Both the cube and the banana must end up inside the bowl, each touching it.",
+  "Let go of each of them: the task is not complete while the gripper still touches either one."
+ ],
+ "counterexamples": [
+  {
+   "case": "Only the banana in the bowl: false.",
+   "expected": "witness case only_banana_in_bowl"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

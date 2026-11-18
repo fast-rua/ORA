@@ -91,8 +91,9 @@ def public_contact_motion_cause(evidence: Mapping[str, Any]) -> str:
 
 
 #: Per-arm blocks in which a RoboDojo executor names how each arm's motion ended
-#: (``environment/backends/robodojo/motion_stall.py``): a recovery's overall
-#: outcome first, else the arm's latest driven segment.
+#: (``environment/backends/robodojo/trajectory.py``; ``recovery_progress`` only in
+#: the SDK executor's recorded receipts): a recovery's overall outcome first, else
+#: the arm's latest driven segment.
 _ARM_PROGRESS_BLOCKS = ("recovery_progress", "motion_progress")
 
 
@@ -128,21 +129,25 @@ def _public_command_drift(record: Mapping[str, Any]) -> dict[str, Any]:
 
 
 _PUBLIC_CONTACT_DETAIL_FIELDS = frozenset({
-    "contact_estimated", "contact_force_threshold_n", "external_force_magnitude_n",
-    "external_force_world_n", "external_force_direction_world", "force_frame",
-    "force_direction_convention", "force_direction_status", "force_threshold_exceeded",
+    "contact_estimated", "contact_force_threshold_n", "force_stop_threshold_n",
+    "external_force_magnitude_n", "external_force_world_n", "external_force_direction_world",
+    "force_frame", "force_direction_convention", "force_direction_status",
+    "force_threshold_exceeded", "position_error_growth_m", "position_error_growth_limit_m",
     "realized_translation_world_m", "requested_translation_world_m",
 })
 
 
 def is_public_contact_feedback_field(parent_path: str, key: str, value: Any) -> bool:
     """Recognize narrow existing sensor-feedback fields, never arbitrary contact data."""
+    # A synchronous execution's ledger carries the same public receipt projection per action
+    # (``execution.actions[].receipt``, ``action_step_inventory[].actions[].receipt``).
     if key == "contact_motion":
-        return (parent_path.endswith(".last_action_effect.detail")
+        return (parent_path.endswith((".last_action_effect.detail", ".receipt.detail"))
                 and isinstance(value, Mapping) and bool(value)
                 and set(value) <= _PUBLIC_CONTACT_DETAIL_FIELDS)
     feedback_parent = (parent_path.endswith((".feedback", ".motion_feedback",
-                                            ".last_action_effect.detail.contact_motion"))
+                                            ".last_action_effect.detail.contact_motion",
+                                            ".receipt.detail.contact_motion"))
                        or parent_path.endswith((".motion_feedback.left", ".motion_feedback.right")))
     if not feedback_parent:
         return False

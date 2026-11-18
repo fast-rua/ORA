@@ -1,0 +1,13 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_prepared_commitment_action_and_result/legacy_submission[left-True]": "6991ac7a60d07a796052ab14f5b4ac927558a8cad7e6d05a5f35dd84703df3e6",
+  "test_prepared_commitment_action_and_result/legacy_submission[right-True]": "6ab2bf3a34514e13575e36d3bddb63c33baa7876627f2190bd7ac8283bbfd128",
+  "test_prepared_commitment_action_and_result/result[left-False]": "2bdec08d4985c6455148bce942cb9b0e450178d5e5e482c11523aeb9ff520556",
+  "test_prepared_commitment_action_and_result/result[right-False]": "720fa4d99e64c952bef3e841f6c847083475f93dd2b0629e8b95aa3e76f11166",
+  "test_prepared_commitment_action_and_result/staged_commitment[left-True]": "f71dd055f93a682225d7b8111adb866519dcbff351babfc902fa7b33be72bafb",
+  "test_prepared_commitment_action_and_result/staged_commitment[right-True]": "edb82c69ea2c71e5a68b36b846ca9f371064717028c2ba0868ee99b7496d53b4",
+  "test_prepared_commitment_action_and_result/written[left-False]": "02a1129202410d1023612d9e46f730a77c69122e0c4b251f06c22277d1286e66",
+  "test_prepared_commitment_action_and_result/written[right-False]": "8da6fbb5792e0cf95d26bcd5bd3d75bf499851c767e7b7ad5780a956d2fee0a2"
+ }
+}

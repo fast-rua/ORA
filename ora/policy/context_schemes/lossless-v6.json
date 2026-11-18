@@ -1,0 +1,92 @@
+{
+ "schema": "ora.context-scheme.v2",
+ "id": "context_lossless_v6",
+ "description": "Lossless causal context: native_slots_v4 composition, action_step_lossless_v4 retention with rollout checkpoints, management v6's stages; since 2026-11-14 a hard backstop that estimates every request before it is sent and ages all but the latest 2 exchanges from L6's watermark (0.8 of the hard limit) on, and truncated replies sent without their reasoning. The default baseline's scheme and E0006's.",
+ "source_baseline": "native_full_explicit_motion_direct_v4",
+ "policy": {
+  "context_profile": "native_causal_context_v1",
+  "context_composition": "native_slots_v4",
+  "context_retention": "action_step_lossless_v4",
+  "summary_policy": "rollout_checkpoint_v1",
+  "memory_policy": "disabled",
+  "provider_continuation_replay": "exact_v1",
+  "initial_observation": "automatic"
+ },
+ "segments": {
+  "unit": "action_step",
+  "exact_tail": 3
+ },
+ "limits": {
+  "reserve_tokens": 2048
+ },
+ "estimator": {
+  "image_tokens": 4096
+ },
+ "references": {
+  "pointers": true,
+  "advertise_over_bytes": 50000,
+  "preview": {
+   "head_bytes": 2048
+  }
+ },
+ "stages": [
+  {
+   "stage": "materialize",
+   "params": {
+    "truncated_reply_reasoning": "withheld"
+   }
+  },
+  {
+   "stage": "stride_aging",
+   "params": {
+    "stride": 4
+   }
+  },
+  {
+   "stage": "eager_externalize",
+   "params": {
+    "large_result_bytes": 50000
+   }
+  },
+  {
+   "stage": "media_window",
+   "params": {
+    "tail_action_steps": 2
+   }
+  },
+  {
+   "stage": "pressure_externalize",
+   "params": {
+    "inline_images": 24,
+    "estimated_tokens": 48000,
+    "provider_input_ratio": 0.7
+   }
+  },
+  {
+   "stage": "episode_capsule",
+   "params": {
+    "trigger_tokens": 150000,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "emergency_checkpoint",
+   "params": {
+    "trigger_tokens": null,
+    "trigger_ratio": 0.8,
+    "target_ratio": 0.65,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "hard_backstop",
+   "params": {
+    "exact_tail_exchanges": 2,
+    "aging": "own",
+    "trigger_ratio": 0.8
+   }
+  }
+ ]
+}

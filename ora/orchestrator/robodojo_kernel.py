@@ -18,7 +18,7 @@ from ora.environment.benchmarks.robodojo import RoboDojoBenchmarkError
 #: sparse-motion gate binds -- is a *subset* of this set, not a prefix of it.
 #: This set is sorted and that one is not, so the two orderings do not line
 #: up: membership must be checked, never read off a position.
-#: ``tests/environments/robodojo/test_robodojo_kernel_paths.py`` asserts the containment and the
+#: ``tests/ora/orchestrator/backends/robodojo/test_robodojo_kernel_paths.py`` asserts the containment and the
 #: non-prefix relation, because an earlier version of this comment claimed a
 #: prefix and a maintainer placing a new file by that claim is how
 #: ``contracts/pose.py`` -- on the worker's executed servo path -- ended up in
@@ -27,11 +27,11 @@ from ora.environment.benchmarks.robodojo import RoboDojoBenchmarkError
 #: that set means, and add it to both if both meanings apply.
 #:
 #: The motion subset covers the session wrapper and its bridge, camera
-#: capture, geometry helpers, motion adapter, sparse-motion executor, the
-#: scripted motion module whose X5 mount/reach constants the infrastructure
-#: probe's unreachable-pose target is derived from, and the ARX X5 controller
-#: contract. The rest of this set is what the infrastructure probes exercise
-#: beyond motion:
+#: capture, geometry helpers, the read-only motion bridge, the executors and
+#: the worker's answers to the host's planning, the scripted motion module
+#: whose X5 mount/reach constants the infrastructure probe's unreachable-pose
+#: target is derived from, and the ARX X5 controller contract. The rest of this
+#: set is what the infrastructure probes exercise beyond motion:
 #:
 #: * ``environment/worker.py`` is the isolated process that constructs the
 #:   session from the RPC config and dispatches every method;
@@ -58,7 +58,7 @@ from ora.environment.benchmarks.robodojo import RoboDojoBenchmarkError
 #: ``ROBODOJO_WORKER_ENTRY_POINTS``) must be listed here or excluded, with its
 #: reason, in ``KERNEL_REVIEWED_EXCLUSIONS``; every import a shared dispatcher
 #: makes for another backend must be named in ``DISPATCH_PRUNED_EDGES``.
-#: ``tests/environments/robodojo/test_robodojo_kernel_paths.py`` fails with the unreviewed paths or
+#: ``tests/ora/orchestrator/backends/robodojo/test_robodojo_kernel_paths.py`` fails with the unreviewed paths or
 #: edges, and with any table entry that no longer matches the source. The
 #: executor modules ``recovery.py`` and ``wait.py`` were imported but unlisted,
 #: so their edits left every record current; the check added them with
@@ -81,8 +81,12 @@ from ora.environment.benchmarks.robodojo import RoboDojoBenchmarkError
 WORKER_KERNEL_PATHS = (
     "ora/contracts/acceptance.py",
     "ora/contracts/action.py",
+    "ora/contracts/execution_state.py",
     "ora/contracts/gripper_feedback.py",
+    "ora/contracts/joint_trajectory.py",
+    "ora/contracts/kinematics.py",
     "ora/contracts/motion.py",
+    "ora/contracts/official_limit.py",
     "ora/contracts/planning_diagnostics.py",
     "ora/contracts/pose.py",
     "ora/contracts/reach_check.py",
@@ -96,38 +100,59 @@ WORKER_KERNEL_PATHS = (
     "ora/environment/backends/robodojo/camera_capture.py",
     "ora/environment/backends/robodojo/common.py",
     "ora/environment/backends/robodojo/execution_capture.py",
+    "ora/environment/backends/robodojo/execution_request.py",
     "ora/environment/backends/robodojo/feedback.py",
     "ora/environment/backends/robodojo/graphics_compat.py",
+    "ora/environment/backends/robodojo/gripper_ramp.py",
+    "ora/environment/backends/robodojo/ground_truth.py",
     "ora/environment/backends/robodojo/ik.py",
-    "ora/environment/backends/robodojo/inter_arm.py",
+    "ora/environment/backends/robodojo/ik_sampler.py",
     "ora/environment/backends/robodojo/interaction_control.py",
+    "ora/environment/backends/robodojo/kinematics_query.py",
     "ora/environment/backends/robodojo/layout_rounds.py",
     "ora/environment/backends/robodojo/motion_adapter.py",
     "ora/environment/backends/robodojo/motion_checks.py",
     "ora/environment/backends/robodojo/motion_qualification.py",
-    "ora/environment/backends/robodojo/motion_stall.py",
+    "ora/environment/backends/robodojo/native_sequence.py",
     "ora/environment/backends/robodojo/observation.py",
+    "ora/environment/backends/robodojo/official_terminal.py",
     "ora/environment/backends/robodojo/reach_check.py",
     "ora/environment/backends/robodojo/reachability.py",
     "ora/environment/backends/robodojo/recovery.py",
+    "ora/environment/backends/robodojo/reset_diagnostics.py",
     "ora/environment/backends/robodojo/robot_asset_geometry.py",
     "ora/environment/backends/robodojo/round_lifecycle.py",
+    "ora/environment/backends/robodojo/round_verdict.py",
     "ora/environment/backends/robodojo/sequence_admission.py",
     "ora/environment/backends/robodojo/session.py",
+    "ora/environment/backends/robodojo/shared_motion.py",
+    "ora/environment/backends/robodojo/source_identity.py",
     "ora/environment/backends/robodojo/sparse_motion.py",
-    "ora/environment/backends/robodojo/staged_contact.py",
     "ora/environment/backends/robodojo/start_gate.py",
+    "ora/environment/backends/robodojo/tick_sequence.py",
+    "ora/environment/backends/robodojo/trajectory.py",
     "ora/environment/backends/robodojo/wait.py",
     "ora/environment/base.py",
     "ora/environment/benchmarks/robodojo.py",
     "ora/environment/benchmarks/robodojo_layouts.py",
     "ora/environment/controllers/alignment.py",
     "ora/environment/controllers/convergence_request.py",
+    "ora/environment/controllers/depth_esdf.py",
+    "ora/environment/controllers/depth_load.py",
+    "ora/environment/controllers/depth_world.py",
+    "ora/environment/controllers/depth_world_inputs.py",
+    "ora/environment/controllers/fk_parity.py",
     "ora/environment/controllers/gripper_stall.py",
     "ora/environment/controllers/joint_path_clearance.py",
     "ora/environment/controllers/measured_convergence.py",
+    "ora/environment/controllers/motion_pace.py",
+    "ora/environment/controllers/motion_planner.py",
     "ora/environment/controllers/motion_progress.py",
+    "ora/environment/controllers/motion_retime.py",
+    "ora/environment/controllers/motion_timing.py",
     "ora/environment/controllers/motion_transaction.py",
+    "ora/environment/controllers/motion_worker.py",
+    "ora/environment/controllers/pace_refusal.py",
     "ora/environment/controllers/plan_validation.py",
     "ora/environment/controllers/reach_check.py",
     "ora/environment/controllers/reachability.py",
@@ -141,6 +166,8 @@ WORKER_KERNEL_PATHS = (
 
 ROBODOJO_MOTION_KERNEL_PATHS = (
     "ora/contracts/acceptance.py",
+    "ora/contracts/official_limit.py",
+    "ora/contracts/execution_state.py",
     "ora/contracts/gripper_feedback.py",
     "ora/environment/backends/robodojo/feedback.py",
     "ora/contracts/planning_diagnostics.py",
@@ -154,9 +181,6 @@ ROBODOJO_MOTION_KERNEL_PATHS = (
     # ik.py screens every admitted IK candidate's straight joint path with this
     # module, so it decides which endpoint the motion gate executes.
     "ora/environment/controllers/joint_path_clearance.py",
-    # The lockstep inter-arm admission of segments that drive both arms
-    # (dual-arm moves and two-arm recoveries) refuses before any write.
-    "ora/environment/backends/robodojo/inter_arm.py",
     # The gate's own driver reads NATIVE_ACTION_LIMITS to size the episode and
     # to judge the official preterminal boundary case, so the benchmark
     # contract is part of what it measures.
@@ -165,11 +189,14 @@ ROBODOJO_MOTION_KERNEL_PATHS = (
     # every scheduled restart to, and its worker-side relaunch checks.
     "ora/environment/benchmarks/robodojo_layouts.py",
     "ora/environment/backends/robodojo/bridge.py",
+    "ora/environment/backends/robodojo/source_identity.py",
     "ora/environment/backends/robodojo/round_lifecycle.py",
     "ora/environment/backends/robodojo/layout_rounds.py",
+    "ora/environment/backends/robodojo/reset_diagnostics.py",
     "ora/environment/backends/robodojo/observation.py",
     "ora/environment/backends/robodojo/motion_checks.py",
     "ora/environment/backends/robodojo/execution_capture.py",
+    "ora/environment/backends/robodojo/execution_request.py",
     "ora/environment/backends/robodojo/bootstrap.py",
     # The node start gate bootstrap and the readback hold.
     "ora/environment/backends/robodojo/start_gate.py",
@@ -181,14 +208,20 @@ ROBODOJO_MOTION_KERNEL_PATHS = (
     "ora/environment/backends/robodojo/session.py",
     "ora/environment/backends/robodojo/sequence_admission.py",
     "ora/environment/backends/robodojo/sparse_motion.py",
-    # The gate's recover_home_after_matrix and recover_backtrack_after_move
-    # cases run recover_motion, which the executor dispatches into this module.
+    # session.__init__ validates runtime.recovery_route with this module; the
+    # gate's recover_home_after_matrix and recover_retrace_after_move cases run
+    # recovery trajectories the host plans, not this module.
     "ora/environment/backends/robodojo/recovery.py",
-    # The executor's staged contact route (opt-in per runtime).
-    "ora/environment/backends/robodojo/staged_contact.py",
-    # Every sparse segment is driven by this module and ends on its joint stall
-    # rule, which feeds the shared per-sample monitor.
-    "ora/environment/backends/robodojo/motion_stall.py",
+    # The per-physics-step executors (follow_joint_trajectory, rate-limited
+    # set_gripper), their journaled tick runner, the bridge's tick with
+    # caller-supplied targets, and their action contract.
+    "ora/environment/backends/robodojo/trajectory.py",
+    "ora/environment/backends/robodojo/gripper_ramp.py",
+    "ora/environment/backends/robodojo/native_sequence.py",
+    "ora/environment/backends/robodojo/official_terminal.py",
+    "ora/environment/backends/robodojo/round_verdict.py",
+    "ora/environment/backends/robodojo/tick_sequence.py",
+    "ora/contracts/joint_trajectory.py",
     "ora/environment/controllers/motion_progress.py",
     "ora/environment/controllers/gripper_stall.py",
     "ora/environment/controllers/robodojo_arx.py",
@@ -196,6 +229,12 @@ ROBODOJO_MOTION_KERNEL_PATHS = (
     # only re-exports them since 7c7e6a8a.
     "ora/contracts/robodojo_arx.py",
     "ora/environment/execution_capture.py",
+    # The gate's holds (wait), and the worker's answers to the host's planning:
+    # plan_path, pace_path and contact_path on the shared motion base, and the
+    # ik_chain, fk and screen_path of the kinematics query.
+    "ora/environment/backends/robodojo/wait.py",
+    "ora/environment/backends/robodojo/shared_motion.py",
+    "ora/environment/backends/robodojo/kinematics_query.py",
 )
 
 #: The RoboDojo backend package; ``robodojo_kernel_review`` holds the manifest

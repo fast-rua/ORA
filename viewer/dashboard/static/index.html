@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORA run dashboard</title>
+<script>
+  // Relative URLs need a trailing slash when a proxy serves the dashboard at a sub-path.
+  if (!location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+    location.replace(location.pathname + '/' + location.search + location.hash);
+  }
+</script>
+<link rel="stylesheet" href="static/base.css">
+<link rel="stylesheet" href="static/dashboard.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/">Run dashboard</a>
+  <nav>
+    <a href="#/">Overview</a>
+    <a href="#/compare">Compare</a>
+  </nav>
+  <span id="crumb" class="crumb"></span>
+  <span class="spacer"></span>
+  <label class="auto"><input type="checkbox" id="auto" checked> auto-refresh 10 s</label>
+  <span id="updated" class="muted"></span>
+</header>
+<main id="app"></main>
+<div id="lightbox" class="lightbox" hidden>
+  <div class="lb-bar"><span id="lb-cap"></span><span class="spacer"></span>
+    <button id="lb-prev" type="button" title="previous (←)">‹</button><button id="lb-next" type="button" title="next (→)">›</button>
+    <a id="lb-open" target="_blank" rel="noopener">open</a><button id="lb-close" type="button" title="close (Esc)">×</button></div>
+  <img id="lb-img" alt="">
+</div>
+<div id="tip" class="tip" hidden></div>
+<script src="static/app.js"></script>
+</body>
+</html>

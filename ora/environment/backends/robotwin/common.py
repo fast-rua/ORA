@@ -153,7 +153,11 @@ DEFAULT_WORKSPACE_BOUNDS_M = {
 }
 
 
-ENVIRONMENT_SIGNAL_POLICIES = {"lifecycle_only", "task_recoverability_v1"}
+#: A play scene (``ora play``): the task's scene loads with its official
+#: predicate withheld (``session.withhold_official_predicate``), so only a step
+#: limit, a budget or a trusted abort ends the episode, and its verdict is null.
+PLAY_SIGNAL_POLICY = "play_scene_v1"
+ENVIRONMENT_SIGNAL_POLICIES = {"lifecycle_only", "task_recoverability_v1", PLAY_SIGNAL_POLICY}
 
 
 TASK_RECOVERABILITY_ACTORS = {"adjust_bottle": ("bottle", 0)}
@@ -480,3 +484,5 @@ class _SparseMotionState:
     planning_start_public_poses: dict[str, list[float]] = field(default_factory=dict)
     blocked_recovery: dict[str, Any] | None = None
     recovery_prefix: tuple[dict[str, Any], dict[str, Any], dict[str, Any]] | None = None
+    #: A dry run (``action_plan.py``): this state plans and never reaches the world.
+    dry_run: bool = False

@@ -74,8 +74,11 @@ class RoboTwinProbeMixin:
         """Delegate read-only alignment planning to its own module."""
 
         from ora.contracts.alignment import AlignmentRequestDrift
+        from ora.contracts.action_plan import is_request
         from ora.environment.controllers.alignment import plan_alignment
 
+        if is_request(request):  # a dry run's plan of one action (``action_plan.py``)
+            return self.plan_action(request["action"])
         try:
             return plan_alignment(
                 request,

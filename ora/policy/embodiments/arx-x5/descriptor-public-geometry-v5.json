@@ -378,8 +378,8 @@
       {
         "source_id": "arx_x5_reviewed_nominal_gripper_parameters",
         "kind": "policy_runtime_adapter",
-        "uri": "repo://ora/agent/tools/arx_x5_gripper.py",
-        "local_path": "ora/agent/tools/arx_x5_gripper.py",
+        "uri": "repo://ora/agent/tools/grasp/arx_x5_gripper.py",
+        "local_path": "ora/agent/tools/grasp/arx_x5_gripper.py",
         "supports": [
           "geometry.gripper.left_gripper",
           "geometry.gripper.right_gripper"

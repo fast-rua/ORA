@@ -1,0 +1,466 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "move_to",
+  "events": {
+    "compiled": [
+      "arm",
+      "interaction",
+      "translation_distance_m",
+      "rotation_angle_deg",
+      "jaw_symmetry",
+      "target_reachable",
+      "reachable_fraction",
+      "reachable_translation_m",
+      "nearest_turn_deg",
+      "nearest_tilt_deg",
+      "clearance_status",
+      "clearance_m",
+      "clearance_observed_fraction"
+    ]
+  },
+  "call": [
+    {"if": {"not": {"empty": "events.compiled"}}, "text": "{events.compiled[].arm|join}"},
+    {
+      "if": {"all": [{"empty": "events.compiled"}, {"has": "result.receipt.target_arms"}]},
+      "text": "{result.receipt.target_arms|join}"
+    }
+  ],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"eq": ["dry.feasible", false]}, "text": "dry run: would be refused, {dry.failure_code}", "failed": true},
+    {
+      "if": {"lt": ["dry.motion.fraction_of_move", 1]},
+      "text": "dry run: feasible but cut short, {dry.motion.fraction_of_move|pct} of the move"
+    },
+    {"if": {"has": "dry"}, "text": "dry run: feasible"},
+    {
+      "if": {"all": [{"has": "result.receipt"}, {"ne": ["result.receipt.status", "reached"]}]},
+      "text": "executed, not reached",
+      "failed": true
+    },
+    {"if": {"has": "result.receipt"}, "text": "executed"},
+    {"text": "{result.status|or:no result}"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "what the call asked of each arm, as compiled: the translation and turn from the measured pose and the interaction label (stage event compiled)",
+      "when": {"not": {"empty": "events.compiled"}},
+      "line": "compiled {events.compiled|count|n:target} from the measured pose",
+      "each": {
+        "over": "events.compiled",
+        "limit": 2,
+        "line": [
+          "{item.arm}: {item.interaction}",
+          {
+            "if": {"gt": ["item.translation_distance_m", 0.0005]},
+            "text": "translate {item.translation_distance_m|cm}"
+          },
+          {"if": {"le": ["item.translation_distance_m", 0.0005]}, "text": "position held"},
+          {"if": {"gt": ["item.rotation_angle_deg", 0.05]}, "text": "turn {item.rotation_angle_deg|deg}"},
+          {"if": {"le": ["item.rotation_angle_deg", 0.05]}, "text": "orientation held"},
+          {
+            "if": {"eq": ["item.jaw_symmetry", "twin_nearer_current"]},
+            "text": "the half-turn jaw twin of the orientation, which is nearer the wrist, is used"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reach check",
+      "doc": "the read-only IK of the compiled endpoint before planning (stage event compiled): whether it solves, how far along the straight line it is reachable and the smallest turn that makes it solvable",
+      "when": {"any": [{"has": "events.compiled[0].target_reachable"}, {"has": "events.compiled[1].target_reachable"}]},
+      "line": "read-only IK of the target pose of {events.compiled|count|n:arm}",
+      "verdict": [
+        {
+          "if": {
+            "any": [
+              {"eq": ["events.compiled[0].target_reachable", false]},
+              {"eq": ["events.compiled[1].target_reachable", false]}
+            ]
+          },
+          "text": "did not solve"
+        },
+        {"text": "solves"}
+      ],
+      "each": {
+        "over": "events.compiled",
+        "limit": 2,
+        "line": [
+          {"if": {"eq": ["item.target_reachable", true]}, "text": "{item.arm}: the target pose solves"},
+          {"if": {"eq": ["item.target_reachable", false]}, "text": "{item.arm}: the target pose does not solve"},
+          {
+            "if": {"all": [{"eq": ["item.target_reachable", false]}, {"has": "item.reachable_fraction"}]},
+            "text": "the straight line to it is reachable to {item.reachable_fraction|pct} ({item.reachable_translation_m|cm})"
+          },
+          {
+            "if": {"has": "item.nearest_turn_deg"},
+            "text": "alternative found: turning the orientation {item.nearest_turn_deg|deg} (tilt {item.nearest_tilt_deg|deg} from straight down) makes the endpoint solvable"
+          }
+        ]
+      }
+    },
+    {
+      "name": "observed clearance",
+      "doc": "the depth clearance below the fingertips at the target: a measurement of the visible surface, not a collision check; it never blocks",
+      "when": {"has": "events.compiled[0].clearance_m"},
+      "line": "depth below the fingertips at the target; a measurement, not a collision check",
+      "verdict": [{"text": "did not block"}],
+      "each": {
+        "over": "events.compiled",
+        "limit": 2,
+        "line": [
+          "{item.arm}: observed clearance {item.clearance_m|cm}",
+          {
+            "if": {"has": "item.clearance_observed_fraction"},
+            "text": "{item.clearance_observed_fraction|pct} of the footprint observed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "plan",
+      "doc": "the route and the IK solution along it: a straight line of the controlled point, a joint-space line to one IK solution, the planner's path around what the cameras see, or a staged approach; where the IK fails along the path, how far into the move",
+      "when": {
+        "any": [
+          {"has": "dry.route"},
+          {"has": "result.receipt"},
+          {
+            "any": [
+              {
+                "in": [
+                  "error.code",
+                  [
+                    "paced_path_unreachable",
+                    "paced_path_joint_jump",
+                    "paced_path_wrist_unwind",
+                    "goal_unreachable",
+                    "goal_in_collision",
+                    "goal_below_support",
+                    "start_in_collision",
+                    "start_outside_limits",
+                    "route_contact_approach_exceeds_local_bound",
+                    "mixed_interactions"
+                  ]
+                ]
+              },
+              {
+                "in": [
+                  "dry.failure_code",
+                  [
+                    "paced_path_unreachable",
+                    "paced_path_joint_jump",
+                    "paced_path_wrist_unwind",
+                    "goal_unreachable",
+                    "goal_in_collision",
+                    "goal_below_support",
+                    "start_in_collision",
+                    "start_outside_limits",
+                    "route_contact_approach_exceeds_local_bound",
+                    "mixed_interactions"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "line": [
+        {
+          "if": {"has": "dry.route"},
+          "text": "{dry.route} route, {dry.motion.native_actions|n:native action} ({dry.motion.duration_s|f2} s)"
+        },
+        {
+          "if": {"in": ["error.code", ["paced_path_unreachable", "paced_path_joint_jump", "paced_path_wrist_unwind", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]},
+          "text": "{error.message}"
+        },
+        {
+          "if": {"in": ["dry.failure_code", ["paced_path_unreachable", "paced_path_joint_jump", "paced_path_wrist_unwind", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]},
+          "text": "{dry.refusal.message}"
+        },
+        {
+          "if": {
+            "all": [
+              {"in": ["error.code", ["paced_path_unreachable", "paced_path_joint_jump", "paced_path_wrist_unwind", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]},
+              {"has": "error.constraints.fraction_of_move"}
+            ]
+          },
+          "text": "no admissible IK solution from {error.constraints.fraction_of_move|pct} of the move on (arm {error.constraints.arm|or:not named}, IK status {error.constraints.reason|or:not given})"
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "in": ["dry.failure_code", ["paced_path_unreachable", "paced_path_joint_jump", "paced_path_wrist_unwind", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]
+              },
+              {"has": "dry.refusal.constraints.fraction_of_move"}
+            ]
+          },
+          "text": "no admissible IK solution from {dry.refusal.constraints.fraction_of_move|pct} of the move on (arm {dry.refusal.constraints.arm|or:not named}, IK status {dry.refusal.constraints.reason|or:not given})"
+        },
+        {
+          "if": {"in": ["error.code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]},
+          "text": "{error.message}"
+        },
+        {
+          "if": {"in": ["dry.failure_code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]},
+          "text": "{dry.refusal.message}"
+        }
+      ],
+      "verdict": [
+        {
+          "if": {
+            "any": [
+              {"in": ["error.code", ["paced_path_unreachable", "paced_path_joint_jump", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]},
+              {"in": ["dry.failure_code", ["paced_path_unreachable", "paced_path_joint_jump", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]}
+            ]
+          },
+          "text": "failed"
+        },
+        {
+          "if": {
+            "any": [
+              {"in": ["error.code", ["paced_path_wrist_unwind"]]},
+              {"in": ["dry.failure_code", ["paced_path_wrist_unwind"]]}
+            ]
+          },
+          "text": "failed: the wrist would unwind"
+        },
+        {
+          "if": {
+            "any": [
+              {"in": ["error.code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]},
+              {"in": ["dry.failure_code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]}
+            ]
+          },
+          "text": "refused"
+        },
+        {"text": "solved"}
+      ]
+    },
+    {
+      "name": "screening",
+      "doc": "the planned path against the arm itself, the table top and the other arm (SDK collision spheres; no objects, no payload)",
+      "when": {
+        "any": [
+          {"has": "dry.screening"},
+          {"has": "result.receipt"},
+          {
+            "any": [
+              {"in": ["error.code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+              {
+                "in": ["dry.failure_code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]
+              }
+            ]
+          }
+        ]
+      },
+      "line": [
+        {
+          "if": {"has": "dry.screening.segments_screened"},
+          "text": "{dry.screening.segments_screened|n:segment} of the planned path screened against {dry.screening.against}"
+        },
+        {
+          "if": {"has": "dry.screening.min_inter_arm_clearance_m"},
+          "text": "least inter-arm clearance {dry.screening.min_inter_arm_clearance_m|cm}"
+        },
+        {
+          "if": {"has": "result.receipt"},
+          "text": "the planned path was screened clear of the arm itself, the table top and the other arm before it moved"
+        },
+        {
+          "if": {"in": ["error.code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+          "text": "{error.message}"
+        },
+        {
+          "if": {"in": ["dry.failure_code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+          "text": "{dry.refusal.message}"
+        },
+        {
+          "if": {
+            "all": [
+              {"in": ["error.code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+              {"has": "error.constraints.fraction_of_move"}
+            ]
+          },
+          "text": "blocked from {error.constraints.fraction_of_move|pct} of the move on (native action {error.constraints.native_action|or:not named})"
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "in": ["dry.failure_code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]
+              },
+              {"has": "dry.refusal.constraints.fraction_of_move"}
+            ]
+          },
+          "text": "blocked from {dry.refusal.constraints.fraction_of_move|pct} of the move on (native action {dry.refusal.constraints.native_action|or:not named})"
+        }
+      ],
+      "verdict": [
+        {
+          "if": {
+            "any": [
+              {"in": ["error.code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+              {
+                "in": ["dry.failure_code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]
+              }
+            ]
+          },
+          "text": "blocked"
+        },
+        {"text": "clear"}
+      ]
+    },
+    {
+      "name": "budget",
+      "doc": "the native actions the plan needs against what the call may spend; a move longer than the budget is cut short, never reported as an arrival",
+      "when": {
+        "any": [
+          {"has": "dry.motion"},
+          {
+            "any": [{"in": ["error.code", ["paced_motion_budget"]]}, {"in": ["dry.failure_code", ["paced_motion_budget"]]}]
+          }
+        ]
+      },
+      "line": [
+        {
+          "if": {"has": "dry.motion"},
+          "text": "{dry.motion.whole_native_actions|n:native action} for the whole move, {dry.motion.native_action_budget} may be spent"
+        },
+        {
+          "if": {"gt": ["dry.motion.native_actions", 0]},
+          "text": "{dry.motion.native_actions} planned with {dry.motion.settle_native_actions} for the settle"
+        },
+        {"if": {"in": ["error.code", ["paced_motion_budget"]]}, "text": "{error.message}"},
+        {"if": {"in": ["dry.failure_code", ["paced_motion_budget"]]}, "text": "{dry.refusal.message}"}
+      ],
+      "verdict": [
+        {
+          "if": {
+            "any": [{"in": ["error.code", ["paced_motion_budget"]]}, {"in": ["dry.failure_code", ["paced_motion_budget"]]}]
+          },
+          "text": "does not fit"
+        },
+        {
+          "if": {"lt": ["dry.motion.fraction_of_move", 1]},
+          "text": "cut short: covers {dry.motion.fraction_of_move|pct} of the move"
+        },
+        {"text": "fits"}
+      ]
+    },
+    {
+      "name": "prediction",
+      "doc": "where the plan ends each arm (world position and xyzw orientation) and how far the wrist roll stays from its limit; the robot's own motion, not the world's response",
+      "when": {"has": "dry.arms"},
+      "line": [
+        {"if": {"has": "dry.arms.left.predicted_pose"}, "text": "left ends at {dry.arms.left.predicted_pose|xyz}"},
+        {"if": {"has": "dry.arms.right.predicted_pose"}, "text": "right ends at {dry.arms.right.predicted_pose|xyz}"},
+        {
+          "if": {"has": "dry.arms.left.joint6.min_limit_margin_deg"},
+          "text": "left wrist roll stays {dry.arms.left.joint6.min_limit_margin_deg|deg} from its limit"
+        },
+        {
+          "if": {"has": "dry.arms.right.joint6.min_limit_margin_deg"},
+          "text": "right wrist roll stays {dry.arms.right.joint6.min_limit_margin_deg|deg} from its limit"
+        }
+      ]
+    },
+    {
+      "name": "request refused",
+      "doc": "a request the real call refuses before planning (a target outside the workspace)",
+      "when": {"eq": ["dry.failure_stage", "request"]},
+      "line": "the real call would be refused: {dry.refusal.message}",
+      "verdict": [{"text": "not run"}]
+    },
+    {
+      "name": "execution",
+      "doc": "what the executed trajectory did: the receipt's own summary, how it ended",
+      "when": {"has": "result.receipt"},
+      "line": ["{result.receipt.action_summary|or:executed}"],
+      "verdict": [
+        {"if": {"eq": ["result.receipt.status", "reached"]}, "text": "reached"},
+        {
+          "if": {"has": "result.receipt.failure_code"},
+          "text": "not reached: {result.receipt.failure_code} at {result.receipt.failure_stage|or:execution}"
+        },
+        {"text": "{result.receipt.status|or:unknown}"}
+      ]
+    }
+  ],
+  "conclusion": [
+    {
+      "if": {"eq": ["dry.feasible", true]},
+      "text": "the call would run as planned; the same call without dry_run executes it, and the world's response (contact, a held object) is not predicted"
+    },
+    {
+      "if": {"eq": ["dry.feasible", false]},
+      "text": "the call would be refused with {dry.failure_code} at the {dry.failure_stage} stage; nothing was executed"
+    },
+    {"if": {"eq": ["result.receipt.status", "reached"]}, "text": "the arm reached its target"},
+    {
+      "if": {"has": "result.receipt.failure_code"},
+      "text": "the arm did not reach its target ({result.receipt.failure_code}); check the next observation before moving on"
+    }
+  ],
+  "next": [
+    {
+      "if": {"eq": ["error.code", "dry_run_unavailable"]},
+      "text": "make the call itself: {error.constraints.reason}; a call the environment refuses before it moves costs nothing"
+    },
+    {
+      "if": {
+        "any": [
+          {"in": ["error.code", ["paced_path_wrist_unwind"]]},
+          {"in": ["dry.failure_code", ["paced_path_wrist_unwind"]]}
+        ]
+      },
+      "text": "reach the goal by another route: a free-space move first, or with empty jaws the other jaw orientation; dry_run the new target before making the call"
+    },
+    {
+      "if": {
+        "any": [
+          {"in": ["error.code", ["paced_path_unreachable", "paced_path_joint_jump", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]},
+          {"in": ["dry.failure_code", ["paced_path_unreachable", "paced_path_joint_jump", "goal_unreachable", "goal_in_collision", "goal_below_support", "start_in_collision", "start_outside_limits"]]}
+        ]
+      },
+      "text": "the target is out of reach with this orientation or route: shorten the move or tilt as the alternative above says, then dry_run the new target"
+    },
+    {
+      "if": {
+        "any": [
+          {"in": ["error.code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]},
+          {"in": ["dry.failure_code", ["self_collision", "table_collision", "inter_arm_collision", "path_blocked", "contact_path_blocked"]]}
+        ]
+      },
+      "text": "choose targets that keep the arm clear of itself, the table and the other arm: raise the path, move one arm at a time, or move through an intermediate pose; dry_run the new target"
+    },
+    {
+      "if": {
+        "any": [{"in": ["error.code", ["paced_motion_budget"]]}, {"in": ["dry.failure_code", ["paced_motion_budget"]]}]
+      },
+      "text": "split the move into shorter ones, each within the call's native-action budget"
+    },
+    {
+      "if": {
+        "any": [
+          {"in": ["error.code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]},
+          {"in": ["dry.failure_code", ["route_contact_approach_exceeds_local_bound", "mixed_interactions"]]}
+        ]
+      },
+      "text": "use a free_space or precision interaction, or a smaller change per call"
+    },
+    {
+      "if": {"any": [{"eq": ["error.code", "workspace_bounds"]}, {"eq": ["dry.failure_code", "workspace_bounds"]}]},
+      "text": "choose a target inside the action workspace: {error.constraints.workspace_bounds_m|or:see the refusal's constraints}"
+    },
+    {
+      "if": {"has": "result.receipt.failure_code"},
+      "text": "observe, then decide: recover_pose undoes this call's motion, move_pose retries from where the arm stands"
+    },
+    {
+      "if": {"all": [{"has": "error"}, {"eq": ["decision.by", "tool"]}]},
+      "text": "correct {error.field|or:the arguments}: {error.message}"
+    }
+  ]
+}

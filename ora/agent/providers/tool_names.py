@@ -47,6 +47,24 @@ def openai_tool_names(request: Mapping[str, Any]) -> dict[str, str]:
     return aliases
 
 
+def response_tool_name(name: str, aliases: Mapping[str, str]) -> str:
+    """The canonical name of a tool call the provider returned.
+
+    A wire alias maps back and a name the request already carries stays. Any
+    other name that is not strict (a provider tool-call parse defect, such as a
+    parameter tag read as the function name) takes its strict alias: kept
+    verbatim it would add an entry to the <wire_tool_aliases> disclosure on the
+    next request and rewrite the cached system prefix. The Runtime still
+    refuses it as an unavailable tool; the provider's raw events keep the name
+    it sent.
+    """
+    if name in aliases:
+        return aliases[name]
+    if not name or _STRICT_NAME.fullmatch(name) or name in aliases.values():
+        return name
+    return tool_alias(name)
+
+
 def project_openai_tool_names(body: dict[str, Any], aliases: Mapping[str, str]) -> None:
     """Project a copied, continuation-validated wire body in place."""
     for tool in body.get("tools", []):
@@ -70,9 +88,26 @@ def project_openai_tool_names(body: dict[str, Any], aliases: Mapping[str, str]) 
     renamed = {name: alias for alias, name in aliases.items() if alias != name}
     if renamed:
         # Keep policy instructions and tool results intact; disclose the mapping
-        # in the provider prefix just as the Anthropic projection does.
-        index = next((i for i, message in enumerate(body["messages"])
-            if message.get("role") != "system"), len(body["messages"]))
-        body["messages"].insert(index, {"role":"system", "content":
-            "<wire_tool_aliases>\n" + json.dumps(renamed, ensure_ascii=False, sort_keys=True)
-            + "\n</wire_tool_aliases>"})
+        # in the provider prefix just as the Anthropic projection does. Qwen3.x
+        # chat templates reject any system message not at index 0, so the
+        # disclosure joins the last leading system message instead of adding one.
+        disclosure = ("<wire_tool_aliases>\n"
+            + json.dumps(renamed, ensure_ascii=False, sort_keys=True)
+            + "\n</wire_tool_aliases>")
+        messages = body["messages"]
+        leading = 0
+        while leading < len(messages) and messages[leading].get("role") == "system":
+            leading += 1
+        if not leading:
+            messages.insert(0, {"role": "system", "content": disclosure})
+            return
+        system = messages[leading - 1]
+        content = system.get("content")
+        if isinstance(content, list):
+            system["content"] = [*content, {"type": "text", "text": disclosure}]
+        elif isinstance(content, str) and content:
+            system["content"] = content + "\n\n" + disclosure
+        elif content in (None, ""):
+            system["content"] = disclosure
+        else:
+            raise PolicySessionError("OpenAI system message content is not text")

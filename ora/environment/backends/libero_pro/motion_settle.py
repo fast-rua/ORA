@@ -38,6 +38,11 @@ __all__ = [
 # LIBERO's BDDL environments run robosuite at control_freq=20
 # (libero/envs/bddl_base_domain.py), so one controller tick is 50 ms.
 LIBERO_CONTROL_PERIOD_S = 0.05
+# Measured, not modelled: the control ticks of six first moves from LIBERO's start pose (the
+# starts of six recorded strict-limit runs, seed 0; 0.18 to 0.30 m with hand turns of 0 to 145 degrees, five
+# on the joint path and one straight OSC line) under motion profile v4, median by requested
+# speed. The LIBERO move_pose text publishes them (tests/data/published-limits.json).
+LIBERO_FIRST_MOVE_TICKS = {"fast": 73.5, "normal": 74.0, "careful": 113.0}
 # Measured on LIBERO: a free-air close never moves less than 0.0034 of the
 # normalized opening per tick before it arrives, while a close on an object
 # drops below 0.0003 per tick once the fingers meet it.
@@ -177,6 +182,8 @@ def merge_settled_receipt(
     merged["motion_strategy"] = first.get("motion_strategy")
     merged["before"] = first.get("before")
     merged["steps_used"] = total("steps_used")
+    if "native_actions" in first or "native_actions" in second:
+        merged["native_actions"] = total("native_actions")
     merged["sim_steps_total"] = total("sim_steps_total")
     merged["state_changed"] = bool(
         first.get("state_changed") or second.get("state_changed")
@@ -184,6 +191,8 @@ def merge_settled_receipt(
     merged["segments"] = [
         *(first.get("segments") or []), *(second.get("segments") or []),
     ]
+    if first.get("ran_previewed_plan"):
+        merged["ran_previewed_plan"] = True
     return merged
 
 

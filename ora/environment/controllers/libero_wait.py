@@ -1,10 +1,9 @@
 """Host-safe contract of the LIBERO ``wait`` hold and its receipt.
 
 The isolated worker (``backends/libero_pro/wait.py``) executes the hold; the
-Supervisor-side audits (``orchestrator/evaluation_learning.py`` and
-``orchestrator/control_audit.py``) judge its receipt. Both read this module,
-so the hold command, the command-invariant record and the receipt checks have
-one owner and no simulator import.
+Supervisor-side audit (``orchestrator/evaluation/learning.py``) judges its
+receipt. Both read this module, so the hold command, the command-invariant
+record and the receipt checks have one owner and no simulator import.
 
 LIBERO's OSC_POSE controller runs in delta mode (``libero_osc`` requires
 ``control_delta``): each control step's goal is the pose measured at that step

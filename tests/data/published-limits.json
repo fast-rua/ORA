@@ -1,0 +1,592 @@
+{
+ "surfaces": {
+  "robotwin_v2": {"backend": "robotwin", "profile": "robotwin_toolchain_b2_closed_noservo_v2"},
+  "libero_overhead": {"backend": "libero_pro", "profile": "libero_placement_direct_overhead_v1"},
+  "robocasa": {"backend": "robocasa", "profile": "robocasa_mobile_direct_v1"},
+  "robolab": {"backend": "robolab", "profile": "robolab_direct_v1"}
+ },
+ "not_covered": {
+  "robodojo_placement_toolkit_v5": "RoboDojo's default from 2026-10-30 to 2026-11-02, file-backed like v6, so no row here owns its numbers either.",
+  "robodojo_placement_toolkit_v6": "RoboDojo's default since 2026-11-02, a file-backed toolkit surface: its help is each tool's own description.json beside its code (ora/agent/toolkit/tools/<name>/), not generated published-limits layers, so no row here owns its numbers yet; the closed-skills surface it replaced stays registered as retained."
+ },
+ "limits": [
+  {"key": "overhead.max_tilt", "unit": "deg", "owner": {"python": "ora.agent.toolkit.host.perception.overhead_view:OVERHEAD_MAX_TILT_DEG"}, "statements": [
+   {"tool": "vision_ground", "text": "overhead (at most 20 degrees)", "literal": "20", "surfaces": ["libero_overhead", "robocasa", "robolab"], "unit": "deg"},
+   {"tool": "vision_segment", "text": "overhead (at most 20 degrees)", "literal": "20", "surfaces": ["libero_overhead", "robocasa", "robolab"], "unit": "deg"}]},
+  {"key": "overhead.view_height", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.perception.overhead_view:VIEW_HEIGHT_M"}, "statements": [
+   {"tool": "vision_ground", "text": "puts the wrist camera 30 cm above the footprint centre", "literal": "30", "surfaces": ["libero_overhead", "robocasa", "robolab"], "unit": "cm"},
+   {"tool": "vision_segment", "text": "puts the wrist camera 30 cm above the footprint centre", "literal": "30", "surfaces": ["libero_overhead", "robocasa", "robolab"], "unit": "cm"}]},
+  {"key": "mark_point.batch_entries", "unit": "count", "owner": {"python": "ora.agent.toolkit.tools.mark_point._batch:MARK_POINT_MAX_BATCH"}, "statements": [
+   {"tool": "mark_point", "text": "Measure up to eight visible pixels", "literal": "eight", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "text": "eight measured pixels are not a shape", "literal": "eight", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "text": "more than eight entries", "literal": "eight", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "text": "One to eight stable names", "literal": "eight", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "text": "One to eight pixels to measure", "literal": "eight", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "mark_point", "pointer": "/properties/point_ids/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "pointer": "/properties/points_uv/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "mark_point.verify_tolerance", "unit": "m", "owner": {"python": "ora.agent.toolkit.tools.mark_point.tool:VERIFY_TOLERANCE_M"}, "statements": [
+   {"tool": "mark_point", "text": "a disagreement beyond 25 mm fails only that entry", "literal": "25", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "unit": "mm"},
+   {"tool": "geometry_query", "text": "(a disagreement beyond 25 mm fails that entry)", "literal": "25", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "unit": "mm"}]},
+  {"key": "mark_point.point_id_characters", "unit": "characters", "owner": {"python": "ora.agent.toolkit.tools.mark_point._batch:_MAX_POINT_ID_CHARS"}, "statements": [
+   {"tool": "mark_point", "text": "at most 64 characters", "literal": "64", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "mark_point", "text": "a name longer than 64 characters", "literal": "64", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "mark_point", "pointer": "/properties/point_ids/items/maxLength", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "geometry_query.pixels", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/geometry_query/tool.py", "pattern": "not 1 <= len\\(points\\) <= (\\d+)"}, "statements": [
+   {"tool": "geometry_query", "text": "One to sixteen source pixels", "literal": "sixteen", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "geometry_query", "text": "more than sixteen points or world points", "literal": "sixteen", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "geometry_query", "pointer": "/properties/points/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "geometry_query.world_points", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/geometry_query/tool.py", "pattern": "not 1 <= len\\(world_points\\) <= (\\d+)"}, "statements": [
+   {"tool": "geometry_query", "text": "One to sixteen world-frame points", "literal": "sixteen", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "geometry_query", "text": "more than sixteen points or world points", "literal": "sixteen", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "geometry_query", "pointer": "/properties/world_points_m/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "geometry_query.window_default", "unit": "px", "owner": {"source": "ora/agent/toolkit/tools/geometry_query/tool.py", "pattern": "arguments\\.get\\(\\\"window_px\\\", (\\d+)\\)"}, "statements": [
+   {"tool": "geometry_query", "text": "Default 3. Ignored by world_points_m and region.", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "geometry_query", "pointer": "/properties/window_px/default", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "geometry_query.window_single_pixel", "unit": "px", "owner": {"source": "ora/agent/toolkit/tools/geometry_query/tool.py", "pattern": "window_px must be in \\[(\\d+),\\d+\\]"}, "statements": [
+   {"tool": "geometry_query", "text": "0 reads the single pixel", "literal": "0", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "geometry_query", "text": "window_px outside 0 to 15", "literal": "0", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "geometry_query", "pointer": "/properties/window_px/minimum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.source_bytes", "unit": "bytes", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_SOURCE_BYTES"}, "statements": [
+   {"tool": "compute", "text": "Limits: 4096 UTF-8 source bytes", "literal": "4096", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "compute", "pointer": "/properties/expressions/maxLength", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.statements", "unit": "count", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_STATEMENTS"}, "statements": [
+   {"tool": "compute", "text": "4096 UTF-8 source bytes, 24 statements", "literal": "24", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "compute", "text": "at most 24 of them", "literal": "24", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.bindings", "unit": "count", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_BINDINGS"}, "statements": [
+   {"tool": "compute", "text": "24 statements, 16 bindings", "literal": "16", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "compute", "pointer": "/properties/bindings/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.outputs", "unit": "count", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_OUTPUTS"}, "statements": [
+   {"tool": "compute", "text": "at most 12 selected outputs", "literal": "12", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "compute", "pointer": "/properties/outputs/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.value_elements", "unit": "count", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_VALUE_ELEMENTS"}, "statements": [
+   {"tool": "compute", "text": "64 elements per returned value", "literal": "64", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "compute", "text": "At most 64 elements and at most 2 dimensions.", "literal": "64", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "compute", "pointer": "/properties/bindings/items/properties/value/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.returned_dimensions", "unit": "count", "owner": {"source": "ora/agent/toolkit/host/compute/evaluator.py", "pattern": "maximum_dimensions=(\\d+)"}, "statements": [
+   {"tool": "compute", "text": "in at most 2 dimensions", "literal": "2", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.binding_dimensions", "unit": "count", "owner": {"schema_array_depth": {"tool": "compute", "pointer": "/properties/bindings/items/properties/value"}}, "statements": [
+   {"tool": "compute", "text": "At most 64 elements and at most 2 dimensions.", "literal": "2", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.exponent", "unit": "count", "owner": {"python": "ora.agent.composition.surface.compute_grammar:MAX_POW_EXPONENT"}, "statements": [
+   {"tool": "compute", "text": "** literal exponent magnitude <=8", "literal": "8", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "compute", "text": "of magnitude at most 8.", "literal": "8", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.points", "unit": "count", "owner": {"python": "ora.agent.model_services.clients:MAX_POINTS"}, "statements": [
+   {"tool": "vision_segment", "text": "give 1–8 source-pixel points", "literal": "8", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "no point or more than eight", "literal": "eight", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_segment", "pointer": "/properties/points_uv/maxItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.minimum_points", "unit": "count", "owner": {"source": "ora/agent/model_services/clients.py", "pattern": "not (\\d+) <= len\\(points\\) <= MAX_POINTS"}, "statements": [
+   {"tool": "vision_segment", "text": "give 1–8 source-pixel points", "literal": "1", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_segment", "pointer": "/properties/points_uv/minItems", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.masks_per_point", "unit": "count", "owner": {"python": "ora.agent.toolkit.tools.vision_segment._selection:MAX_CANDIDATES"}, "statements": [
+   {"tool": "vision_segment", "text": "(default 3, maximum 3)", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "literal_index": 1},
+   {"tool": "vision_segment", "text": "an integer 1-3, default 3", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "max_candidates outside 1 to 3; a camera outside", "literal": "3", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_segment", "pointer": "/properties/max_candidates/maximum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.masks_per_point_default", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/vision_segment/tool.py", "pattern": "arguments\\[\\\"points_uv\\\"\\], arguments\\.get\\(\\\"max_candidates\\\", (\\d+)\\)"}, "statements": [
+   {"tool": "vision_segment", "text": "(default 3, maximum 3)", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "an integer 1-3, default 3", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "literal_index": 1}], "schema": [
+   {"tool": "vision_segment", "pointer": "/properties/max_candidates/default", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.masks_per_point_minimum", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/vision_segment/_arguments.py", "pattern": "not (\\d+) <= max_candidates <= max_per_point:"}, "statements": [
+   {"tool": "vision_segment", "text": "an integer 1-3, default 3", "literal": "1", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "max_candidates outside 1 to 3; a camera outside", "literal": "1", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_segment", "pointer": "/properties/max_candidates/minimum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.masks_per_call", "unit": "count", "owner": {"python": "ora.agent.toolkit.tools.vision_segment._selection:MAX_RETURNED_CANDIDATES"}, "statements": [
+   {"tool": "vision_segment", "text": "At most 12 distinct masks and 5 enlarged crops are delivered", "literal": "12", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "A call delivers at most 12 distinct masks and 5 enlarged crops overall", "literal": "12", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_segment.crops_per_call", "unit": "count", "owner": {"python": "ora.agent.toolkit.tools.vision_segment._selection:MAX_PREVIEW_IMAGES"}, "statements": [
+   {"tool": "vision_segment", "text": "At most 12 distinct masks and 5 enlarged crops are delivered", "literal": "5", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_segment", "text": "A call delivers at most 12 distinct masks and 5 enlarged crops overall", "literal": "5", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.regions", "unit": "count", "owner": {"python": "ora.agent.model_services.clients:GROUNDING_REQUEST_MAX_CANDIDATES"}, "statements": [
+   {"tool": "vision_ground", "text": "Retrieve up to three inspectable text-grounded target proposals", "literal": "three", "surfaces": ["robotwin*"]},
+   {"tool": "vision_ground", "text": "Retrieve and present up to three inspectable candidate regions", "literal": "three", "surfaces": ["libero*", "robocasa", "robolab"]},
+   {"tool": "vision_ground", "text": "zero to three ranked candidates", "literal": "three", "surfaces": ["libero*", "robocasa", "robolab"]},
+   {"tool": "vision_ground", "text": "Maximum ranked regions to return, 1 to 3, default 3.", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_ground", "text": "Three is what the grounding service answers per call", "literal": "Three", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_ground", "text": "max_candidates outside 1 to 3, before any request is sent", "literal": "3", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_ground", "pointer": "/properties/max_candidates/maximum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.regions_default", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/vision_ground/tool.py", "pattern": "args\\.get\\('max_candidates', (\\d+)\\)"}, "statements": [
+   {"tool": "vision_ground", "text": "Maximum ranked regions to return, 1 to 3, default 3.", "literal": "3", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "literal_index": 1}], "schema": [
+   {"tool": "vision_ground", "pointer": "/properties/max_candidates/default", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.regions_minimum", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/vision_ground/tool.py", "pattern": "type\\(maximum\\) is not int or not (\\d+) <= maximum <= \\d+:"}, "statements": [
+   {"tool": "vision_ground", "text": "Maximum ranked regions to return, 1 to 3, default 3.", "literal": "1", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "vision_ground", "text": "max_candidates outside 1 to 3, before any request is sent", "literal": "1", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_ground", "pointer": "/properties/max_candidates/minimum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.card_width", "unit": "px", "owner": {"python": "ora.agent.toolkit.host.perception.grounding_preview:CARD_WIDTH"}, "statements": [
+   {"tool": "vision_ground", "text": "one labelled 1024x800 raw/mask candidate card per result", "literal": "1024", "surfaces": ["libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "grasp_plan.candidates", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/grasp_plan/tool.py", "pattern": "not 1<=maximum<=(\\d+):"}, "statements": [
+   {"tool": "grasp_plan", "text": "Returns: up to three candidates", "literal": "three", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]},
+   {"tool": "grasp_plan", "text": "Maximum candidates returned, 1 to 3, default 3", "literal": "3", "surfaces": ["robotwin*"]},
+   {"tool": "grasp_plan", "text": "from one through three, default 3", "literal": "three", "surfaces": ["libero*", "robocasa", "robolab"]},
+   {"tool": "grasp_plan", "text": "max_candidates outside 1 to 3;", "literal": "3", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "grasp_plan", "pointer": "/properties/max_candidates/maximum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "grasp_plan.candidates_default", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/grasp_plan/tool.py", "pattern": "args\\.get\\('max_candidates',(\\d+)\\)"}, "statements": [
+   {"tool": "grasp_plan", "text": "Maximum candidates returned, 1 to 3, default 3", "literal": "3", "surfaces": ["robotwin*"], "literal_index": 1},
+   {"tool": "grasp_plan", "text": "from one through three, default 3", "literal": "3", "surfaces": ["libero*", "robocasa", "robolab"]}], "schema": [
+   {"tool": "grasp_plan", "pointer": "/properties/max_candidates/default", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "grasp_plan.candidates_minimum", "unit": "count", "owner": {"source": "ora/agent/toolkit/tools/grasp_plan/tool.py", "pattern": "not (\\d+)<=maximum<=\\d+:"}, "statements": [
+   {"tool": "grasp_plan", "text": "Maximum candidates returned, 1 to 3, default 3", "literal": "1", "surfaces": ["robotwin*"]},
+   {"tool": "grasp_plan", "text": "max_candidates outside 1 to 3;", "literal": "1", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "grasp_plan", "pointer": "/properties/max_candidates/minimum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "grasp_execute.lift", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.skills.lift_evidence:LIFT_M"}, "statements": [
+   {"tool": "grasp_plan", "text": "a 3 cm world-up probe", "literal": "3", "surfaces": ["robotwin*"], "unit": "cm"},
+   {"tool": "grasp_execute", "text": "then requests 3 cm world-up at the same orientation", "literal": "3", "surfaces": ["robotwin*"], "unit": "cm"},
+   {"tool": "grasp_execute", "text": "or a pregrasp, contact or 3 cm lift pose", "literal": "3", "surfaces": ["robotwin_v2"], "unit": "cm"}]},
+  {"key": "grasp_execute.stage_actions", "unit": "count", "owner": {"count_excluding": {"items": "ora.agent.toolkit.host.skills.ledger:PREPARED_GRASP_STAGES", "exclude": "ora.agent.toolkit.host.skills.ledger:READ_ONLY_STAGES"}}, "statements": [
+   {"tool": "grasp_execute", "text": "The Supervisor drives five stage actions as one robot decision", "literal": "five", "surfaces": ["robotwin*"]}]},
+  {"key": "skill.rationale_characters", "unit": "characters", "owner": {"python": "ora.contracts.skill_sequence:MAX_RATIONALE_CHARS"}, "statements": [
+   {"tool": "grasp_execute", "text": "at most 200 characters", "literal": "200", "surfaces": ["robotwin*"]}], "schema": [
+   {"tool": "grasp_execute", "pointer": "/properties/rationale/maxLength", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.standoff_default", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.reach.alignment:DEFAULT_STANDOFF_M"}, "statements": [
+   {"tool": "align_plan", "text": "(default 0.10 m, permitted 0.02-0.30 m)", "literal": "0.10", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "Default 0.10 m. Values outside 0.02-0.30 m are refused.", "literal": "0.10", "surfaces": ["robotwin*"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/standoff_m/default", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.standoff_minimum", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.reach.alignment:MINIMUM_STANDOFF_M"}, "statements": [
+   {"tool": "align_plan", "text": "(default 0.10 m, permitted 0.02-0.30 m)", "literal": "0.02", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "Default 0.10 m. Values outside 0.02-0.30 m are refused.", "literal": "0.02", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "the value left 0.02-0.30 m", "literal": "0.02", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6", "literal": "0.02", "surfaces": ["robotwin_v2"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/standoff_m/minimum", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.standoff_maximum", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.reach.alignment:MAXIMUM_STANDOFF_M"}, "statements": [
+   {"tool": "align_plan", "text": "(default 0.10 m, permitted 0.02-0.30 m)", "literal": "0.30", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "Default 0.10 m. Values outside 0.02-0.30 m are refused.", "literal": "0.30", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "the value left 0.02-0.30 m", "literal": "0.30", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6", "literal": "0.30", "surfaces": ["robotwin_v2"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/standoff_m/maximum", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.jaw_rolls_default", "unit": "count", "owner": {"python": "ora.agent.toolkit.host.reach.alignment:DEFAULT_CANDIDATES"}, "statements": [
+   {"tool": "align_plan", "text": "(default 3, at most 6)", "literal": "3", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "1 to 6, default 3", "literal": "3", "surfaces": ["robotwin*"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/max_candidates/default", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.jaw_rolls", "unit": "count", "owner": {"source": "ora/agent/toolkit/host/reach/alignment.py", "pattern": "not \\d+ <= count <= (\\d+):"}, "statements": [
+   {"tool": "align_plan", "text": "(default 3, at most 6)", "literal": "6", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "1 to 6, default 3", "literal": "6", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6", "literal": "6", "surfaces": ["robotwin_v2"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/max_candidates/maximum", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.jaw_rolls_minimum", "unit": "count", "owner": {"source": "ora/agent/toolkit/host/reach/alignment.py", "pattern": "not (\\d+) <= count <= \\d+:"}, "statements": [
+   {"tool": "align_plan", "text": "1 to 6, default 3", "literal": "1", "surfaces": ["robotwin*"]},
+   {"tool": "align_plan", "text": "standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6", "literal": "1", "surfaces": ["robotwin_v2"]}], "schema": [
+   {"tool": "align_plan", "pointer": "/properties/max_candidates/minimum", "surfaces": ["robotwin*"]}]},
+  {"key": "align_plan.solver_iterations_robotwin", "unit": "count", "owner": {"source": "ora/environment/backends/robotwin/motion_adapter.py", "pattern": "\"iterations\": (\\d+),"}, "statements": [
+   {"tool": "align_plan", "text": "iterations (1 on this backend: one IK solve per pose)", "literal": "1", "surfaces": ["robotwin*"]}]},
+  {"key": "robotwin.endpoint_settle_translation", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/endpoint_settle/maximum_translation_m"}, "statements": [
+   {"tool": "move_pose", "text": "may add one bounded 10 mm/5 degree local settle", "literal": "10", "surfaces": ["robotwin*"], "unit": "mm"},
+   {"tool": "rotate_wrist", "text": "run only when the remaining error is within 10 mm and 5 degrees", "literal": "10", "surfaces": ["robotwin_v2"], "unit": "mm"},
+   {"tool": "rotate_pitch", "text": "run only when the remaining error is within 10 mm and 5 degrees", "literal": "10", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.endpoint_settle_rotation", "unit": "rad", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/endpoint_settle/maximum_rotation_rad"}, "statements": [
+   {"tool": "move_pose", "text": "may add one bounded 10 mm/5 degree local settle", "literal": "5", "surfaces": ["robotwin*"], "unit": "deg"},
+   {"tool": "rotate_wrist", "text": "run only when the remaining error is within 10 mm and 5 degrees", "literal": "5", "surfaces": ["robotwin_v2"], "unit": "deg"},
+   {"tool": "rotate_pitch", "text": "run only when the remaining error is within 10 mm and 5 degrees", "literal": "5", "surfaces": ["robotwin_v2"], "unit": "deg"}]},
+  {"key": "robotwin.direct_local_translation", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/direct_local_translation_m"}, "statements": [
+   {"tool": "move_pose", "text": "contact_approach up to 10 mm/5 degrees is local", "literal": "10", "surfaces": ["robotwin*"], "unit": "mm"}]},
+  {"key": "robotwin.direct_local_rotation", "unit": "rad", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/direct_local_rotation_rad"}, "statements": [
+   {"tool": "move_pose", "text": "contact_approach up to 10 mm/5 degrees is local", "literal": "5", "surfaces": ["robotwin*"], "unit": "deg"}]},
+  {"key": "robotwin.precontact_local_translation", "unit": "m", "owner": {"derive": "difference", "unit": "m", "of": [{"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/direct_local_translation_m", "unit": "m"}, {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/precontact_arrival_reserve_m", "unit": "m"}]}, "statements": [
+   {"tool": "move_pose", "text": "locally executes only the final 3 mm/2.1 degrees", "literal": "3", "surfaces": ["robotwin_v2"], "unit": "mm", "rounded": true}]},
+  {"key": "robotwin.precontact_local_rotation", "unit": "rad", "owner": {"derive": "difference", "unit": "rad", "of": [{"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/direct_local_rotation_rad", "unit": "rad"}, {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/precontact_arrival_reserve_rad", "unit": "rad"}]}, "statements": [
+   {"tool": "move_pose", "text": "locally executes only the final 3 mm/2.1 degrees", "literal": "2.1", "surfaces": ["robotwin_v2"], "unit": "deg", "rounded": true}]},
+  {"key": "servo_delta.translation", "unit": "m", "owner": {"python": "ora.contracts.action:SERVO_MAX_TRANSLATION_M"}, "statements": [
+   {"tool": "move_pose", "text": "precision within 50 mm and 15 degrees uses bounded OSC", "literal": "50", "surfaces": ["libero*"], "unit": "mm"},
+   {"tool": "move_pose", "text": "contact_approach within 50 mm and 15 degrees uses bounded OSC", "literal": "50", "surfaces": ["libero*"], "unit": "mm"},
+   {"tool": "move_to", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "50", "surfaces": ["libero_overhead"], "unit": "mm"},
+   {"tool": "move_pose", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "50", "surfaces": ["libero_overhead"], "unit": "mm"}]},
+  {"key": "servo_delta.rotation", "unit": "rad", "owner": {"python": "ora.contracts.action:SERVO_MAX_ROTATION_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "precision within 50 mm and 15 degrees uses bounded OSC", "literal": "15", "surfaces": ["libero*"], "unit": "deg"},
+   {"tool": "move_pose", "text": "contact_approach within 50 mm and 15 degrees uses bounded OSC", "literal": "15", "surfaces": ["libero*"], "unit": "deg"},
+   {"tool": "rotate_wrist", "text": "Rotations of at most 15 degrees execute through the bounded OSC servo", "literal": "15", "surfaces": ["libero_overhead"], "unit": "deg"},
+   {"tool": "rotate_pitch", "text": "rotations of at most 15 degrees execute through the bounded OSC servo", "literal": "15", "surfaces": ["libero_overhead"], "unit": "deg"},
+   {"tool": "move_to", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "15", "surfaces": ["libero_overhead"], "unit": "deg"},
+   {"tool": "move_pose", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "15", "surfaces": ["libero_overhead"], "unit": "deg"}]},
+  {"key": "libero.precontact_local_translation", "unit": "m", "owner": {"derive": "difference", "unit": "m", "of": [{"python": "ora.contracts.action:SERVO_MAX_TRANSLATION_M", "unit": "m"}, {"python": "ora.environment.controllers.hybrid_motion:libero_global_endpoint_tolerances", "path": ["()", 0], "unit": "m"}]}, "statements": [
+   {"tool": "move_pose", "text": "leaves at most 35 mm and 10 degrees", "literal": "35", "surfaces": ["libero*"], "unit": "mm"}]},
+  {"key": "libero.precontact_local_rotation", "unit": "rad", "owner": {"derive": "difference", "unit": "rad", "of": [{"python": "ora.contracts.action:SERVO_MAX_ROTATION_RAD", "unit": "rad"}, {"python": "ora.environment.controllers.hybrid_motion:libero_global_endpoint_tolerances", "path": ["()", 1], "unit": "rad"}]}, "statements": [
+   {"tool": "move_pose", "text": "leaves at most 35 mm and 10 degrees", "literal": "10", "surfaces": ["libero*"], "unit": "deg"}]},
+  {"key": "libero.control_period", "unit": "s", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "set_gripper", "text": "(50 ms each)", "literal": "50", "surfaces": ["libero*"], "unit": "ms"}]},
+  {"key": "libero.control_rate", "unit": "Hz", "owner": {"derive": "reciprocal", "unit": "Hz", "of": [{"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "set_gripper", "text": "the simulator advances in 20 Hz control ticks", "literal": "20", "surfaces": ["libero*"]}]},
+  {"key": "libero.gripper_tolerance", "unit": "normalized", "owner": {"python": "ora.environment.controllers.libero_osc:GRIPPER_TOLERANCE_NORMALIZED"}, "statements": [
+   {"tool": "set_gripper", "text": "within 0.03 of the commanded normalized opening", "literal": "0.03", "surfaces": ["libero*"]}]},
+  {"key": "libero.gripper_ticks", "unit": "count", "owner": {"json": "ora/policy/baselines/native-full-explicit-motion-direct-v4.json", "pointer": "/instances/libero_pro/runtime/servo_max_steps"}, "statements": [
+   {"tool": "set_gripper", "text": "for at most 80 control ticks (4 s)", "literal": "80", "surfaces": ["libero*"]}]},
+  {"key": "libero.gripper_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"json": "ora/policy/baselines/native-full-explicit-motion-direct-v4.json", "pointer": "/instances/libero_pro/runtime/servo_max_steps", "unit": "count"}, {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "set_gripper", "text": "for at most 80 control ticks (4 s)", "literal": "4", "surfaces": ["libero*"]}]},
+  {"key": "robodojo.grasp_ik_pool", "unit": "count", "owner": {"python": "ora.agent.toolkit.tools.grasp_plan._reach:POOL_LIMIT"}, "statements": [
+   {"tool": "grasp_plan", "text": "every compiled candidate in a pool of up to 32 is checked", "literal": "32", "surfaces": ["robotwin_v2", "libero_overhead", "robolab"]}]},
+  {"key": "robodojo.grasp_vertical_preference", "unit": "deg", "owner": {"python": "ora.agent.toolkit.tools.grasp_plan._reach:VERTICAL_PREFERENCE_DEG"}, "statements": [
+   {"tool": "grasp_plan", "text": "those whose approach is within 30 degrees of straight down", "literal": "30", "surfaces": ["robotwin_v2", "libero_overhead", "robolab"]}]},
+  {"key": "robodojo.nearest_orientation_smallest", "unit": "deg", "owner": {"python": "ora.agent.composition.schemas.reach_orientation:ROTATIONS_DEG", "path": [0]}, "statements": [
+   {"tool": "move_pose", "text": "(15 to 75 degrees in 15-degree steps", "literal": "15", "surfaces": ["robotwin_v2", "libero_overhead", "robolab"]}]},
+  {"key": "robodojo.nearest_orientation_largest", "unit": "deg", "owner": {"python": "ora.agent.composition.schemas.reach_orientation:ROTATIONS_DEG", "path": [-1]}, "statements": [
+   {"tool": "move_pose", "text": "(15 to 75 degrees in 15-degree steps", "literal": "75", "surfaces": ["robotwin_v2", "libero_overhead", "robolab"]}]},
+  {"key": "robodojo.nearest_orientation_step", "unit": "deg", "owner": {"derive": "difference", "unit": "deg", "of": [{"python": "ora.agent.composition.schemas.reach_orientation:ROTATIONS_DEG", "path": [1], "unit": "deg"}, {"python": "ora.agent.composition.schemas.reach_orientation:ROTATIONS_DEG", "path": [0], "unit": "deg"}]}, "statements": [
+   {"tool": "move_pose", "text": "(15 to 75 degrees in 15-degree steps", "literal": "15", "surfaces": ["robotwin_v2", "libero_overhead", "robolab"], "literal_index": 1}]},
+  {"key": "wait.ticks", "unit": "count", "owner": {"python": "ora.contracts.wait:WAIT_MAX_TICKS"}, "statements": [
+   {"tool": "wait_ticks", "text": "at most 20 per call", "literal": "20", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"]},
+   {"tool": "wait_ticks", "text": "20 ticks is 0.8 s.", "literal": "20", "surfaces": ["robotwin_v2"]},
+   {"tool": "wait_ticks", "text": "ticks that is not an integer from 1 to 20", "literal": "20", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"]},
+   {"tool": "wait_ticks", "text": "20 ticks is 1.0 s.", "literal": "20", "surfaces": ["libero_overhead", "robocasa"]}]},
+  {"key": "wait.physics_steps_per_tick", "unit": "count", "owner": {"python": "ora.contracts.wait:WAIT_PHYSICS_STEPS_PER_TICK"}, "statements": [
+   {"tool": "wait_ticks", "text": "one tick being 10 physics steps (40 ms of simulated time)", "literal": "10", "surfaces": ["robotwin_v2"]},
+   {"tool": "wait_ticks", "text": "One tick is 10 physics steps (40 ms of simulated time)", "literal": "10", "surfaces": ["robotwin_v2"]}]},
+  {"key": "geometry_query.window_maximum", "unit": "px", "owner": {"source": "ora/agent/toolkit/tools/geometry_query/tool.py", "pattern": "window_px must be in \\[\\d+,(\\d+)\\]"}, "statements": [
+   {"tool": "geometry_query", "text": "window_px outside 0 to 15", "literal": "15", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "geometry_query", "pointer": "/properties/window_px/maximum", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "compute.string_literal", "unit": "characters", "owner": {"source": "ora/agent/toolkit/host/compute/evaluator.py", "pattern": "if len\\(node\\.value\\) > (\\d+):"}, "statements": [
+   {"tool": "compute", "text": "a string literal longer than 32 characters", "literal": "32", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "compute.binding_origin", "unit": "characters", "owner": {"python": "ora.agent.toolkit.host.compute.arguments:MAX_ORIGIN_CHARACTERS"}, "statements": [
+   {"tool": "compute", "text": "a binding whose from is blank or longer than 120 characters", "literal": "120", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "compute", "pointer": "/properties/bindings/items/properties/from/maxLength", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.text_characters", "unit": "characters", "owner": {"source": "ora/agent/toolkit/tools/vision_ground/tool.py", "pattern": "1 <= len\\(text\\.strip\\(\\)\\) <= (\\d+)"}, "statements": [
+   {"tool": "vision_ground", "text": "text that is empty after trimming or longer than 120 characters", "literal": "120", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "vision_ground", "pointer": "/properties/text/maxLength", "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"]}]},
+  {"key": "vision_ground.card_height_with_depth_profile", "unit": "px", "owner": {"python": "ora.agent.toolkit.host.perception.grounding_preview:PROFILE_CARD_HEIGHT"}, "requires_capability": "grounding_candidate_depth_profile_v1", "statements": [
+   {"tool": "vision_ground", "text": "one labelled 1024x800 raw/mask candidate card per result", "literal": "800", "surfaces": ["libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "robotwin.grasp_opening_ceiling", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.grasp.aloha_gripper:ALOHA_NOMINAL_MAXIMUM_OPENING_M"}, "statements": [
+   {"tool": "grasp_plan", "text": "exceeds the 94.9 mm nominal ceiling", "literal": "94.9", "surfaces": ["robotwin_v2"], "unit": "mm", "rounded": true}]},
+  {"key": "libero.grasp_opening_ceiling", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.grasp.contact_graspnet_client:ContactGraspNetApiProposer", "path": ["maximum_aperture_m"]}, "statements": [
+   {"tool": "grasp_plan", "text": "exceeds the 80 mm nominal ceiling", "literal": "80", "surfaces": ["libero_overhead", "robocasa", "robolab"], "unit": "mm"}]},
+  {"key": "skill.quaternion_tolerance", "unit": "normalized", "owner": {"source": "ora/agent/toolkit/host/grasp/lift_geometry.py", "pattern": "abs\\(norm - 1\\.0\\) > ([0-9.e-]+):"}, "statements": [
+   {"tool": "grasp_execute", "text": "more than 0.001 from a unit quaternion", "literal": "0.001", "surfaces": ["robotwin_v2"]}]},
+  {"key": "robotwin.precommit_roll", "unit": "deg", "owner": {"source": "ora/environment/backends/robotwin/probe.py", "pattern": "\\[0\\.0, -(\\d+)\\.0, \\d+\\.0, 180\\.0"}, "statements": [
+   {"tool": "grasp_execute", "text": "rolls of 0 and +/-10 degrees about the approach axis", "literal": "10", "surfaces": ["robotwin_v2"]}]},
+  {"key": "robotwin.precommit_exact_roll", "unit": "deg", "owner": {"source": "ora/environment/backends/robotwin/probe.py", "pattern": "\\[(\\d+)\\.0, -\\d+\\.0, \\d+\\.0, 180\\.0"}, "statements": [
+   {"tool": "grasp_execute", "text": "rolls of 0 and +/-10 degrees about the approach axis", "literal": "0", "surfaces": ["robotwin_v2"]}]},
+  {"key": "motion.angle_maximum", "unit": "deg", "owner": {"source": "ora/contracts/motion.py", "pattern": "abs\\(float\\(raw_angle\\)\\) > (\\d+\\.\\d+)"}, "statements": [
+   {"tool": "move_pose", "text": "a rotation_angle_deg outside [-180, 180]", "literal": "180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"], "literal_index": 1},
+   {"tool": "rotate_wrist", "text": "an angle outside [-180, 180] degrees", "literal": "180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"], "literal_index": 1},
+   {"tool": "rotate_pitch", "text": "an angle outside [-180, 180] degrees", "literal": "180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"], "literal_index": 1}], "schema": [
+   {"tool": "rotate_wrist", "pointer": "/properties/targets/properties/left/maximum", "surfaces": ["robotwin*"]},
+   {"tool": "rotate_pitch", "pointer": "/properties/targets/properties/right/maximum", "surfaces": ["robotwin*"]},
+   {"tool": "rotate_wrist", "pointer": "/properties/angle_deg/maximum", "surfaces": ["libero*", "robocasa", "robolab"]}]},
+  {"key": "motion.angle_minimum", "unit": "deg", "owner": {"derive": "negative", "unit": "deg", "of": [{"source": "ora/contracts/motion.py", "pattern": "abs\\(float\\(raw_angle\\)\\) > (\\d+\\.\\d+)", "unit": "deg"}]}, "statements": [
+   {"tool": "move_pose", "text": "a rotation_angle_deg outside [-180, 180]", "literal": "-180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]},
+   {"tool": "rotate_wrist", "text": "an angle outside [-180, 180] degrees", "literal": "-180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]},
+   {"tool": "rotate_pitch", "text": "an angle outside [-180, 180] degrees", "literal": "-180", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}], "schema": [
+   {"tool": "rotate_wrist", "pointer": "/properties/targets/properties/left/minimum", "surfaces": ["robotwin*"]},
+   {"tool": "rotate_pitch", "pointer": "/properties/angle_deg/minimum", "surfaces": ["libero*", "robocasa", "robolab"]}]},
+  {"key": "pose.quaternion_norm_minimum", "unit": "normalized", "owner": {"source": "ora/contracts/pose.py", "pattern": "if not ([\\d.]+) <= magnitude <= [\\d.]+:"}, "statements": [
+   {"tool": "move_pose", "text": "an orientation_xyzw whose norm lies outside [0.98, 1.02]", "literal": "0.98", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "pose.quaternion_norm_maximum", "unit": "normalized", "owner": {"source": "ora/contracts/pose.py", "pattern": "if not [\\d.]+ <= magnitude <= ([\\d.]+):"}, "statements": [
+   {"tool": "move_pose", "text": "an orientation_xyzw whose norm lies outside [0.98, 1.02]", "literal": "1.02", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "robotwin.pure_rotation_local_rotation", "unit": "rad", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/pure_rotation_local/maximum_rotation_rad"}, "statements": [
+   {"tool": "move_pose", "text": "rotates by at most 15 degrees while moving at most 5 mm is local", "literal": "15", "surfaces": ["robotwin_v2"], "unit": "deg"},
+   {"tool": "rotate_wrist", "text": "Rotations of at most 15 degrees use measured local Cartesian control", "literal": "15", "surfaces": ["robotwin_v2"], "unit": "deg"},
+   {"tool": "rotate_pitch", "text": "Rotations of at most 15 degrees use measured local Cartesian control", "literal": "15", "surfaces": ["robotwin_v2"], "unit": "deg"}]},
+  {"key": "robotwin.pure_rotation_local_translation", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/strategy_router/pure_rotation_local/maximum_translation_m"}, "statements": [
+   {"tool": "move_pose", "text": "rotates by at most 15 degrees while moving at most 5 mm is local", "literal": "5", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.plan_tcp_step", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/plan_validation/maximum_tcp_step_m"}, "statements": [
+   {"tool": "move_pose", "text": "a planned TCP step above 80 mm", "literal": "80", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.plan_workspace_margin", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/plan_validation/workspace_margin_m"}, "statements": [
+   {"tool": "move_pose", "text": "leaving the action workspace by more than 0.1 m", "literal": "0.1", "surfaces": ["robotwin_v2"]}]},
+  {"key": "robotwin.link_sphere_radius", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/dual_arm_collision_check/link_radius_m"}, "statements": [
+   {"tool": "move_pose", "text": "the two arms' 45 mm link spheres coming within 5 mm of each other", "literal": "45", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.link_sphere_clearance", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/dual_arm_collision_check/minimum_surface_clearance_m"}, "statements": [
+   {"tool": "move_pose", "text": "the two arms' 45 mm link spheres coming within 5 mm of each other", "literal": "5", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.link_sphere_escape", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/dual_arm_collision_check/escape_maximum_inward_deviation_m"}, "statements": [
+   {"tool": "move_pose", "text": "closing in by more than 1 mm", "literal": "1", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "robotwin.blocked_retreat", "unit": "m", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/blocked_motion_recovery/retreat_distance_m"}, "statements": [
+   {"tool": "recover_pose", "text": "which first retreats 20 mm opposite the recorded approach direction", "literal": "20", "surfaces": ["robotwin_v2"], "unit": "mm"}]},
+  {"key": "libero.local_endpoint_position", "unit": "m", "owner": {"python": "ora.environment.controllers.hybrid_motion:libero_local_endpoint_tolerances", "path": ["()", 0]}, "statements": [
+   {"tool": "move_to", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "5", "surfaces": ["libero_overhead"], "unit": "mm"},
+   {"tool": "move_pose", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "5", "surfaces": ["libero_overhead"], "unit": "mm"}]},
+  {"key": "libero.local_endpoint_orientation", "unit": "rad", "owner": {"python": "ora.environment.controllers.hybrid_motion:libero_local_endpoint_tolerances", "path": ["()", 1]}, "statements": [
+   {"tool": "move_to", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "2.86", "surfaces": ["libero_overhead"], "rounded": true, "unit": "deg"},
+   {"tool": "move_pose", "text": "misses by more than 5 mm or 2.86 deg and by no more than 50 mm and 15 degrees", "literal": "2.86", "surfaces": ["libero_overhead"], "rounded": true, "unit": "deg"}]},
+  {"key": "wait.minimum_ticks", "unit": "count", "owner": {"source": "ora/contracts/wait.py", "pattern": "not (\\d+) <= ticks <= WAIT_MAX_TICKS"}, "statements": [
+   {"tool": "wait_ticks", "text": "ticks that is not an integer from 1 to 20", "literal": "1", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "finish.reason_characters", "unit": "characters", "owner": {"python": "ora.agent.composition.schemas.finish_outcomes:MIN_REASON_CHARACTERS"}, "statements": [
+   {"tool": "finish_episode", "text": "at least 24 characters and 4 words", "literal": "24", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "finish.reason_words", "unit": "words", "owner": {"python": "ora.agent.composition.schemas.finish_outcomes:MIN_REASON_WORDS"}, "statements": [
+   {"tool": "finish_episode", "text": "at least 24 characters and 4 words", "literal": "4", "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "observed_clearance.holding_separation", "unit": "m", "owner": {"python": "ora.agent.toolkit.host.perception.localization:NEAR_CLOSED_M"}, "statements": [
+   {"tool": "move_pose", "text": "the measured jaw separation exceeds 3 mm", "literal": "3", "unit": "mm", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "libero.wait_tick_duration", "unit": "s", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "wait_ticks", "text": "one LIBERO control step (50 ms of simulated time, 20 Hz)", "literal": "50", "unit": "ms", "surfaces": ["libero_overhead"]},
+   {"tool": "wait_ticks", "text": "One tick is one LIBERO control step (50 ms of simulated time)", "literal": "50", "unit": "ms", "surfaces": ["libero_overhead"]}]},
+  {"key": "libero.wait_tick_rate", "unit": "Hz", "owner": {"derive": "reciprocal", "unit": "Hz", "of": [{"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "wait_ticks", "text": "one LIBERO control step (50 ms of simulated time, 20 Hz)", "literal": "20", "surfaces": ["libero_overhead"]}]},
+  {"key": "libero.wait_call_duration", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.contracts.wait:WAIT_MAX_TICKS", "unit": "count"}, {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "wait_ticks", "text": "20 ticks is 1.0 s.", "literal": "1.0", "surfaces": ["libero_overhead"]}]},
+  {"key": "delivery_trim.untargeted_drift_translation", "unit": "m", "owner": {"python": "ora.agent.context.delivery.trim:DRIFT_NOISE_TRANSLATION_M"}, "statements": [
+   {"tool": "observe", "text": "its inactive_arm_drift only above 0.1 mm or 0.01 deg", "literal": "0.1", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"], "unit": "mm"}]},
+  {"key": "delivery_trim.untargeted_drift_orientation", "unit": "deg", "owner": {"python": "ora.agent.context.delivery.trim:DRIFT_NOISE_ORIENTATION_DEG"}, "statements": [
+   {"tool": "observe", "text": "its inactive_arm_drift only above 0.1 mm or 0.01 deg", "literal": "0.01", "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"]}]},
+  {"key": "robocasa.control_period", "unit": "s", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "set_gripper", "text": "control ticks (50 ms each)", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"},
+   {"tool": "move_pose", "text": "each 50 ms control tick", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"}]},
+  {"key": "robocasa.control_rate", "unit": "Hz", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_FREQ_HZ"}, "statements": [
+   {"tool": "set_gripper", "text": "the simulator advances in 20 Hz control ticks", "literal": "20", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.gripper_tolerance", "unit": "normalized", "owner": {"python": "ora.environment.controllers.robocasa_omron:GRIPPER_ARRIVAL_TOLERANCE"}, "statements": [
+   {"tool": "set_gripper", "text": "within 0.03 of the commanded normalized opening", "literal": "0.03", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.gripper_still_step", "unit": "normalized", "owner": {"python": "ora.environment.controllers.robocasa_omron:GRIPPER_STALL_STILL_STEP"}, "statements": [
+   {"tool": "set_gripper", "text": "until they move less than 0.005 of it", "literal": "0.005", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.gripper_stall_window", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:GRIPPER_STALL_WINDOW_STEPS"}, "statements": [
+   {"tool": "set_gripper", "text": "in each of 3 consecutive ticks", "literal": "3", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.gripper_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:GRIPPER_STEPS"}, "statements": [
+   {"tool": "set_gripper", "text": "for at most 25 control ticks", "literal": "25", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.gripper_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.environment.controllers.robocasa_omron:GRIPPER_STEPS", "unit": "count"}, {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "set_gripper", "text": "control ticks (1.25 s)", "literal": "1.25", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.step_free_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_TRANSLATION_M", "path": ["free_space"]}, "statements": [
+   {"tool": "move_pose", "text": "at most 30 mm and", "literal": "30", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.contact_stop", "unit": "N", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTACT_FORCE_STOP_N"}, "statements": [
+   {"tool": "move_pose", "text": "contact force reaches 15 N", "literal": "15", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.arm_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_MAX_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "after 150 ticks (7.5 s)", "literal": "150", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.arm_budget_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.environment.controllers.robocasa_omron:ARM_MAX_STEPS", "unit": "count"}, {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "move_pose", "text": "after 150 ticks (7.5 s)", "literal": "7.5", "surfaces": ["robocasa"]}]},
+  {"key": "robolab.control_period", "unit": "s", "owner": {"python": "ora.environment.controllers.robolab_droid:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "set_gripper", "text": "control ticks (66.7 ms each)", "literal": "66.7", "surfaces": ["robolab"], "unit": "ms", "rounded": true},
+   {"tool": "move_pose", "text": "per 66.7 ms control tick", "literal": "66.7", "surfaces": ["robolab"], "unit": "ms", "rounded": true}]},
+  {"key": "robolab.local_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:LOCAL_TRANSLATION_M"}, "statements": [
+   {"tool": "move_pose", "text": "move of more than 50 mm or 15 degrees plans", "literal": "50", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.local_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robolab_droid:LOCAL_ROTATION_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "move of more than 50 mm or 15 degrees plans", "literal": "15", "surfaces": ["robolab"], "unit": "deg", "rounded": true},
+   {"tool": "rotate_wrist", "text": "a turn of more than 15 degrees plans", "literal": "15", "surfaces": ["robolab"], "unit": "deg", "rounded": true},
+   {"tool": "rotate_pitch", "text": "a turn of more than 15 degrees plans", "literal": "15", "surfaces": ["robolab"], "unit": "deg", "rounded": true}]},
+  {"key": "robolab.pace_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:PACE_BUDGET_TICKS"}, "statements": [
+   {"tool": "move_pose", "text": "one needing more than 300 control ticks", "literal": "300", "surfaces": ["robolab"]}]},
+  {"key": "robolab.depth_world.support_tolerance", "unit": "m", "owner": {"python": "ora.environment.controllers.depth_world:PUBLIC_DEPTH_VOXEL_ROBOTIQ_V1", "path": ["support_tolerance_m"]}, "statements": [
+   {"tool": "move_pose", "text": "A target with a fingertip more than 1 cm below the supporting surface under it is refused before planning", "literal": "1", "surfaces": ["robolab"], "unit": "cm"},
+   {"tool": "move_pose", "text": "A pose with a fingertip more than 1 cm below the supporting surface under it is unsolved", "literal": "1", "surfaces": ["robolab"], "unit": "cm"}]},
+  {"key": "robolab.control_rate", "unit": "Hz", "owner": {"python": "ora.environment.controllers.robolab_droid:CONTROL_FREQ_HZ"}, "statements": [
+   {"tool": "set_gripper", "text": "the simulator advances in 15 Hz control ticks", "literal": "15", "surfaces": ["robolab"]}]},
+  {"key": "robolab.gripper_tolerance", "unit": "normalized", "owner": {"python": "ora.environment.controllers.robolab_droid:GRIPPER_ARRIVAL_TOLERANCE"}, "statements": [
+   {"tool": "set_gripper", "text": "within 0.03 of the commanded normalized opening", "literal": "0.03", "surfaces": ["robolab"]}]},
+  {"key": "robolab.gripper_still_step", "unit": "normalized", "owner": {"python": "ora.environment.controllers.robolab_droid:GRIPPER_STALL_STILL_STEP"}, "statements": [
+   {"tool": "set_gripper", "text": "until they move less than 0.005 of it", "literal": "0.005", "surfaces": ["robolab"]}]},
+  {"key": "robolab.gripper_stall_window", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:GRIPPER_STALL_WINDOW"}, "statements": [
+   {"tool": "set_gripper", "text": "in each of 3 consecutive ticks", "literal": "3", "surfaces": ["robolab"]}]},
+  {"key": "robolab.gripper_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:GRIPPER_STEPS"}, "statements": [
+   {"tool": "set_gripper", "text": "for at most 20 control ticks", "literal": "20", "surfaces": ["robolab"]}]},
+  {"key": "robolab.gripper_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.environment.controllers.robolab_droid:GRIPPER_STEPS", "unit": "count"}, {"python": "ora.environment.controllers.robolab_droid:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "set_gripper", "text": "control ticks (1.33 s)", "literal": "1.33", "surfaces": ["robolab"], "rounded": true}]},
+  {"key": "robolab.step_free_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_TRANSLATION_M", "path": ["free_space"]}, "statements": [
+   {"tool": "move_pose", "text": "at most 30 mm and", "literal": "30", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.step_free_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_ROTATION_RAD", "path": ["free_space"]}, "statements": [
+   {"tool": "move_pose", "text": "8.59 deg (free_space)", "literal": "8.59", "surfaces": ["robolab"], "unit": "deg", "rounded": true}]},
+  {"key": "robolab.step_precision_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_TRANSLATION_M", "path": ["precision"]}, "statements": [
+   {"tool": "move_pose", "text": "12 mm and 4.58 deg (precision)", "literal": "12", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.step_precision_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_ROTATION_RAD", "path": ["precision"]}, "statements": [
+   {"tool": "move_pose", "text": "12 mm and 4.58 deg (precision)", "literal": "4.58", "surfaces": ["robolab"], "unit": "deg", "rounded": true}]},
+  {"key": "robolab.step_contact_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_TRANSLATION_M", "path": ["contact_approach"]}, "statements": [
+   {"tool": "move_pose", "text": "or 6 mm and 2.86 deg (contact_approach)", "literal": "6", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.step_contact_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robolab_droid:STEP_ROTATION_RAD", "path": ["contact_approach"]}, "statements": [
+   {"tool": "move_pose", "text": "or 6 mm and 2.86 deg (contact_approach)", "literal": "2.86", "surfaces": ["robolab"], "unit": "deg", "rounded": true}]},
+  {"key": "robolab.free_space_direct_radius", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:FREE_SPACE_DIRECT_RADIUS_M"}, "statements": [
+   {"tool": "move_pose", "text": "more than 0.08 m away horizontally", "literal": "0.08", "surfaces": ["robolab"]}]},
+  {"key": "robolab.free_space_lift", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:FREE_SPACE_LIFT_M"}, "statements": [
+   {"tool": "move_pose", "text": "lifting to 0.05 m above the higher", "literal": "0.05", "surfaces": ["robolab"]}]},
+  {"key": "robolab.arrival_position", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:POSITION_TOLERANCE_M"}, "statements": [
+   {"tool": "move_pose", "text": "stays within 5 mm and 2.86 deg of the target", "literal": "5", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.arrival_orientation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robolab_droid:ORIENTATION_TOLERANCE_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "stays within 5 mm and 2.86 deg of the target", "literal": "2.86", "surfaces": ["robolab"], "unit": "deg", "rounded": true}]},
+  {"key": "robolab.arrival_settle", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:SETTLE_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "for 3 consecutive ticks", "literal": "3", "surfaces": ["robolab"]}]},
+  {"key": "robolab.contact_stop", "unit": "N", "owner": {"python": "ora.environment.controllers.robolab_droid:CONTACT_FORCE_STOP_N"}, "statements": [
+   {"tool": "move_pose", "text": "contact force reaches 5 N", "literal": "5", "surfaces": ["robolab"]}]},
+  {"key": "robolab.stall_progress", "unit": "m", "owner": {"python": "ora.environment.controllers.robolab_droid:STALL_PROGRESS_M"}, "statements": [
+   {"tool": "move_pose", "text": "gains less than 2 mm", "literal": "2", "surfaces": ["robolab"], "unit": "mm"}]},
+  {"key": "robolab.stall_window", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:STALL_WINDOW_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": " in 15 ticks ends the action", "literal": "15", "surfaces": ["robolab"]}]},
+  {"key": "robolab.arm_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robolab_droid:MAX_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "after 150 ticks (10 s)", "literal": "150", "surfaces": ["robolab"]}]},
+  {"key": "robolab.arm_budget_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.environment.controllers.robolab_droid:MAX_STEPS", "unit": "count"}, {"python": "ora.environment.controllers.robolab_droid:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "move_pose", "text": "after 150 ticks (10 s)", "literal": "10", "surfaces": ["robolab"]}]},
+  {"key": "robocasa.joint_step_free", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["free_space"]}, "statements": [
+   {"tool": "move_pose", "text": "by at most 2.86 deg, 1.43 deg or 0.688 deg per joint", "literal": "2.86", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.joint_step_precision", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["precision"]}, "statements": [
+   {"tool": "move_pose", "text": "by at most 2.86 deg, 1.43 deg or 0.688 deg per joint", "literal": "1.43", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.joint_step_contact", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["contact_approach"]}, "statements": [
+   {"tool": "move_pose", "text": "by at most 2.86 deg, 1.43 deg or 0.688 deg per joint", "literal": "0.688", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.grip_step_free_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_ROTATION_RAD", "path": ["free_space"]}, "statements": [
+   {"tool": "move_pose", "text": "at most 30 mm and 8.59 deg, 12 mm", "literal": "8.59", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.grip_step_precision_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_TRANSLATION_M", "path": ["precision"]}, "statements": [
+   {"tool": "move_pose", "text": "8.59 deg, 12 mm and 4.58 deg, or 8 mm", "literal": "12", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.grip_step_precision_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_ROTATION_RAD", "path": ["precision"]}, "statements": [
+   {"tool": "move_pose", "text": "8.59 deg, 12 mm and 4.58 deg, or 8 mm", "literal": "4.58", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.grip_step_contact_translation", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_TRANSLATION_M", "path": ["contact_approach"]}, "statements": [
+   {"tool": "move_pose", "text": "or 8 mm and 3.44 deg (free_space", "literal": "8", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.grip_step_contact_rotation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STEP_ROTATION_RAD", "path": ["contact_approach"]}, "statements": [
+   {"tool": "move_pose", "text": "or 8 mm and 3.44 deg (free_space", "literal": "3.44", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.line_step", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:LINE_STEP_M"}, "statements": [
+   {"tool": "move_pose", "text": "solved by inverse kinematics every 20 mm", "literal": "20", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.line_joint_jump", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:LINE_MAX_JOINT_JUMP_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "no joint jumping more than 14.3 deg between cuts", "literal": "14.3", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.line_world_tolerance", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:LINE_WORLD_TOLERANCE_M"}, "statements": [
+   {"tool": "move_pose", "text": "out of that world, within 10 mm", "literal": "10", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.torso_search_step", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:TORSO_SEARCH_STEP_M"}, "statements": [
+   {"tool": "move_pose", "text": "tried every 0.04 m of the lift", "literal": "0.04", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.joint_settle", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_SETTLE_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "within 0.286 deg of the path's end", "literal": "0.286", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.arrival_settle_joint", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_SETTLE_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "of the path's end for 3 consecutive ticks", "literal": "3", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.arrival_position_joint", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_POSITION_TOLERANCE_M"}, "statements": [
+   {"tool": "move_pose", "text": "is then within 5 mm and 2.86 deg of the target", "literal": "5", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.arrival_orientation_joint", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_ORIENTATION_TOLERANCE_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "is then within 5 mm and 2.86 deg of the target", "literal": "2.86", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.blocked_lag", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_BLOCKED_LAG_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "by more than 11.46 deg for 3 consecutive ticks", "literal": "11.46", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.blocked_steps", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_BLOCKED_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "11.46 deg for 3 consecutive ticks", "literal": "3", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.still_step", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STILL_STEP_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "every joint moving less than 0.0573 deg a tick", "literal": "0.0573", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.still_steps", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_STILL_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "a tick for 3 consecutive ticks: settle_stalled", "literal": "3", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.settle_wait", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_SETTLE_MAX_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "still unsettled 20 ticks after the last target", "literal": "20", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.wait_tick", "unit": "s", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "wait_ticks", "text": "one RoboCasa control step (50 ms of simulated time, 20 Hz)", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"},
+   {"tool": "wait_ticks", "text": "One tick is one RoboCasa control step (50 ms of simulated time)", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"}]},
+  {"key": "robocasa.wait_tick_rate", "unit": "Hz", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_FREQ_HZ"}, "statements": [
+   {"tool": "wait_ticks", "text": "one RoboCasa control step (50 ms of simulated time, 20 Hz)", "literal": "20", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.wait_call_duration", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.contracts.wait:WAIT_MAX_TICKS", "unit": "count"}, {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "wait_ticks", "text": "20 ticks is 1.0 s.", "literal": "1.0", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.base_position_tolerance", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:BASE_POSITION_TOLERANCE_M"}, "statements": [
+   {"tool": "move_base", "text": "stops within 0.03 m and 2.3 deg of it", "literal": "0.03", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.base_yaw_tolerance", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:BASE_YAW_TOLERANCE_RAD"}, "statements": [
+   {"tool": "move_base", "text": "stops within 0.03 m and 2.3 deg of it", "literal": "2.3", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.base_max_travel", "unit": "m", "owner": {"python": "ora.agent.toolkit.tools.move_base.tool:MAX_TRAVEL_M"}, "statements": [
+   {"tool": "move_base", "text": "a target farther than 6.0 m from the current base pose", "literal": "6.0", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.base_max_speed", "unit": "m/s", "owner": {"python": "ora.environment.controllers.robocasa_omron:BASE_MAX_LINEAR_SPEED_M_S"}, "statements": [
+   {"tool": "move_base", "text": "The base drives at most 0.6 m/s", "literal": "0.6", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.base_max_yaw_rate", "unit": "deg/s", "owner": {"python": "ora.environment.controllers.robocasa_omron:BASE_MAX_YAW_RATE_DEG_S"}, "statements": [
+   {"tool": "move_base", "text": "turns at most 57.3 deg/s", "literal": "57.3", "surfaces": ["robocasa"], "rounded": true}]},
+  {"key": "robocasa.base_settle", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:BASE_SETTLE_STEPS"}, "statements": [
+   {"tool": "move_base", "text": "after 4 settled control ticks", "literal": "4", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.base_tick", "unit": "s", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "move_base", "text": "Every 50 ms control tick it runs", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"}]},
+  {"key": "robocasa.arm_reach", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_MAX_REACH_FROM_SHOULDER_M"}, "statements": [
+   {"tool": "move_pose", "text": "more than 1.05 m from the arm's shoulder", "literal": "1.05", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.ik_admission_position", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_POSITION_TOLERANCE_M"}, "statements": [
+   {"tool": "move_pose", "text": "does not solve within 5 mm and 2.86 deg", "literal": "5", "surfaces": ["robocasa"], "unit": "mm"}]},
+  {"key": "robocasa.ik_admission_orientation", "unit": "rad", "owner": {"python": "ora.environment.controllers.robocasa_omron:ARM_ORIENTATION_TOLERANCE_RAD"}, "statements": [
+   {"tool": "move_pose", "text": "does not solve within 5 mm and 2.86 deg", "literal": "2.86", "surfaces": ["robocasa"], "unit": "deg", "rounded": true}]},
+  {"key": "robocasa.joint_path_turn", "unit": "deg", "owner": {"python": "ora.environment.controllers.robocasa_omron:JOINT_PATH_MIN_ROTATION_DEG"}, "statements": [
+   {"tool": "move_pose", "text": "turns the hand more than 15 degrees", "literal": "15", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.torso_travel", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:TORSO_RANGE_M", "path": [1]}, "statements": [
+   {"tool": "move_pose", "text": "of the lift's 0.34 m of travel", "literal": "0.34", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.torso_step", "unit": "m", "owner": {"python": "ora.environment.controllers.robocasa_omron:TORSO_MAX_DELTA_PER_STEP_M"}, "statements": [
+   {"tool": "move_pose", "text": "at most 0.05 m per control tick", "literal": "0.05", "surfaces": ["robocasa"]}]},
+  {"key": "robocasa.torso_budget", "unit": "count", "owner": {"python": "ora.environment.controllers.robocasa_omron:TORSO_MAX_STEPS"}, "statements": [
+   {"tool": "move_pose", "text": "and at most 30 ticks (counted as native actions)", "literal": "30", "surfaces": ["robocasa"]}]},
+  {"key": "robolab.wait_tick", "unit": "s", "owner": {"python": "ora.environment.controllers.robolab_droid:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "wait_ticks", "text": "8 physics steps, 66.7 ms of simulated time, 15 Hz", "literal": "66.7", "surfaces": ["robolab"], "unit": "ms", "rounded": true},
+   {"tool": "wait_ticks", "text": "One tick is one RoboLab control step (66.7 ms of simulated time)", "literal": "66.7", "surfaces": ["robolab"], "unit": "ms", "rounded": true}]},
+  {"key": "robolab.wait_tick_rate", "unit": "Hz", "owner": {"python": "ora.environment.controllers.robolab_droid:CONTROL_FREQ_HZ"}, "statements": [
+   {"tool": "wait_ticks", "text": "8 physics steps, 66.7 ms of simulated time, 15 Hz", "literal": "15", "surfaces": ["robolab"]},
+   {"tool": "wait_ticks", "text": "15 ticks is 1.0 s.", "literal": "15", "surfaces": ["robolab"]}]},
+  {"key": "robolab.wait_tick_seconds", "unit": "s", "owner": {"derive": "product", "unit": "s", "of": [{"python": "ora.environment.controllers.robolab_droid:CONTROL_FREQ_HZ", "unit": "Hz"}, {"python": "ora.environment.controllers.robolab_droid:CONTROL_PERIOD_S", "unit": "s"}]}, "statements": [
+   {"tool": "wait_ticks", "text": "15 ticks is 1.0 s.", "literal": "1.0", "surfaces": ["robolab"]}]},
+  {"key": "robolab.physics_steps_per_tick", "unit": "count", "owner": {"python": "ora.environment.benchmarks.robolab:DECIMATION"}, "statements": [
+   {"tool": "wait_ticks", "text": "(8 physics steps, 66.7 ms", "literal": "8", "surfaces": ["robolab"]}]},
+  {"key": "libero.depth_world.support_tolerance", "unit": "m", "owner": {"python": "ora.environment.controllers.depth_world:PUBLIC_DEPTH_VOXEL_V1", "path": ["support_tolerance_m"]}, "statements": [
+   {"tool": "move_pose", "text": "A target with a fingertip more than 1 cm below the supporting surface under it is refused before planning", "literal": "1", "surfaces": ["libero_overhead"], "unit": "cm"},
+   {"tool": "move_pose", "text": "A pose with a fingertip more than 1 cm below the supporting surface under it is unsolved", "literal": "1", "surfaces": ["libero_overhead"], "unit": "cm"}]},
+  {"key": "robotwin.depth_world.support_tolerance", "unit": "m", "owner": {"python": "ora.environment.controllers.depth_world:PUBLIC_DEPTH_VOXEL_ALOHA_V1", "path": ["support_tolerance_m"]}, "statements": [
+   {"tool": "move_pose", "text": "A target with a fingertip more than 1 cm below the supporting surface", "literal": "1", "surfaces": ["robotwin_v2"], "unit": "cm"}]},
+  {"key": "motion_speed.normal.linear", "unit": "m/s", "owner": {"python": "ora.contracts.motion_speed:PRESET_CAPS", "path": ["normal", "linear_m_s"]}, "statements": [
+   {"tool": "move_pose", "text": "about 0.3 m/s", "literal": "0.3", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.normal.angular", "unit": "deg/s", "owner": {"python": "ora.contracts.motion_speed:PRESET_CAPS", "path": ["normal", "angular_deg_s"]}, "statements": [
+   {"tool": "move_pose", "text": "0.3 m/s and 60 deg/s", "literal": "60", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.careful.linear", "unit": "m/s", "owner": {"python": "ora.contracts.motion_speed:PRESET_CAPS", "path": ["careful", "linear_m_s"]}, "statements": [
+   {"tool": "move_pose", "text": "about 0.1 m/s", "literal": "0.1", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]},
+   {"tool": "move_pose", "text": "speed_m_s at or below 0.1", "literal": "0.1", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]},
+   {"tool": "move_pose", "text": "speed_m_s above 0.1", "literal": "0.1", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.careful.angular", "unit": "deg/s", "owner": {"python": "ora.contracts.motion_speed:PRESET_CAPS", "path": ["careful", "angular_deg_s"]}, "statements": [
+   {"tool": "move_pose", "text": "0.1 m/s and 20 deg/s", "literal": "20", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.turn_per_speed", "unit": "deg/s per m/s", "owner": {"python": "ora.contracts.motion_speed:TURN_DEG_S_PER_M_S"}, "statements": [
+   {"tool": "move_pose", "text": "200 deg/s per m/s", "literal": "200", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.min_turn", "unit": "deg/s", "owner": {"python": "ora.contracts.motion_speed:MIN_TURN_DEG_S"}, "statements": [
+   {"tool": "move_pose", "text": "at least 20 deg/s", "literal": "20", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.ramp", "unit": "s", "owner": {"python": "ora.contracts.motion_speed:RAMP_S"}, "statements": [
+   {"tool": "move_pose", "text": "both reached in 0.25 s", "literal": "0.25", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"]}]},
+  {"key": "motion_speed.slow_approach", "unit": "m", "owner": {"python": "ora.contracts.motion_speed:SLOW_APPROACH_M"}, "statements": [
+   {"tool": "move_pose", "text": "the final 2 cm of the same move", "literal": "2", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"], "unit": "cm"},
+   {"tool": "move_pose", "text": "the last 2 cm of the path", "literal": "2", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"], "unit": "cm"}]},
+  {"key": "libero.paced_joint_ceiling", "unit": "rad/s", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/global_motion/joint_follow_speed_rad_s"}, "statements": [
+   {"tool": "move_pose", "text": "at most 31.5 deg/s on this arm", "literal": "31.5", "surfaces": ["libero_overhead"], "unit": "deg/s", "rounded": true}]},
+  {"key": "libero.first_move_ticks.fast", "unit": "ticks", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_FIRST_MOVE_TICKS", "path": ["fast"]}, "statements": [
+   {"tool": "move_pose", "text": "a median of 74 control ticks at fast", "literal": "74", "surfaces": ["libero_overhead"], "rounded": true}]},
+  {"key": "libero.first_move_ticks.normal", "unit": "ticks", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_FIRST_MOVE_TICKS", "path": ["normal"]}, "statements": [
+   {"tool": "move_pose", "text": "74 at normal", "literal": "74", "surfaces": ["libero_overhead"], "rounded": true}]},
+  {"key": "libero.first_move_ticks.careful", "unit": "ticks", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_FIRST_MOVE_TICKS", "path": ["careful"]}, "statements": [
+   {"tool": "move_pose", "text": "113 at careful", "literal": "113", "surfaces": ["libero_overhead"], "rounded": true}]},
+  {"key": "libero.osc_line_deviation", "unit": "m", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/osc_transit/max_path_deviation_m"}, "statements": [
+   {"tool": "move_pose", "text": "within 2 cm of the straight line", "literal": "2", "surfaces": ["libero_overhead"], "unit": "cm"}]},
+  {"key": "libero.osc_line_turn", "unit": "rad", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/osc_transit/max_rotation_rad"}, "statements": [
+   {"tool": "move_pose", "text": "turns the hand at most 45 degrees", "literal": "45", "surfaces": ["libero_overhead"], "unit": "deg", "rounded": true}]},
+  {"key": "libero.paced_tick", "unit": "s", "owner": {"python": "ora.environment.backends.libero_pro.motion_settle:LIBERO_CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "move_pose", "text": "per 50 ms control tick", "literal": "50", "surfaces": ["libero_overhead"], "unit": "ms"}]},
+  {"key": "motion_pace.max_unrequested_turn", "unit": "deg", "owner": {"python": "ora.environment.controllers.motion_pace:MAX_UNREQUESTED_TURN_DEG"}, "statements": [
+   {"tool": "move_pose", "text": "more than 45 degrees beyond", "literal": "45", "surfaces": ["libero_overhead", "robotwin_v2", "robocasa"]}]},
+  {"key": "libero.paced_tick_budget", "unit": "ticks", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/global_motion/max_waypoints"}, "statements": [
+   {"tool": "move_pose", "text": "more than 2000 control ticks", "literal": "2000", "surfaces": ["libero_overhead"]}]},
+  {"key": "libero.precision_force_stop", "unit": "N", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/sensing/force_telemetry_threshold_n"}, "statements": [
+   {"tool": "move_pose", "text": "the measured force passes 40 N", "literal": "40", "surfaces": ["libero*"]}]},
+  {"key": "libero.contact_force_stop", "unit": "N", "owner": {"json": "ora/policy/embodiments/franka-panda/motion-profile-v4.json", "pointer": "/sensing/force_telemetry_threshold_n"}, "statements": [
+   {"tool": "move_pose", "text": "stays more than 40 N above", "literal": "40", "surfaces": ["libero*"]}]},
+  {"key": "libero.contact_stall_ticks", "unit": "count", "owner": {"python": "ora.environment.controllers.force_feedback:CONTACT_STALL_TICKS"}, "statements": [
+   {"tool": "move_pose", "text": "reading for 3 control ticks", "literal": "3", "surfaces": ["libero*"]}]},
+  {"key": "libero.contact_stall_progress", "unit": "m", "owner": {"python": "ora.environment.controllers.force_feedback:CONTACT_STALL_PROGRESS_M"}, "statements": [
+   {"tool": "move_pose", "text": "falls by less than 0.5 mm", "literal": "0.5", "surfaces": ["libero*"], "unit": "mm"}]},
+  {"key": "libero.contact_divergence_ticks", "unit": "count", "owner": {"python": "ora.environment.controllers.force_feedback:CONTACT_DIVERGENCE_RISING_TICKS"}, "statements": [
+   {"tool": "move_pose", "text": "has risen for 2 ticks", "literal": "2", "surfaces": ["libero*"]}]},
+  {"key": "libero.contact_divergence_limit", "unit": "m", "owner": {"python": "ora.environment.controllers.force_feedback:CONTACT_DIVERGENCE_LIMIT_M"}, "statements": [
+   {"tool": "move_pose", "text": "more than 5 mm above", "literal": "5", "surfaces": ["libero*"], "unit": "mm"}]},
+  {"key": "robotwin.paced_joint_ceiling", "unit": "rad/s", "owner": {"python": "ora.environment.backends.robotwin.pacing:JOINT_SPEED_CEILING_RAD_S"}, "statements": [
+   {"tool": "move_pose", "text": "at most 108.9 deg/s on this arm", "literal": "108.9", "surfaces": ["robotwin_v2"], "unit": "deg/s", "rounded": true}]},
+  {"key": "robotwin.paced_tick", "unit": "s", "owner": {"python": "ora.environment.backends.robotwin.pacing:PHYSICS_STEP_S"}, "statements": [
+   {"tool": "move_pose", "text": "per 4 ms physics step", "literal": "4", "surfaces": ["robotwin_v2"], "unit": "ms"}]},
+  {"key": "robotwin.paced_tick_budget", "unit": "ticks", "owner": {"json": "ora/policy/embodiments/aloha-agilex/control-profile-v10.json", "pointer": "/plan_validation/maximum_waypoints"}, "statements": [
+   {"tool": "move_pose", "text": "more than 5000 physics steps", "literal": "5000", "surfaces": ["robotwin_v2"]}]},
+  {"key": "robocasa.paced_joint_ceiling.free_space", "unit": "rad/s", "owner": {"derive": "product", "unit": "rad/s", "of": [{"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["free_space"], "unit": "rad"}, {"derive": "reciprocal", "unit": "Hz", "of": [{"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}]}, "statements": [
+   {"tool": "move_pose", "text": "at most 57.3 deg/s on this arm for free_space", "literal": "57.3", "surfaces": ["robocasa"], "unit": "deg/s", "rounded": true}]},
+  {"key": "robocasa.paced_joint_ceiling.precision", "unit": "rad/s", "owner": {"derive": "product", "unit": "rad/s", "of": [{"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["precision"], "unit": "rad"}, {"derive": "reciprocal", "unit": "Hz", "of": [{"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}]}, "statements": [
+   {"tool": "move_pose", "text": "28.6 for precision", "literal": "28.6", "surfaces": ["robocasa"], "unit": "deg/s", "rounded": true}]},
+  {"key": "robocasa.paced_joint_ceiling.contact_approach", "unit": "rad/s", "owner": {"derive": "product", "unit": "rad/s", "of": [{"python": "ora.environment.controllers.robocasa_omron:ARM_JOINT_STEP_RAD", "path": ["contact_approach"], "unit": "rad"}, {"derive": "reciprocal", "unit": "Hz", "of": [{"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S", "unit": "s"}]}]}, "statements": [
+   {"tool": "move_pose", "text": "13.8 for contact_approach", "literal": "13.8", "surfaces": ["robocasa"], "unit": "deg/s", "rounded": true}]},
+  {"key": "robocasa.paced_tick", "unit": "s", "owner": {"python": "ora.environment.controllers.robocasa_omron:CONTROL_PERIOD_S"}, "statements": [
+   {"tool": "move_pose", "text": "per 50 ms control tick", "literal": "50", "surfaces": ["robocasa"], "unit": "ms"}]},
+  {"key": "robocasa.paced_tick_budget", "unit": "ticks", "owner": {"python": "ora.environment.backends.robocasa.motion:ARM_PACE_BUDGET_TICKS"}, "statements": [
+   {"tool": "move_pose", "text": "more than 130 control ticks", "literal": "130", "surfaces": ["robocasa"]}]}
+ ],
+ "informational": [
+  {"tools": ["grasp_plan", "align_plan"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "\"position_m\":[0.1,0.0,0.9],\"orientation_mode\":\"absolute_quaternion\",\"orientation_xyzw\":[0.0,0.0,0.0,1.0]", "reason": "illustrative call example whose pose the help says to replace"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "{\"bindings\":[{\"name\":\"a\",\"value\":[0.1,0.2,0.3]},{\"name\":\"b\",\"value\":[0.4,0.6,0.3]}]", "reason": "illustrative call example"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "{\"bindings\":[{\"name\":\"p\",\"value\":[0.1,0.2,0.3]},{\"name\":\"q\",\"value\":[0.0,0.0,0.0,1.0]}]", "reason": "illustrative call example"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "axis = geom.rotate(q, [1, 0, 0])\\npoint = p + 0.03 * axis\\nangle = geom.angle_deg(axis, [0, 0, 1])", "reason": "illustrative call example"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "The first example returns distance_m=0.5; the second returns point=[0.13,0.2,0.3] and angle=90.", "reason": "result of the illustrative example"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "np.clip(x,-1,1)", "reason": "a call example's arguments"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "normalizes a nonzero 3-vector", "reason": "vector dimension, not a limit"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "rotates a 3-vector by q", "reason": "vector dimension, not a limit"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "the unsigned angle in [0,180] degrees", "reason": "the mathematical range of an unsigned angle, not a refusal"},
+  {"tools": ["compute"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "UTF-8", "reason": "an encoding name"},
+  {"tools": ["vision_segment"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "usually 3–5 separated interior points", "reason": "usage advice, not a bound"},
+  {"tools": ["vision_segment"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "Prefer 3–5 separated interior points", "reason": "usage advice, not a bound"},
+  {"tools": ["vision_segment"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "require position 0 to be the intended object", "reason": "a list index"},
+  {"tools": ["vision_ground"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "rank 0", "reason": "a list index"},
+  {"tools": ["vision_ground"], "surfaces": ["libero*", "robocasa", "robolab"], "text": "image 0 as the numbered full-scene overview", "reason": "an image index"},
+  {"tools": ["vision_ground"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "three cost roughly 479 milliseconds against 244 for one", "reason": "measured service latency, not a limit"},
+  {"tools": ["geometry_query"], "surfaces": ["robotwin*", "libero*", "robocasa", "robolab"], "text": "valid_count 0", "reason": "a returned value"},
+  {"tools": ["rotate_pitch"], "surfaces": ["robotwin*", "libero*"], "text": "so +90 is not universally world-down", "reason": "an illustrative angle"},
+  {"tools": ["align_plan"], "surfaces": ["robotwin*"], "text": "counting from 0", "reason": "an index origin"},
+  {"tools": ["set_gripper"], "surfaces": ["libero*"], "text": "A full close in free air takes about 15 ticks (0.75 s).", "reason": "measured on LIBERO; no code constant"},
+  {"tools": ["set_gripper"], "surfaces": ["libero*"], "text": "typically within 0.7 s", "reason": "measured on LIBERO; no code constant"},
+  {"tools": ["recover_pose"], "surfaces": ["libero*"], "text": "measured median 9 mm on LIBERO", "reason": "measured; no code constant"},
+  {"tools": ["recover_pose"], "surfaces": ["libero*"], "text": "measured median 260 mm", "reason": "measured; no code constant"},
+  {"tools": ["grasp_plan"], "surfaces": ["robotwin_v2", "libero_overhead", "robolab"], "text": "its 180-degree jaw flip", "reason": "the definition of the jaw flip (a half turn), not a limit"},
+  {"tools": ["rotate_wrist", "rotate_pitch"], "surfaces": ["*_v2", "libero_overhead", "robocasa", "robolab"], "text": "an angle of 0", "reason": "the no-op target rule (contracts/motion.py refuses a target that does not change the measured pose); 0 is the refused value, not a bound"},
+  {"tools": ["grasp_execute"], "surfaces": ["robotwin_v2"], "text": "180-degree jaw flip", "reason": "the definition of the jaw flip (a half turn), not a limit"},
+  {"tools": ["wait_ticks"], "surfaces": ["robotwin_v2"], "text": "(40 ms of simulated time)", "reason": "RoboTwin's 4 ms physics step is the scene's own timestep (recorded as physics_dt_s 0.004 in the ALOHA servo profiles); robotwin/wait.py steps WAIT_PHYSICS_STEPS_PER_TICK scene steps per tick and reports tick_period_s from scene.get_timestep() in each receipt"},
+  {"tools": ["wait_ticks"], "surfaces": ["robotwin_v2"], "text": "20 ticks is 0.8 s.", "reason": "RoboTwin's 4 ms physics step is the scene's own timestep (recorded as physics_dt_s 0.004 in the ALOHA servo profiles); robotwin/wait.py steps WAIT_PHYSICS_STEPS_PER_TICK scene steps per tick and reports tick_period_s from scene.get_timestep() in each receipt"},
+  {"tools": ["grasp_execute"], "surfaces": ["robotwin_v2"], "text": "(it is 0 only when no endpoint is valid)", "reason": "a definitional zero: with no valid endpoint no endpoint can be continuous (robotwin/probe_feedback.py)"},
+  {"tools": ["observe"], "surfaces": ["robotwin_v2", "libero_overhead", "robocasa", "robolab"], "text": "native_pixel_to_image_offset_xy when it is [0, 0]", "reason": "observation_delivery_trim_v1: the identity offset a camera entry leaves out"},
+  {"tools": ["observe"], "surfaces": ["robotwin_v2", "libero_overhead"], "text": "below 0.000001 is 0", "reason": "observation_delivery_trim_v1: the delivered value of a float below the zero threshold"},
+  {"tools": ["move_pose", "align_plan"], "surfaces": ["robotwin_v2"], "text": "One IK solve per pose by the IK solver of the global planner move_pose uses", "reason": "the RoboTwin read-only IK claim (contracts/robotwin_reach.py) quoted verbatim so results can leave them out; the seed count is robotwin.admission_ik_seeds"},
+  {"tools": ["move_pose"], "surfaces": ["robotwin_v2"], "text": "the same text from \"The 128-seed\" on", "reason": "points back at the quoted claim above"},
+  {"tools": ["move_pose"], "surfaces": ["libero_overhead"], "text": "checked against the 0.005 m / 2.86 deg arrival bound", "reason": "observation_delivery_trim_v1: the LIBERO reach-check claim (environment/backends/libero_pro/reach_check.py, built from the arrival bound's own constants) quoted verbatim in its delivered degree form so results can leave it out"},
+  {"tools": ["set_gripper"], "surfaces": ["robolab"], "text": "(0 closed, 1 open)", "reason": "names the two ends of the normalized opening scale"},
+  {"tools": ["move_pose"], "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"], "text": "1 to 3 cm", "reason": "guidance for when careful helps (the RoboDojo move_pose wording), not a limit"},
+  {"tools": ["move_pose"], "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"], "text": "any number above 0", "reason": "the exclusive minimum of speed_m_s (contracts/motion_speed.speed_request)"},
+  {"tools": ["move_pose"], "surfaces": ["libero_overhead", "robotwin_v2", "robocasa", "robolab"], "text": "not a number above 0", "reason": "the exclusive minimum of speed_m_s (contracts/motion_speed.speed_request)"},
+  {"tools": ["move_pose"], "surfaces": ["robolab"], "text": "checked against the 0.005 m / 2.86 deg arrival bound", "reason": "the RoboLab reach-check claim (environment/backends/robolab/reach_check.py, built from the arrival bound's own constants) quoted verbatim"}
+ ]
+}

@@ -54,6 +54,7 @@ class LayoutScheduleError(RuntimeError):
 
 def scheduled_layout_files(
     asset_root: Path, task: str, schedule: Mapping[str, Any] | None,
+    *, identity_warnings: list[dict] | None = None,
 ) -> list[dict[str, Any]] | None:
     """Hash every scheduled layout at worker start, or refuse the worker.
 
@@ -71,9 +72,16 @@ def scheduled_layout_files(
         path = selected_layout(assets, task=task, eval_seed=int(schedule["eval_seed"]),
                                layout_id=int(entry["layout_id"]))
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        if path.relative_to(assets).as_posix() != entry["layout_file"] or digest != entry["layout_sha256"]:
+        if path.relative_to(assets).as_posix() != entry["layout_file"]:
             raise LayoutScheduleError(
                 f"scheduled layout {entry['layout_id']} differs from the RunPlan file or bytes")
+        if digest != entry["layout_sha256"]:
+            if identity_warnings is None:
+                raise LayoutScheduleError(
+                    f"scheduled layout {entry['layout_id']} differs from the RunPlan file or bytes")
+            from ora.contracts.toolkit_protocol import identity_warning
+            identity_warnings.append(identity_warning(
+                f"layout_schedule.{entry['layout_id']}.sha256", entry["layout_sha256"], digest))
         files.append({"layout_id": int(entry["layout_id"]), "path": str(path), "sha256": digest})
     return files
 
@@ -156,9 +164,11 @@ def loaded_layout_checks(session: Any, entry: Mapping[str, Any]) -> tuple[dict[s
     loaded = session.environment.loaded_layout_state()
     expected_counts = layout_object_counts(planned_layout) if isinstance(planned_layout, Mapping) else None
     registered_counts = _registered_counts(session._scene_registration())
+    diagnostic = getattr(session, "config", {}).get("replay_identity_warnings") is True
     checks = {
         "layout_matches_round_schedule": (
-            manifest is not None and current_hash == entry["layout_sha256"] == manifest.get("sha256")
+            manifest is not None and current_hash == manifest.get("sha256")
+            and (diagnostic or current_hash == entry["layout_sha256"])
             and loaded["layout"] == planned_layout and loaded["env_seed"] == layout_id),
         "scene_objects_match_layout": (
             expected_counts is not None and loaded["object_counts"] == expected_counts

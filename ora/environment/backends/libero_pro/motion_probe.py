@@ -11,13 +11,10 @@ import json
 import time
 from typing import Any, Mapping
 
-from ora.environment.controllers.curobo_motion import (
-    _curobo_failure_reason,
-    _curobo_valid_query,
-)
 from ora.contracts.workspace import workspace_state
 
 from .pinned_imports import _path_is_within
+from .planner_request import failure_reason, valid_query
 from .common import (
     LIBERO_SPARSE_RECEIPT_SCHEMA,
     _sparse_planning_failure,
@@ -88,6 +85,8 @@ class LiberoMotionProbeMixin:
         measured_joints = [
             float(value) for value in motion_state["joint_positions"]
         ]
+        # One public snapshot for every query and variant of this probe.
+        world_input = self._world_input(motion_state, "probe")
 
         def planner_summary(planned: Mapping[str, Any] | None) -> dict[str, Any]:
             status = (
@@ -115,7 +114,7 @@ class LiberoMotionProbeMixin:
                     else "FAILED"
                 ),
                 "valid_query": (
-                    _curobo_valid_query(planned) if planned is not None else None
+                    valid_query(planned) if planned is not None else None
                 ),
                 "attempts": None,
                 "trajopt_attempts": None,
@@ -194,6 +193,7 @@ class LiberoMotionProbeMixin:
                     "joint_names": motion_state["joint_names"],
                     "joint_positions": motion_state["joint_positions"],
                     "target_pose_base_xyzw": target_base,
+                    **world_input,
                 })
                 self._persist_planner_evidence(planned, probe=True)
                 summary = planner_summary(planned)
@@ -205,8 +205,8 @@ class LiberoMotionProbeMixin:
                         "variant_id": variant_id, "reachable": False,
                         "planner": summary,
                         "failure": {
-                            "code": _curobo_failure_reason(planned),
-                            "message": "CuRobo admitted no trajectory",
+                            "code": failure_reason(planned),
+                            "message": "the global planner admitted no trajectory",
                         },
                     })
                     continue
@@ -442,9 +442,7 @@ class LiberoMotionProbeMixin:
                 "steps_used": inner.get("steps_used"),
                 "sim_steps_total": inner.get("sim_steps_total"),
                 "control_health": inner.get("control_health"),
-                "terminal_after_action": bool(
-                    self.terminated or self.truncated
-                ),
+                "terminal_after_action": self.is_terminal,
                 "segment": inner,
                 "finished_unix_s": time.time(),
             }

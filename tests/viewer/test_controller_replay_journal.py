@@ -233,3 +233,11 @@ def test_cached_viewer_video_rejects_journal_tamper(tmp_path):
     assert find_execution_media(tmp_path, trajectory, replay_mode="forensic") is not None
     writer.journal_path.write_bytes(writer.journal_path.read_bytes().replace(b"completed", b"corrupted"))
     assert find_execution_media(tmp_path, trajectory, replay_mode="forensic") is None
+
+
+def test_the_viewer_renders_no_robolab_record(tmp_path):
+    from viewer.replay import ViewerReplayError, replay_identity
+
+    recorder(tmp_path, "robolab")
+    with pytest.raises(ViewerReplayError, match="no RoboLab controller replay"):
+        replay_identity(tmp_path)

@@ -1,7 +1,7 @@
 # Compatibility record — <backend / embodiment / task family>
 
 Status: <auditing facts / ready to author / qualification pending / supported>.
-Follow the [compatibility guide](../guides/environment-compatibility-authoring.md). Required unknowns block the affected capability; optional unavailable values state their consequences.
+Follow the [compatibility guide](../developer/authoring/environment-compatibility.md). Required unknowns block the affected capability; optional unavailable values state their consequences.
 
 ## Sources and scope
 

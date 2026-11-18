@@ -1,0 +1,19 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "report_issue",
+  "description": "Persist one concise policy-visible interface, tool or evidence defect. Use when: a concrete inconsistency—such as a malformed result, stale observation binding, contradictory camera evidence or missing capability—prevents reliable action; normal task difficulty is not itself an interface issue. Effect: read-only with respect to the robot world and appends one diagnostic record without ending the episode. Returns: an acknowledgement after the diagnostic record is persisted; the Native acknowledgement may contain no additional decision fields.\nDoes not: repair the defect, move the robot, change task state, consume a robot decision, establish official failure or finish the policy session. On error: Refused: any field other than message, or a message that is empty or only whitespace (invalid_arguments). Reduce the message to one reproducible symptom and retry once; continue only if the remaining evidence is safe and internally consistent.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "message": {
+        "description": "Concise concrete interface or evidence defect.",
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "type": "object"
+  }
+}

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from ora.agent.contracts import PolicySessionError
-from ora.agent.evidence.trajectory import canonical_bytes
+from ora.agent.evidence.canonical import canonical_bytes
 
 
 PROVIDER_CONTINUATION_STATE_SCHEMA = (

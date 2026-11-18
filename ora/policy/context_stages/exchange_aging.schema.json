@@ -1,0 +1,76 @@
+{
+ "type": "object",
+ "description": "exchange_aging (phase age): while same-epoch Provider input is at or above the watermark, one rewrite ages every exchange older than the exact exchange tail into recoverable references, once a batch of exchanges has left that tail since the last aging.",
+ "properties": {
+  "trigger_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "Absolute watermark in same-epoch Provider input tokens, capped by the ratio; below emergency_checkpoint's."
+  },
+  "trigger_ratio": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "description": "The watermark's cap as a share of the hard input limit; below emergency_checkpoint's."
+  },
+  "exact_tail_exchanges": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "Latest exchanges an aging keeps exact, and the batch: an aging waits until this many have left the exact tail since the last one."
+  },
+  "argument_bytes": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 1,
+   "description": "An aged tool call's arguments longer than this (UTF-8 bytes) become a recoverable reference. null: arguments never age (nor does their message, so its reasoning stays bound)."
+  },
+  "result_bytes": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "An aged tool result longer than this (UTF-8 bytes) becomes a preview and a recoverable reference."
+  },
+  "preview": {
+   "type": "object",
+   "description": "What an aged argument or result keeps beside its reference: its head and its tail, never splitting a character, around a marker of the bytes cut between them.",
+   "properties": {
+    "head_bytes": {
+     "type": "integer",
+     "minimum": 0,
+     "description": "The first bytes kept."
+    },
+    "tail_bytes": {
+     "type": "integer",
+     "minimum": 0,
+     "description": "The last bytes kept."
+    }
+   },
+   "required": [
+    "head_bytes",
+    "tail_bytes"
+   ],
+   "additionalProperties": false
+  },
+  "result_preview": {
+   "enum": [
+    "head_and_tail",
+    "structured"
+   ],
+   "description": "What an aged result keeps beside its reference; absent: head_and_tail (the preview). structured: its status fields (ok, status, exit code, actions executed), the error type and message of a failed one, and its size, no output text."
+  },
+  "keep_anchor": {
+   "type": "boolean",
+   "description": "With an exact tail in exchanges: leave the anchor exchange (the latest robot action's call, receipt and observation) as it is, however old; absent: false."
+  }
+ },
+ "required": [
+  "argument_bytes",
+  "exact_tail_exchanges",
+  "preview",
+  "result_bytes",
+  "trigger_ratio",
+  "trigger_tokens"
+ ],
+ "additionalProperties": false
+}

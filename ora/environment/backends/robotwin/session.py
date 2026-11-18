@@ -102,6 +102,7 @@ from .common import (
     DEFERRED_SESSION_TASKS,
     DEFAULT_WORKSPACE_BOUNDS_M,
     ENVIRONMENT_SIGNAL_POLICIES,
+    PLAY_SIGNAL_POLICY,
     TASK_RECOVERABILITY_ACTORS,
     RoboTwinLiveError,
     RoboTwinControllerTrackingError,
@@ -126,6 +127,7 @@ from .control_profile import RoboTwinControlProfileMixin
 from .kinematics import RoboTwinKinematicsMixin
 from .observation import RoboTwinObservationMixin
 from .probe import RoboTwinProbeMixin
+from .action_plan import RoboTwinActionPlanMixin
 from .dense_motion import RoboTwinDenseMotionMixin
 from .motion_transaction import RoboTwinMotionTransactionMixin
 from .local_cartesian import RoboTwinLocalCartesianMixin
@@ -152,6 +154,23 @@ _EXPERT_ONLY_EVALUATOR_STATE = {
     # envs/put_object_cabinet.py:85-87
     "put_object_cabinet": ("arm_tag", "origin_z"),
 }
+
+
+def _withheld_predicate() -> bool:
+    return False
+
+
+def withhold_official_predicate(environment: Any) -> None:
+    """Load a task's scene without its success boundary (a play scene).
+
+    Upstream ``take_action`` and every Harness latch read the task's
+    ``check_success``; shadowing it on the one task instance means the
+    predicate never runs and ``eval_success`` never latches.
+    """
+
+    if not callable(getattr(environment, "check_success", None)):
+        raise RoboTwinLiveError("RoboTwin play scene has no official predicate to withhold")
+    environment.check_success = _withheld_predicate
 
 
 def _restore_expert_only_evaluator_state(environment: Any, task: str) -> None:
@@ -192,6 +211,7 @@ class RoboTwinLiveSession(
     RoboTwinKinematicsMixin,
     RoboTwinObservationMixin,
     RoboTwinProbeMixin,
+    RoboTwinActionPlanMixin,
     RoboTwinDenseMotionMixin,
     RoboTwinMotionTransactionMixin,
     RoboTwinLocalCartesianMixin,
@@ -234,6 +254,9 @@ class RoboTwinLiveSession(
     #: the unscreened check.
     reach_check_inter_arm_screen: bool = False
     operator_video_fps: int = 2
+    #: A scene of ORA's own scene sets (``play_scenes``), loaded instead of ``envs.{task}``
+    #: and only as a play scene; None for a RoboTwin task.
+    play_scene_set: str | None = None
     task_factory: Callable[[str], Any] = _task_factory
     task_args_factory: Callable[..., dict[str, Any]] = _load_task_args
     environment: Any = field(init=False, default=None, repr=False)
@@ -272,7 +295,9 @@ class RoboTwinLiveSession(
         self.execution_capture = resolve_execution_capture(self.execution_capture)
         self.robotwin_root = self.robotwin_root.expanduser().resolve()
         self.output_root = self.output_root.expanduser().resolve()
-        if self.task not in SUPPORTED_TASKS:
+        if self.play_scene_set is not None:
+            self._require_play_scene()
+        elif self.task not in SUPPORTED_TASKS:
             raise RoboTwinLiveError(
                 f"task is outside the registered RoboTwin session set: {self.task}"
             )
@@ -359,6 +384,20 @@ class RoboTwinLiveSession(
                 "dual_arm_collision_check"
             )
 
+    def _require_play_scene(self) -> None:
+        """A scene-set scene is one of the set's scenes and loads only as a play scene."""
+
+        from ora.environment.benchmarks.robotwin_play_scenes import PlaySceneSetError, scene_definition
+
+        try:
+            definition = scene_definition(str(self.play_scene_set), self.task)
+        except PlaySceneSetError as error:
+            raise RoboTwinLiveError(str(error)) from error
+        if self.environment_signal_policy != PLAY_SIGNAL_POLICY:
+            raise RoboTwinLiveError(f"{self.play_scene_set} scenes load only as play scenes")
+        if self.task_config != definition.task_config:
+            raise RoboTwinLiveError(f"{self.task} loads in scene configuration {definition.task_config}")
+
     def _verify_source(self) -> dict[str, Any]:
         if not (self.robotwin_root / "envs").is_dir():
             raise RoboTwinLiveError(f"invalid RoboTwin root: {self.robotwin_root}")
@@ -372,7 +411,7 @@ class RoboTwinLiveSession(
             "envs/camera/camera.py",
             "envs/robot/robot.py",
             "envs/robot/planner.py",
-            f"envs/{self.task}.py",
+            *(() if self.play_scene_set is not None else (f"envs/{self.task}.py",)),
             f"task_config/{self.task_config}.yml",
             "task_config/_eval_step_limit.yml",
         ]
@@ -401,6 +440,11 @@ class RoboTwinLiveSession(
             "task_config": self.task_config,
             "files": files,
         }
+        if self.play_scene_set is not None:
+            from ora.environment.benchmarks.robotwin_play_scenes import source_binding
+
+            # The ORA files that define the scene, as the play-scene audit bound them.
+            manifest["play_scene_source"] = source_binding(self.play_scene_set)
         return {**manifest, "manifest_sha256": _json_hash(manifest)}
 
     def start(self) -> dict[str, Any]:
@@ -433,7 +477,7 @@ class RoboTwinLiveSession(
             # under the shared ``reset["seed"]`` key, including round 0.
             "seed": self.actual_seed,
             "round_index": self.round_index,
-            "official_predicate_at_reset": False,
+            "official_predicate_at_reset": None if self.play_scene else False,
             "source_manifest": self.source_manifest,
             "workspace_bounds_m": _jsonable(self.workspace_bounds_m),
             "operator_world_video_enabled": self.operator_world_video,
@@ -473,8 +517,13 @@ class RoboTwinLiveSession(
         """
 
         environment: Any = None
+        factory = self.task_factory
+        if self.play_scene_set is not None and factory is _task_factory:
+            from ora.environment.benchmarks.robotwin_play_scenes import scene_instance
+
+            factory = lambda task: scene_instance(str(self.play_scene_set), task)  # noqa: E731
         try:
-            environment = self.task_factory(self.task)
+            environment = factory(self.task)
             args = self.task_args_factory(
                 robotwin_root=self.robotwin_root,
                 task=self.task,
@@ -490,6 +539,8 @@ class RoboTwinLiveSession(
                 **args,
             )
             _restore_expert_only_evaluator_state(environment, self.task)
+            if self.play_scene:
+                withhold_official_predicate(environment)
             if bool(environment.check_success()):
                 raise RoboTwinLiveError("official predicate is already true at reset")
         except Exception:
@@ -500,6 +551,12 @@ class RoboTwinLiveSession(
                 pass
             raise
         return environment
+
+    @property
+    def play_scene(self) -> bool:
+        """A play scene: its official predicate is withheld and its verdict null."""
+
+        return self.environment_signal_policy == PLAY_SIGNAL_POLICY
 
     @property
     def is_terminal(self) -> bool:
@@ -543,6 +600,8 @@ class RoboTwinLiveSession(
 
     def status(self) -> dict[str, Any]:
         environment = self._require_environment()
+        if self.play_scene and bool(getattr(environment, "eval_success", False)):
+            raise RoboTwinLiveError("a play scene latched the official predicate it withholds")
         signals: list[dict[str, str]] = []
         recoverability = self._task_recoverability_signal()
         if recoverability is not None:
@@ -605,7 +664,8 @@ class RoboTwinLiveSession(
         if not status["terminal"]:
             raise RoboTwinLiveError("official verdict is unavailable before episode termination")
         self._capture_execution_boundary("terminal")
-        success = bool(getattr(environment, "eval_success", False))
+        # A play scene has no official boundary: its verdict is null.
+        success = None if self.play_scene else bool(getattr(environment, "eval_success", False))
         if success:
             self._freeze_official_terminal(environment)
         payload = {
@@ -614,7 +674,10 @@ class RoboTwinLiveSession(
             "episode": self.episode,
             "actual_seed": self.actual_seed,
             "official_success": success,
-            "source": "RoboTwin.eval_success",
+            "source": (
+                "RoboTwin play scene (official predicate withheld)" if self.play_scene
+                else "RoboTwin.eval_success"
+            ),
             "official_terminal": copy.deepcopy(self.official_terminal),
             "eval_success_seen": bool(getattr(environment, "eval_success", False)),
             "semantic_action_count": int(environment.take_action_cnt),

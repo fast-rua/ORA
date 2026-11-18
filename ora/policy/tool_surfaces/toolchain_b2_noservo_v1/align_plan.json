@@ -1,0 +1,201 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "align_plan",
+  "description": "Answer, from inverse kinematics alone, which standoff poses facing one target from one named side an arm can actually hold.\nUse when: you have a current target_ref and need an IK-only comparison of standoff poses from a named side. This is optional diagnosis, not a prerequisite for every approach. Near miss: this is not grasp_plan (where on this object do the fingers close); use grasp_plan for contact geometry and candidate finger poses; use move_pose when you already have the pose to command. An unreachable result describes this solver attempt, not an impossible approach side. If you later call grasp_plan, inspect its candidates independently: grasp_plan takes no approach_side or align candidate input, so it does not inherit this side selection. The five sides are world-frame directions toward the object and never toward an arm: top stands off above the target and travels down (world -Z), front stands off at -X travelling +X, back at +X travelling -X, left at +Y travelling -Y, and right at -Y travelling +Y. Choose the arm separately in arm; approach_side \"left\" does not mean the left arm. Two bounded numbers shape the request: standoff_m is the distance in metres from the target's visible-surface centroid to the candidate TCP position (default 0.10 m, permitted 0.02-0.30 m), and max_candidates is how many jaw rolls to sweep at that one position (default 3, at most 6).\nEffect: read-only. No action is submitted, no world state changes, no artifact is written, and no observation is produced or consumed. Every candidate is solved by the IK a global move_pose route plans through, from this arm's current measured joint configuration against its joint limits, self-collision and the collision world move_pose describes, and no trajectory is planned, so motion_planner_called is false in every result and the same request can answer differently after the arm has moved.\nReturns: schema, the echoed target_ref, approach_side and requested_arm, motion_planner_called, and candidates. Each candidate carries source_index (which synthesised pose it came from, counting from 0), arm, align_pose = {position_m [x,y,z] in metres, orientation_xyzw [x,y,z,w] normalized} as a world-frame public TCP pose, reachable, position_error_m in metres and orientation_error_deg in degrees at the solution (null when none was found), iterations (1 on this backend: one IK solve per pose), rejection_reason (null when reachable, otherwise ik_failed) and claim_boundary. All candidates share one standoff position and differ only by jaw roll about the approach axis. arm \"both\" returns one candidate per arm per pose, keyed by (arm, source_index). Unreachable candidates are returned rather than dropped, so a ruled-out side can be cited. Read position_error_m and orientation_error_deg rather than trusting the word reachable, then command a chosen align_pose through move_pose: under targets.<selected_arm>, set position_mode=absolute and orientation_mode=absolute_quaternion and copy position_m and orientation_xyzw. Select interaction by physical intent. Schema example only; replace this illustrative pose and arm with your chosen current result:\n{\"tool\":\"move_pose\",\"arguments\":{\"targets\":{\"right\":{\"position_mode\":\"absolute\",\"position_m\":[0.1,0.0,0.9],\"orientation_mode\":\"absolute_quaternion\",\"orientation_xyzw\":[0.0,0.0,0.0,1.0],\"interaction\":\"precision\"}}}}\n There is no later receipt and no reference to resolve, because nothing was submitted.\nDoes not: prove that a collision-free path exists, plan or execute any motion, or promise that move_pose to a returned pose will arrive. A returned pose has not been tried: reachable means only that this model of this arm admits a joint configuration holding that pose. It is not a grasp, not a contact, not retention and not task success, and it makes no claim about the gripper, which is neither commanded nor read. The standoff is measured from the visible-surface centroid of the segmented mask, not from the object's true centre, so an occluded or one-sided view biases every candidate toward the camera. An unreachable verdict describes this arm from its present configuration; it is not proof that the approach is impossible. Use position_error_m and orientation_error_deg to interpret this attempt; do not turn them into a probability of path feasibility. Only the motion tool attempts the actual route.\nOn error: Refused: standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6; an approach_side or arm outside this tool's enums; a target_ref unknown in this round (target_ref_unavailable) or bound to an earlier observation (stale_observation); a target whose mask or depth cannot locate a centroid (target_geometry_unavailable). invalid_arguments naming standoff_m means the value left 0.02-0.30 m -- resubmit inside that range instead of retrying the same number. invalid_arguments naming approach_side means the string is not one of the five declared directions; re-read this tool's approach_side enum and select one of its values rather than inventing a synonym. invalid_arguments naming arm means the name is not an arm of this embodiment; this tool's arm enum is the complete list of what it has. target_ref_unavailable means no such segmented target exists and stale_observation means the reference predates the current observation: re-run vision_segment or vision_ground on the current view and use the new reference. target_geometry_unavailable is retryable and means the mask or its depth is too poor to locate a centroid, so obtain a clearer current view of that target first. When candidates are unreachable, use their residuals and current geometry to choose a different side, standoff or arm if that answers a specific uncertainty. Do not exhaustively sweep unchanged requests. A world move changes the starting configuration and invalidates target references; obtain a fresh target before another query. Fixed texts stated once here and left out of results and effects: candidates[].claim_boundary is \"One IK solve per pose by the IK solver of the global planner move_pose uses, seeded from the measured joints or a chained query's solution, with joint limits, self-collision and a collision world built from the current depth images: the robot removed, the other arm at its measured joints, the space around the goal hand cleared, a held object moving with the hand, and space no camera sees counted as free. The solution's grip centre is checked against the arrival bound. It plans no trajectory and runs no plan validation, so move_pose can still refuse a pose reported reachable, and a finite seed search can miss a solution.\".",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "target_ref",
+      "approach_side",
+      "arm"
+    ],
+    "properties": {
+      "target_ref": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Segmented target from the current observation, as returned by vision_segment or vision_ground. The standoff is measured from this target's visible-surface centroid in metres; a reference bound to an earlier observation is refused as stale."
+      },
+      "approach_side": {
+        "type": "string",
+        "enum": [
+          "top",
+          "left",
+          "right",
+          "front",
+          "back"
+        ],
+        "description": "World-frame direction toward the object, never toward an arm: top stands off above the target and travels down (world -Z), front stands off at -X travelling +X, back at +X travelling -X, left at +Y travelling -Y, right at -Y travelling +Y."
+      },
+      "arm": {
+        "type": "string",
+        "enum": [
+          "left",
+          "right",
+          "both"
+        ],
+        "description": "Which arm is asked. This is independent of approach_side. \"both\" asks the identical poses of each arm in one read-only call and returns one candidate per arm per pose."
+      },
+      "standoff_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0.02,
+        "maximum": 0.3,
+        "default": 0.1,
+        "description": "Distance in metres from the target's visible-surface centroid to the candidate TCP position, along approach_side. Default 0.10 m. Values outside 0.02-0.30 m are refused. Null means omitted."
+      },
+      "max_candidates": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 1,
+        "maximum": 6,
+        "default": 3,
+        "description": "How many poses to synthesise at that one standoff position, differing only by jaw roll about the approach axis: 1 to 6, default 3. With arm \"both\" the result holds twice this many candidates. Null means omitted."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "schema",
+      "target_ref",
+      "approach_side",
+      "requested_arm",
+      "motion_planner_called",
+      "candidates"
+    ],
+    "properties": {
+      "schema": {
+        "type": "string",
+        "const": "ora.align-plan-result.v1"
+      },
+      "target_ref": {
+        "type": "string",
+        "minLength": 1
+      },
+      "approach_side": {
+        "type": "string",
+        "enum": [
+          "top",
+          "left",
+          "right",
+          "front",
+          "back"
+        ]
+      },
+      "requested_arm": {
+        "type": "string",
+        "enum": [
+          "left",
+          "right",
+          "both"
+        ]
+      },
+      "motion_planner_called": {
+        "type": "boolean",
+        "const": false
+      },
+      "candidates": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_index",
+            "arm",
+            "align_pose",
+            "reachable",
+            "position_error_m",
+            "orientation_error_rad",
+            "iterations",
+            "rejection_reason",
+            "claim_boundary"
+          ],
+          "properties": {
+            "source_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "arm": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right"
+              ]
+            },
+            "align_pose": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "position_m",
+                "orientation_xyzw"
+              ],
+              "properties": {
+                "position_m": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "orientation_xyzw": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              }
+            },
+            "reachable": {
+              "type": "boolean"
+            },
+            "position_error_m": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "orientation_error_rad": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "iterations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "rejection_reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "ik_failed",
+                null
+              ]
+            },
+            "claim_boundary": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

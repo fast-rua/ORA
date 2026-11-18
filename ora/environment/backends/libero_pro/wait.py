@@ -212,6 +212,8 @@ def execute_wait(session: Any, payload: Mapping[str, Any]) -> dict[str, Any]:
     health = _health(session, before, after, invariant["verified"])
     terminal = bool(session.terminated or session.truncated)
     status, stage, code = _outcome(health, steps=steps, ticks=ticks, terminal=terminal)
+    if health["status"] == "fault":
+        session.control_fault_reason = "libero_control_health_fault"
     receipt = {
         "schema": LIBERO_SPARSE_RECEIPT_SCHEMA, "action_id": action["action_id"], "action": WAIT_ACTION,
         "arguments": dict(action["arguments"]), "consumed": True, "state_changed": steps > 0,
@@ -230,11 +232,11 @@ def execute_wait(session: Any, payload: Mapping[str, Any]) -> dict[str, Any]:
             physics_steps_per_tick=per_tick,
         ),
         "robustness_event": session._persist_new_robustness_event(),
-        "terminal_after_action": terminal,
+        # Every terminal status the session reports, the control fault just
+        # latched and an abort included, not only LIBERO's own outcomes.
+        "terminal_after_action": session.is_terminal,
         "started_unix_s": started, "finished_unix_s": time.time(),
     }
-    if health["status"] == "fault":
-        session.control_fault_reason = "libero_control_health_fault"
     session.replay_recorder.record(
         action_sequence=session.action_sequence, action=action, controller=REPLAY_CONTROLLER,
         arrays={"commands": commands}, physics_steps=steps, replayable=bool(commands),

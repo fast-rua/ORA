@@ -1,0 +1,667 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "rotate_wrist",
+  "description": "Rotate the jaw line around the current approach axis while holding position.\nUse when: rotating the right grip site about its approach axis (Panda local +Z, pointing out of the gripper) while holding position — usually to align the jaw-closing line with an object's grasp axis before descending.\nEffect: compiles the signed angle to an exact pose through canonical move_pose. Rotations of at most 15 degrees execute through the bounded OSC servo; larger rotations execute through global CuRobo and the bounded local settle move_pose describes. One robot decision. speed, speed_m_s and slow_approaching (optional) work as on move_pose.\nReturns: an immediate acknowledgement with status=submitted, action and compiled_pose; compiled_pose.targets contains the compiled requested target, not a measured arrival. The subsequent Supervisor receipt and fresh causal observation separately report execution route, phase outcomes and measured residuals. A pre-admission error submits no action.\nDoes not: expose a literal wrist joint, translate, command the gripper, or verify that the jaws actually align with the object — confirm alignment from a fresh observation.\nOn error: Refused: an angle outside [-180, 180] degrees or not a finite number; an angle of 0; a target outside the bound action workspace (workspace_bounds), which includes any rotation while the grip site is already outside it; the episode's terminal boundary (episode_terminal). Speed options are refused as on move_pose. Check the current grip-site axes and correct the sign or magnitude; after a substantial rotation re-observe before descending. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame. Its compiled_pose targets carry reach_along_request, the same approximate pre-check as move_pose's.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "angle_deg": {
+        "description": "Signed rotation in degrees about the grip-site approach axis (Panda local +Z), holding position; aligns the jaw-closing line.",
+        "maximum": 180,
+        "minimum": -180,
+        "type": "number"
+      },
+      "speed": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "fast",
+          "normal",
+          "careful",
+          null
+        ],
+        "description": "Optional; default fast. As move_pose's speed. Leave it out when you give speed_m_s. Null means omitted."
+      },
+      "speed_m_s": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Optional, instead of speed: as move_pose's speed_m_s. Null means omitted."
+      },
+      "slow_approaching": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "Optional; default false. As move_pose's slow_approaching. Null means omitted."
+      }
+    },
+    "required": [
+      "angle_deg"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "rotate_wrist"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "properties": {
+          "targets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "reach_along_request": {
+                  "type": "object",
+                  "description": "Read-only reach pre-check of the submitted target by this backend's reach check (ik_model), from the measured joints. matches_move_pose_admission says whether that check is the IK move_pose admits through for this request; when it is not, the check is a reference only. When the target does not solve, the straight interpolation from the measured pose is sampled.",
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "target_reachable",
+                        "ik_model",
+                        "matches_move_pose_admission",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "target_reachable": {
+                          "const": true
+                        },
+                        "ik_model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "matches_move_pose_admission": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "target_reachable",
+                        "reason",
+                        "requested_translation_m",
+                        "requested_rotation_rad",
+                        "farthest_reachable_fraction",
+                        "farthest_reachable_translation_m",
+                        "farthest_reachable_pose",
+                        "samples",
+                        "claim_boundary",
+                        "ik_model",
+                        "matches_move_pose_admission",
+                        "nearest_reachable_orientation"
+                      ],
+                      "properties": {
+                        "target_reachable": {
+                          "const": false
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "requested_translation_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "requested_rotation_rad": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "farthest_reachable_fraction": {
+                          "type": "number",
+                          "enum": [
+                            0.0,
+                            0.125,
+                            0.25,
+                            0.375,
+                            0.5,
+                            0.625,
+                            0.75,
+                            0.875
+                          ]
+                        },
+                        "farthest_reachable_translation_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "farthest_reachable_pose": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "position_m",
+                            "orientation_xyzw"
+                          ],
+                          "properties": {
+                            "position_m": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 3,
+                              "maxItems": 3
+                            },
+                            "orientation_xyzw": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 4,
+                              "maxItems": 4
+                            }
+                          }
+                        },
+                        "samples": {
+                          "type": "array",
+                          "minItems": 7,
+                          "maxItems": 7,
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "fraction",
+                              "reachable",
+                              "reason"
+                            ],
+                            "properties": {
+                              "fraction": {
+                                "type": "number"
+                              },
+                              "reachable": {
+                                "type": "boolean"
+                              },
+                              "reason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "ik_model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "matches_move_pose_admission": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "nearest_reachable_orientation": {
+                          "type": "object",
+                          "description": "The reachable turn of the requested orientation with the smallest angle, holding the nominal jaw centre, from read-only IK at the endpoint.",
+                          "oneOf": [
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "rotation_from_request_deg",
+                                "tilt_from_straight_down_deg",
+                                "approach_world",
+                                "pose",
+                                "jaw_center_m",
+                                "reachable_turns_at_rotation",
+                                "queries",
+                                "claim_boundary"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "found"
+                                },
+                                "rotation_from_request_deg": {
+                                  "type": "number",
+                                  "enum": [
+                                    15,
+                                    30,
+                                    45,
+                                    60,
+                                    75
+                                  ]
+                                },
+                                "tilt_from_straight_down_deg": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 180
+                                },
+                                "approach_world": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "pose": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "position_m",
+                                    "orientation_xyzw"
+                                  ],
+                                  "properties": {
+                                    "position_m": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "minItems": 3,
+                                      "maxItems": 3
+                                    },
+                                    "orientation_xyzw": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "minItems": 4,
+                                      "maxItems": 4
+                                    }
+                                  }
+                                },
+                                "jaw_center_m": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "reachable_turns_at_rotation": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 12
+                                },
+                                "queries": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                },
+                                "claim_boundary": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              }
+                            },
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "largest_rotation_deg",
+                                "jaw_center_m",
+                                "queries",
+                                "claim_boundary"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "none_within_sweep"
+                                },
+                                "largest_rotation_deg": {
+                                  "const": 75
+                                },
+                                "jaw_center_m": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "minItems": 3,
+                                  "maxItems": 3
+                                },
+                                "queries": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 60
+                                },
+                                "claim_boundary": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              }
+                            },
+                            {
+                              "additionalProperties": false,
+                              "required": [
+                                "status",
+                                "failure"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "const": "unavailable"
+                                },
+                                "failure": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "failure"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unavailable"
+                        },
+                        "failure": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "observed_clearance": {
+                  "type": "object",
+                  "description": "Read-only, from the current depth images: the jaw footprint's lowest point at this target minus the highest observed surface beneath it or within radius_m; negative means that surface is higher. Not a collision check.",
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "clearance_m",
+                        "highest_surface",
+                        "footprint_lowest_m",
+                        "footprint_lowest_part",
+                        "radius_m",
+                        "footprint_observed_fraction",
+                        "robot_points_excluded",
+                        "held_object",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "measured"
+                        },
+                        "clearance_m": {
+                          "type": "number"
+                        },
+                        "highest_surface": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "position_m",
+                            "camera",
+                            "observation_id",
+                            "depth_points"
+                          ],
+                          "properties": {
+                            "position_m": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 3,
+                              "maxItems": 3
+                            },
+                            "camera": {
+                              "type": "string"
+                            },
+                            "observation_id": {
+                              "type": "string"
+                            },
+                            "depth_points": {
+                              "type": "integer",
+                              "minimum": 1
+                            }
+                          }
+                        },
+                        "footprint_lowest_m": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 3,
+                          "maxItems": 3
+                        },
+                        "footprint_lowest_part": {
+                          "type": "string",
+                          "enum": [
+                            "fingers",
+                            "held_object"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "footprint_observed_fraction": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "robot_points_excluded": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "held_object": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "target_ref",
+                            "extent_included",
+                            "recentered_under_jaws"
+                          ],
+                          "description": "null unless the jaws measure as holding: the target the policy named when they closed and whether its localized extent is part of the footprint.",
+                          "properties": {
+                            "target_ref": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "extent_included": {
+                              "type": "boolean"
+                            },
+                            "recentered_under_jaws": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "reason",
+                        "footprint_lowest_m",
+                        "footprint_lowest_part",
+                        "radius_m",
+                        "footprint_observed_fraction",
+                        "robot_points_excluded",
+                        "held_object",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unknown"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "depth_unavailable",
+                            "footprint_unobserved"
+                          ]
+                        },
+                        "footprint_lowest_m": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 3,
+                          "maxItems": 3
+                        },
+                        "footprint_lowest_part": {
+                          "type": "string",
+                          "enum": [
+                            "fingers",
+                            "held_object"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "footprint_observed_fraction": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "robot_points_excluded": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "held_object": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": false,
+                          "required": [
+                            "target_ref",
+                            "extent_included",
+                            "recentered_under_jaws"
+                          ],
+                          "description": "null unless the jaws measure as holding: the target the policy named when they closed and whether its localized extent is part of the footprint.",
+                          "properties": {
+                            "target_ref": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "extent_included": {
+                              "type": "boolean"
+                            },
+                            "recentered_under_jaws": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "reason",
+                        "radius_m",
+                        "claim_boundary"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "unknown"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "geometry_unavailable",
+                            "reference_failed"
+                          ]
+                        },
+                        "radius_m": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "claim_boundary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "target_axes_world": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "approach",
+                    "jaw_line"
+                  ],
+                  "description": "World directions of the approach axis and jaw line of the submitted target orientation, computed from its compiled quaternion.",
+                  "properties": {
+                    "approach": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "jaw_line": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

@@ -29,6 +29,7 @@ from .common import (
     _pose_error,
     _wxyz_to_xyzw,
 )
+from .pacing import local_step_caps
 
 
 def _per_arm_samples() -> dict[str, list[list[float]]]:
@@ -73,6 +74,8 @@ class LocalCartesianRun:
     abort: dict[str, Any] | None = None
     minimum_inter_arm_distance: float = math.inf
     payload_validation: dict[str, Any] | None = None
+    #: The move's end-effector speed as caps per physics step (``pacing.local_step_caps``); None runs uncapped.
+    step_caps: Any = None
     execution_started: bool = False
     controller_write_attempts: int = 0
     physics_step_attempts: int = 0
@@ -380,4 +383,5 @@ def open_local_cartesian_run(
         initial_pose=initial_pose,
         clearance_policy=clearance_policy,
         previous_tcp={arm: list(initial_pose[arm]) for arm in ("left", "right")},
+        step_caps=local_step_caps(action),
     )

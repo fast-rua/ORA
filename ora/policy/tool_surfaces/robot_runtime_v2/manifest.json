@@ -1,29 +1,34 @@
 {
-  "schema": "ora.tool-surface-profile.v1",
+  "schema": "ora.toolkit-surface.v1",
   "profile_id": "robot_runtime_v2",
   "revision": 1,
   "runtime_id": "robot_runtime",
-  "tool_order": [
+  "provenance": {
+    "flattened_from": "b604535f47b5d2f32778adabcd9fa549d43008d8"
+  },
+  "tools": [
     "observation.dump_state",
     "vision.inspect",
     "geometry.query",
     "robot.read_manual",
     "robot.submit_action"
   ],
-  "components": {
-    "descriptions.base": "descriptions-base.json",
-    "descriptions.evidence": "descriptions-evidence.json",
-    "descriptions.semantics": "descriptions-semantics.json",
-    "schemas.target_state_v4": "action-v4-schema.json"
-  },
-  "description_order": [
-    "descriptions.base",
-    "descriptions.evidence",
-    "descriptions.semantics"
+  "mutation_tools": [
+    "robot.submit_action"
   ],
-  "schema_order": ["schemas.target_state_v4"],
-  "result_order": [],
-  "mutation_tools": ["robot.submit_action"],
   "lifecycle_tools": [],
-  "capabilities": ["policy_state", "rgbd", "manual", "target_state_v4"]
+  "capabilities": [
+    "policy_state",
+    "rgbd",
+    "manual",
+    "target_state_v4",
+    "toolkit_only_v1"
+  ],
+  "tool_descriptions": {
+    "observation.dump_state": "observation.dump_state.json",
+    "vision.inspect": "vision.inspect.json",
+    "geometry.query": "geometry.query.json",
+    "robot.read_manual": "robot.read_manual.json",
+    "robot.submit_action": "robot.submit_action.json"
+  }
 }

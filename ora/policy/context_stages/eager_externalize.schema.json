@@ -1,0 +1,21 @@
+{
+ "type": "object",
+ "description": "eager_externalize (phase age, L1/L2).",
+ "properties": {
+  "large_result_bytes": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "A read-only result larger than this becomes a reference with the references' preview (L1)."
+  },
+  "deduplicate": {
+   "const": true,
+   "default": true,
+   "description": "Later exact duplicates become references without a preview (L2)."
+  }
+ },
+ "required": [
+  "deduplicate",
+  "large_result_bytes"
+ ],
+ "additionalProperties": false
+}

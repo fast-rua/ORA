@@ -30,6 +30,11 @@ FORBIDDEN_KEY_FRAGMENTS = {
 }
 
 
+#: Exact policy-authored flag names that contain a forbidden fragment: ``expect_contact`` marks a move as a
+#: deliberate push (a boolean the policy writes itself; it cannot carry state the policy never saw).
+PUBLIC_POLICY_FLAG_KEYS = frozenset({"expect_contact"})
+
+
 class ActionValidationError(ValueError):
     """Raised before an untrusted action reaches the execution bridge."""
 
@@ -333,7 +338,8 @@ def _reject_forbidden_keys(value: Any, path: str = "$") -> None:
     if isinstance(value, Mapping):
         for key, child in value.items():
             lowered = str(key).lower()
-            if any(fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
+            if lowered not in PUBLIC_POLICY_FLAG_KEYS and any(
+                    fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
                 raise ActionValidationError(f"forbidden policy field at {path}.{key}")
             _reject_forbidden_keys(child, f"{path}.{key}")
     elif isinstance(value, list):
@@ -356,7 +362,10 @@ def _validate_motion_action_v3(payload: Mapping[str, Any]) -> dict[str, Any]:
         if not isinstance(payload[field], str) or not payload[field].strip():
             raise ActionValidationError(f"{field} must be non-empty")
     action = payload.get("action")
-    if action not in {"move_pose", "move_free_space", "set_gripper", "recover_motion", "wait"}:
+    if action not in {
+        "move_pose", "move_free_space", "set_gripper", "recover_motion", "wait", "move_base",
+        "follow_joint_trajectory",
+    }:
         raise ActionValidationError("motion v3 action is unsupported")
     arguments = payload.get("arguments")
     if not isinstance(arguments, Mapping):
@@ -370,6 +379,31 @@ def _validate_motion_action_v3(payload: Mapping[str, Any]) -> dict[str, Any]:
         ):
             raise ActionValidationError("move_pose plan_ref is invalid")
         normalized_arguments: dict[str, Any] = {"plan_ref": plan_ref}
+    elif action == "move_base":
+        # Mobile-base navigation to a world (x, y, yaw); backends without a
+        # mobile base refuse it, and only mobile-base surfaces expose it.
+        if set(arguments) != {"target"}:
+            raise ActionValidationError("motion v3 move_base arguments must contain ['target']")
+        target = arguments["target"]
+        if not isinstance(target, Mapping) or set(target) != {"x_m", "y_m", "yaw_rad"}:
+            raise ActionValidationError("move_base target must contain x_m, y_m and yaw_rad")
+        values = {}
+        for key in ("x_m", "y_m", "yaw_rad"):
+            value = target[key]
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ActionValidationError(f"move_base target {key} must be a finite number")
+            values[key] = float(value)
+        if not -math.pi - 1e-9 <= values["yaw_rad"] <= math.pi + 1e-9:
+            raise ActionValidationError("move_base yaw_rad must lie in [-pi, pi]")
+        normalized_arguments = {"target": values}
+    elif action == "follow_joint_trajectory":
+        # Per-physics-step knot interpolation (``joint_trajectory``); only a
+        # backend with that executor runs it, every other one refuses it.
+        from .joint_trajectory import TrajectoryContractError, validate_trajectory_arguments
+        try:
+            normalized_arguments = validate_trajectory_arguments(arguments)
+        except TrajectoryContractError as exc:
+            raise ActionValidationError(str(exc)) from exc
     elif action == "wait":
         from .wait import validate_wait_arguments
         try:
@@ -380,6 +414,10 @@ def _validate_motion_action_v3(payload: Mapping[str, Any]) -> dict[str, Any]:
         expected = {"targets", "interactions"} if action in {
             "move_pose", "move_free_space",
         } else {"targets"}
+        if action == "recover_motion" and "recovery_targets" in arguments:
+            expected = expected | {"recovery_targets"}
+        if action == "move_pose" and "speed" in arguments:
+            expected = expected | {"speed"}
         if set(arguments) != expected:
             raise ActionValidationError(
                 f"motion v3 {action} arguments must contain {sorted(expected)}"
@@ -413,9 +451,27 @@ def _validate_motion_action_v3(payload: Mapping[str, Any]) -> dict[str, Any]:
                 },
                 "interactions": normalized_interactions,
             }
+            if "speed" in arguments:
+                # The end-effector speed the move asks for (``motion_speed``); only a
+                # backend that paces its routes executes it.
+                from .motion_speed import validate_speed
+                try:
+                    normalized_arguments["speed"] = validate_speed(arguments["speed"])
+                except ValueError as exc:
+                    raise ActionValidationError(str(exc)) from exc
         elif action == "set_gripper":
             normalized_targets = {}
+            rate_limited = any(isinstance(value, Mapping) for value in raw_targets.values())
             for arm, value in raw_targets.items():
+                if rate_limited:
+                    # The rate-limited form (``joint_trajectory``): every
+                    # named arm takes the object target.
+                    from .joint_trajectory import TrajectoryContractError, validate_gripper_target
+                    try:
+                        normalized_targets[arm] = validate_gripper_target(value, arm)
+                    except TrajectoryContractError as exc:
+                        raise ActionValidationError(str(exc)) from exc
+                    continue
                 if value not in {"open", "close"}:
                     raise ActionValidationError(
                         "motion v3 set_gripper targets must be open or close"
@@ -432,6 +488,13 @@ def _validate_motion_action_v3(payload: Mapping[str, Any]) -> dict[str, Any]:
                     )
                 normalized_targets[arm] = str(value)
             normalized_arguments = {"targets": normalized_targets}
+            if "recovery_targets" in arguments:
+                from .execution_state import validate_recovery_targets
+                try:
+                    normalized_arguments["recovery_targets"] = validate_recovery_targets(
+                        normalized_targets, arguments["recovery_targets"])
+                except ValueError as error:
+                    raise ActionValidationError(str(error)) from error
 
     return {
         "schema": MOTION_ACTION_V3_SCHEMA,

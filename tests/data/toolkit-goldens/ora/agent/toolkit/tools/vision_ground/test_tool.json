@@ -1,0 +1,14 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_grounding_manifest_images_and_result/files[0]": "5df606086f47255e10035882169feff2b6cea29711d3b925727fab0208c7919f",
+  "test_grounding_manifest_images_and_result/files[1]": "a5f92a3b6869f1a10def87e79cfc62e68d859529bf40d25f1b6a4e62b600bfcf",
+  "test_grounding_manifest_images_and_result/files[3]": "f96f1d89bc870f680e3e9185be6533f2469f2d85ec877bb2fdbb1753816fe23a",
+  "test_grounding_manifest_images_and_result/result[0]": "9795978e63050cf4909431f0fb94d2a103986c828f049ccd52257907c3bbcf50",
+  "test_grounding_manifest_images_and_result/result[1]": "3b12786dc0df53830fea9559b265f61a72900a92d5d7ca0fa3090b273458fa1b",
+  "test_grounding_manifest_images_and_result/result[3]": "ab412b480e8a2f402806d440fb55b53d38f86fdbd678a6a6828b1877e463cbfc",
+  "test_grounding_manifest_images_and_result/targets[0]": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "test_grounding_manifest_images_and_result/targets[1]": "759ec7fa89d46c02fc6e6567724b2472fb89a41268501a4f5e13506fd537e6a6",
+  "test_grounding_manifest_images_and_result/targets[3]": "443478fe4944f6fa42385748250340cb57598896cb6e306ec9085cb9c1329fab"
+ }
+}

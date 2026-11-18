@@ -1,0 +1,58 @@
+# ORA free-play scene isaac-tabletop-v1/desk: an office desk to tidy.
+#
+# RoboDojo task-config format (Articulation / Clutter / Rigid blocks with xlim/ylim, rotate_deg and
+# relative_plane), read only by ORA's layout generator (benchmarks/robodojo_play_layouts.py), which writes a
+# saved layout per seed in RoboDojo's Eval_Layout record format. Table-relative xlim/ylim are
+# episode-frame metres; a block whose relative_plane names another label is placed in that
+# object's yawed frame on top of it (or with its bottom zlim above the parent's base).
+# gripper_keep_out: every table-level footprint keeps clearance_m from the home-pose gripper
+# footprints of the two ARX X5 arms (zones: x/y ranges on the table plane).
+# Only RoboDojo assets. No reward, no instruction, no task: free play.
+
+gripper_keep_out:
+  clearance_m: 0.08
+  zones:
+    - {xlim: [-0.387, -0.212], ylim: [-0.48, -0.194]}
+    - {xlim: [0.212, 0.388], ylim: [-0.48, -0.194]}
+
+Rigid:
+  - common: {xlim: [-0.005, 0.005], ylim: [-0.034, -0.030], rotate_rand: true, rotate_deg: [-2, 2], relative_plane: Table}
+    category: [{name: keyboard, index: [0, 1]}]
+    select_mode: {nums: 1, mode: unique, label: [keyboard]}
+
+  - common: {xlim: [0.235, 0.250], ylim: [-0.064, -0.055], rotate_rand: true, rotate_deg: [-15, 15], relative_plane: Table}
+    category: [{name: mouse, index: [4, 6, 7]}]
+    select_mode: {nums: 1, mode: unique, label: [mouse]}
+
+  - common: {xlim: [-0.31, -0.29], ylim: [-0.040, -0.032], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: mug, index: [0, 5, 12]}]
+    select_mode: {nums: 1, mode: unique, label: [mug]}
+
+  - common: {xlim: [-0.40, -0.37], ylim: [0.092, 0.095], rotate_rand: true, rotate_deg: [-5, 5], relative_plane: Table}
+    category: [{name: pen_holder, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [pen_holder]}
+
+  - common: {xlim: [-0.004, 0.004], ylim: [-0.004, 0.004], zlim: [0.012, 0.012], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: pen_holder, place_tag: none}
+    category: [{name: pen, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [pen]}
+
+  - common: {xlim: [-0.070, -0.060], ylim: [0.099, 0.100], rotate_rand: true, rotate_deg: [-5, 5], relative_plane: Table}
+    category: [{name: stapler, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [stapler]}
+
+  - common: {xlim: [0.16, 0.18], ylim: [0.099, 0.100], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: tape_dispense, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [tape_dispenser]}
+
+  # The phone sits 4.5 cm nearer the robot than the back row: placed at y 0.095, no align_plan side
+  # reached it for either arm (play-scene audit); read-only IK reached its centre from the top with
+  # the right arm at y 0.065. The generator keeps it at least 1.5 cm from the mouse.
+  - common: {xlim: [0.32, 0.36], ylim: [0.050, 0.055], rotate_rand: true, rotate_deg: [80, 100], relative_plane: Table}
+    category: [{name: phone, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [phone]}
+
+Clutter:
+  - common: {xlim: [-0.010, 0.010], ylim: [-0.250, -0.240], rotate_rand: true, rotate_deg: [85, 95], relative_plane: Table}
+    category: [{name: book, index: [0]}]
+    physics: {mass: 0.4, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [book]}

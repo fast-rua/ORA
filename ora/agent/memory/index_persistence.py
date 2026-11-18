@@ -1,11 +1,9 @@
-"""Context Artifact index persistence: atomic, batched and deferred-durable.
+"""Context Artifact index persistence: atomic and batched.
 
 The Session Artifact index is one JSON file rewritten whenever a reference is
 registered. A lossless projection can register many references, so the
-rewrite is coalesced to once per projection (``batched_persistence``), and its
-``fsync`` follows the owning ArtifactStore's durability policy: inline for the
-synchronous default, or behind a
-:class:`~ora.agent.evidence.durability.DeferredDurability` barrier.
+rewrite is coalesced to once per projection (``batched_persistence``); each
+rewrite is fsynced before it replaces the index.
 """
 
 from __future__ import annotations
@@ -18,8 +16,8 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping
 
 
-def atomic_json(path: Path, value: Mapping[str, Any], *, durability: Any = None) -> None:
-    """Atomically replace ``path``; fsync inline or behind ``durability``."""
+def atomic_json(path: Path, value: Mapping[str, Any]) -> None:
+    """Atomically replace ``path``, fsyncing the new content first."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, name = tempfile.mkstemp(
@@ -33,13 +31,10 @@ def atomic_json(path: Path, value: Mapping[str, Any], *, durability: Any = None)
                 + "\n"
             )
             stream.flush()
-            if durability is None:
-                os.fsync(stream.fileno())
+            os.fsync(stream.fileno())
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
-    if durability is not None:
-        durability.submit(path)
 
 
 class BatchedIndexPersistence:

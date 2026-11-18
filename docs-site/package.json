@@ -1,0 +1,24 @@
+{
+  "name": "ora-docs-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:content": "node scripts/prepare-content.mjs",
+    "predev": "npm run prepare:content",
+    "dev": "blume dev",
+    "prebuild": "npm run prepare:content",
+    "build": "blume build",
+    "preview": "blume preview",
+    "prevalidate": "npm run prepare:content",
+    "validate": "blume validate --strict",
+    "test:content": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "blume": "2.2.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}

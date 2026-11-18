@@ -10,6 +10,7 @@ import time
 from typing import Any, Mapping
 
 from ora.contracts.acceptance import motion_acceptance_check
+from ora.environment.controllers.kept_plans import stamped
 from ora.environment.controllers.motion_transaction import (
     classify_motion_status,
 )
@@ -32,6 +33,7 @@ from .common import (
     _pose_error,
     _wxyz_to_xyzw,
 )
+from .pacing import PACING_REFUSAL_CODES, request_report, requested_speed
 
 
 class RoboTwinSparseSettlementMixin:
@@ -208,6 +210,18 @@ class RoboTwinSparseSettlementMixin:
         for artifact in root.iterdir():
             artifact.chmod(0o444)
 
+    @staticmethod
+    def _sparse_motion_pacing(state: _SparseMotionState) -> dict[str, Any]:
+        """``motion`` of a pose action's receipt: how its global route was paced or why it was refused,
+        else (a local route, or no admitted plan) the request and its caps."""
+
+        if not state.pose_action:
+            return {}
+        motion = (getattr(state, "pacing", None) or {}).get("motion")
+        if motion is None:
+            motion = {"speed": request_report(requested_speed(state.action))}
+        return {"motion": motion}
+
     def _compose_sparse_receipt(
         self, state: _SparseMotionState,
     ) -> dict[str, Any]:
@@ -336,9 +350,14 @@ class RoboTwinSparseSettlementMixin:
                 or "planner_failed"
             ) if isinstance(failed, Mapping) else "planner_failed"
         elif state.execution_status == "plan_rejected":
-            failure_stage = "plan_validation"
             rejected = next(iter(state.plan_rejections.values()), {})
             failure_code = str(rejected.get("code", "plan_rejected"))
+            # The pacing refused the validated plan before any controller write
+            # (pacing.py): an unrequested wrist turn or more physics steps than
+            # one action may spend.
+            failure_stage = (
+                "pacing" if failure_code in PACING_REFUSAL_CODES else "plan_validation"
+            )
         elif state.execution_status == "execution_fault":
             failure_stage = "execution"
             failure_code = str(
@@ -438,6 +457,7 @@ class RoboTwinSparseSettlementMixin:
             "before": state.before,
             "after": after,
             "execution_fault": state.execution_fault,
+            **self._sparse_motion_pacing(state),
             **({
                 "blocked_motion": self._blocked_motion_evidence(state),
                 "blocked_recovery": state.blocked_recovery,
@@ -446,11 +466,15 @@ class RoboTwinSparseSettlementMixin:
                 ),
             } if profile_has(self.control_profile, since_version=CONTACT_RECOVERY_SINCE) else {}),
             "official_evaluator_queried": True,
-            "terminal_after_action": official_success,
+            # Every terminal status the session reports (official success,
+            # RoboTwin's step limit, the Harness step budget, a recoverability
+            # signal, an abort), not only the official predicate.
+            "terminal_after_action": bool(self.is_terminal),
             "semantic_action_count": int(state.environment.take_action_cnt),
             "started_unix_s": state.started,
             "finished_unix_s": time.time(),
         }
+        stamped(getattr(getattr(self, "shared_motion", None), "client", None), receipt)
         _atomic_json(state.receipt_path, receipt)
         self.replay_recorder.update(
             self.action_sequence,

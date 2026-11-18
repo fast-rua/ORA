@@ -1,0 +1,38 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "wait_ticks",
+  "description": "Hold every current command and let time pass.\nUse when: the scene has to change without a robot command -- something is still settling, or the instruction says to wait. It is not a correction: a pose error needs move_pose, a jaw that stopped needs set_gripper.\nEffect: world mutation by elapsed time only. Every arm and gripper target is held unchanged; one tick is one 20 ms control period, at most 20 per call. One call is one robot decision.\nReturns: status=submitted immediately. The next receipt reports the ticks used; the fresh observation shows what changed.\nDoes not: move toward any target, open or close a gripper, or establish that the scene finished changing.\nOn error: invalid_arguments names the ticks bound. For more time call wait_ticks again.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "ticks"
+    ],
+    "properties": {
+      "ticks": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "description": "Control ticks to hold every current command. One tick is 20 ms; 20 ticks is 0.4 s. Required."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "wait_ticks"
+      }
+    },
+    "required": [
+      "status",
+      "action"
+    ]
+  }
+}

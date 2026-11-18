@@ -1,0 +1,31 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments0]": "2b029eb768bab499faa04c5ce46c8fae364470bd0250b4bb67be981f14f330c5",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments1]": "e0464d720179b7b416f3dbba2e7f049afcfd18949328a9f52fd8b0d124987f8d",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments2]": "569f1445cc2565ee895e5ed71ddc693b0281c1bc90341d358f2105a7d95100e5",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments3]": "68acefcc716ee9855b5301e85094a52d11bfc78f8cbba5b4d1a8bb81d04fa512",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments4]": "faed635cd2612225f7dc9440869b1fbef480ccca3fb0c2392af7e636c5b8cd26",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments5]": "e547f2038b25bceeb905e7327e2d593e3d31f0945c5557d42b90555beb73f951",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments6]": "513511c9702efb251fc484c515b70e0964b2494243d6d62093dd1f61b30c73ae",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments7]": "add7e09a1b8b1945119f041fcd746066228d31a005b4e6361b11f3208c9dd124",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments8]": "20700a7615132ec3e666e0fc15170a1e1848f4e3e6c6eaf6c64dcf8dfe199e79",
+  "test_observe_pixels_validation_and_overlays/observe[False-arguments9]": "729e421f7ba42b15b5ff9a52e1ede222a2386456f7bc47e6d10d90d9a7074655",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments0]": "2b029eb768bab499faa04c5ce46c8fae364470bd0250b4bb67be981f14f330c5",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments1]": "eee0cc74aa45645d9a03d49d756e7bfac62627b0c69ff6b667e2eafa825fef44",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments2]": "569f1445cc2565ee895e5ed71ddc693b0281c1bc90341d358f2105a7d95100e5",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments3]": "68acefcc716ee9855b5301e85094a52d11bfc78f8cbba5b4d1a8bb81d04fa512",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments4]": "faed635cd2612225f7dc9440869b1fbef480ccca3fb0c2392af7e636c5b8cd26",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments5]": "e547f2038b25bceeb905e7327e2d593e3d31f0945c5557d42b90555beb73f951",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments6]": "513511c9702efb251fc484c515b70e0964b2494243d6d62093dd1f61b30c73ae",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments7]": "add7e09a1b8b1945119f041fcd746066228d31a005b4e6361b11f3208c9dd124",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments8]": "20700a7615132ec3e666e0fc15170a1e1848f4e3e6c6eaf6c64dcf8dfe199e79",
+  "test_observe_pixels_validation_and_overlays/observe[True-arguments9]": "729e421f7ba42b15b5ff9a52e1ede222a2386456f7bc47e6d10d90d9a7074655",
+  "test_verified_history_and_current_pixels/observe[-1]": "58ee1607cc6bb1977d22f151fa2167bc8b1fa0d6fab7156f4e16daf17fca7c5a",
+  "test_verified_history_and_current_pixels/observe[0]": "b6150725a6280e93f677fc01d4851becb2d2d0455b40764bcf64aa0172695251",
+  "test_verified_history_and_current_pixels/observe[1]": "973591edff3842a6889ccde30f168ffd22f1adb8bc34af0213ce03b2eb59d89a",
+  "test_verified_history_and_current_pixels/observe[2]": "105711bfb8ee4ed42909aa95b7189e7f146e6c1f30c02b358188c614b7c5bb1d",
+  "test_verified_history_and_current_pixels/observe[False]": "ab308af674617969aee67de3adfa908061d33879fc2893212f32b5615ad60301",
+  "test_verified_history_and_current_pixels/observe[None]": "6de9c1be2a84b8f1906bdd84532b1db2f7e99707dcc2eb3b6d978dfe32096cce"
+ }
+}

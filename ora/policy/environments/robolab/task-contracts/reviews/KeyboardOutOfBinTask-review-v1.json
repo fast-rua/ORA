@@ -1,0 +1,193 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "KeyboardOutOfBinTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab KeyboardOutOfBinTask at the pinned revision; generated per predicate family (out_onto_surface); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Take the keyboard out of the bin and put it on the table",
+ "family": "out_onto_surface",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/keyboard_out_of_bin_task.py",
+   "sha256": "d7d359270bc397e03429624f235556cc294c38212d0977751ac142c82e2700da"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/hull_check.py",
+   "sha256": "738f840e0c7a14900a2a18aac2836cb2b858e227c118a29516a3ba6619d7f4df"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/workdesk_bin.usda",
+   "sha256": "8ed37ae17925c7689d3def8502a8c6a14782908a3377384420821fbac88d62e8"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/KeyboardOutOfBinTask-s0-witness.json",
+   "sha256": "3fffbf74b0855ee362d43baf19ed4ba0cd3e9a997c218b621a72c172c3d5e5fa"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read KeyboardOutOfBinTask terminations: success = object_outside_of_and_on_surface(object='keyboard', container='grey_bin', surface='table', require_gripper_detached=True), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene workdesk_bin.usda: keyboard, grey_bin among 14 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only. At reset the keyboard starts inside the grey bin."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Not in the container's open-top hull and supported by the table's upward contact force."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (2) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 3fffbf74b085)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 3fffbf74b085): out -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 3fffbf74b085): reset_state -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_outside_of_and_on_surface(object='keyboard', container='grey_bin', surface='table', require_gripper_detached=True): not in_opentop_container and is_supported_on_surface(table).",
+   "interpretation": "Out of the grey bin and resting on the table.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_outside_of_and_on_surface and its predicate_logic helpers.",
+   "interpretation": "Hull slack, support force bar and support cone withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The keyboard must end up out of the grey bin, resting directly on the table.",
+  "Let go of the keyboard: the task is not complete while any part of the gripper still touches it."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": true,
+  "subtasks": "pick_and_place_on_surface(groups=['keyboard'], logical=all) score=1.0",
+  "notes": [
+   "relation: subtasks score ['object_on_top'], the termination checks ['object_outside_of_and_on_surface']"
+  ]
+ },
+ "compatibility": {
+  "status": "ready",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "reset_relation",
+    "detail": "the keyboard starts inside the grey bin"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "out",
+    "expected": true,
+    "ops": [
+     {
+      "op": "place",
+      "object": "keyboard",
+      "beside": "grey_bin"
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "keyboard",
+   "grey_bin"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793868273.7294686,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/KeyboardOutOfBinTask-s0-witness.json",
+  "sha256": "3fffbf74b0855ee362d43baf19ed4ba0cd3e9a997c218b621a72c172c3d5e5fa",
+  "plan_sha256": "10c6c061738f48c56c2b810dacba6db3fe5062bbd6608af4d66f587e3ce45fba"
+ }
+}

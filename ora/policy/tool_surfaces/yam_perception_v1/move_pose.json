@@ -1,0 +1,300 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_pose",
+  "description": "Submit a complete pose target for one or both arms through the Supervisor.\nUse when: moving a TCP to a stated position and orientation. Send one or both arms under targets; an omitted arm is not commanded. Each arm names position_mode (hold_current, absolute, delta) and orientation_mode (hold_current, absolute_quaternion, axis_angle_delta) and sends that mode's fields beside them in targets.<arm>: absolute takes position_m; delta takes translation_m and position_frame; absolute_quaternion takes orientation_xyzw; axis_angle_delta takes rotation_axis, rotation_angle_deg and orientation_frame -- rotation_angle_deg is in DEGREES. To hold one half while changing the other, set its mode to hold_current. Label each target free_space, precision or contact_approach by physical intent.\nEffect: the whole motion is planned before anything moves: inverse kinematics along a finely sampled Cartesian path, timed by the TCP and joint speed limits of the interaction. free_space lifts, traverses and descends when the target is more than a few centimetres away horizontally; precision and contact_approach go straight and slower. Every planned tick is checked for joint limits, the table clearance of the interaction and the distance between the two arms, and a plan that fails a check is refused before any motion. Two arms in one call follow one merged schedule. Arrival is judged on the measured joints.\nReturns: an immediate acknowledgement with status=submitted, action and compiled_pose; compiled_pose.targets is the requested target, not a measured arrival. The later receipt reports execution_status (reached, not_reached or plan_rejected), failure_stage, failure_code, the plan summary and each arm's pose error, and a fresh observation follows.\nDoes not: route around objects on the table (only the robot, the table plane and the other arm are checked), command a gripper, move an omitted arm, or establish contact, retention or task success.\nOn error: plan_rejected moved nothing, and detail.admission_refusal.check names the check that refused it, with the arm and the waypoint or tick where it applies. target_outside_workspace, target_out_of_reach, target_below_table_clearance and target_ik_unreachable (failure_code planner_failed, with the closest IK miss in metres) concern the target pose itself. With the approach pointing straight down, the reachable height falls as the target moves away from the arm's base: lower the target, bring it nearer the base, or tilt the approach. ik_unreachable and ik_branch_jump name the path waypoint that failed: add an intermediate pose. joint_limit, table_clearance and inter_arm_clearance name the planned tick that failed: raise the path, change the interaction, or move the other arm away first. dry_run_read_only: the cell answers motions with detail.plan only. operator_declined: detail.operator.reason gives the operator's words; change the request accordingly. not_reached and execution_fault: read the fresh observation before the next command. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "targets"
+    ],
+    "properties": {
+      "targets": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Sparse per-arm targets. An omitted arm receives no new target and is not commanded.",
+        "properties": {
+          "left": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "description": "The left arm's target. Omit to leave the left arm uncommanded. Null means omitted.",
+            "required": [
+              "position_mode",
+              "orientation_mode"
+            ],
+            "properties": {
+              "position_mode": {
+                "type": "string",
+                "enum": [
+                  "hold_current",
+                  "absolute",
+                  "delta"
+                ],
+                "description": "Choose with its companion fields in the same target: hold_current takes no position fields; absolute REQUIRES position_m; delta REQUIRES translation_m AND position_frame. A mode alone supplies no values."
+              },
+              "position_m": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite metre component."
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "REQUIRED with position_mode=absolute. [x,y,z] in world metres. Omit for other position modes. Null means omitted."
+              },
+              "translation_m": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite metre component."
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "REQUIRED with position_mode=delta, together with position_frame. [dx,dy,dz] in metres. Omit for other position modes. Null means omitted."
+              },
+              "position_frame": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "world",
+                  "end_effector",
+                  null
+                ],
+                "description": "REQUIRED with position_mode=delta, together with translation_m. world uses fixed world axes; end_effector uses current controlled-frame axes. Never inferred. Omit for other position modes. Null means omitted."
+              },
+              "orientation_mode": {
+                "type": "string",
+                "enum": [
+                  "hold_current",
+                  "absolute_quaternion",
+                  "axis_angle_delta"
+                ],
+                "description": "Choose with its companion fields in the same target: hold_current takes no orientation fields; absolute_quaternion REQUIRES orientation_xyzw; axis_angle_delta REQUIRES rotation_axis AND rotation_angle_deg AND orientation_frame. A mode alone supplies no values."
+              },
+              "orientation_xyzw": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite quaternion component."
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "REQUIRED with orientation_mode=absolute_quaternion. Unit quaternion [x,y,z,w]. Omit for other orientation modes. Null means omitted."
+              },
+              "rotation_axis": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "x",
+                  "y",
+                  "z",
+                  null
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_angle_deg, orientation_frame. An x, y or z axis in orientation_frame. Omit for other orientation modes. Null means omitted."
+              },
+              "rotation_angle_deg": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, orientation_frame. Signed DEGREES, not radians. Omit for other orientation modes. Null means omitted."
+              },
+              "orientation_frame": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "world",
+                  "end_effector",
+                  null
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, rotation_angle_deg. world or current end_effector axes. Never inferred. Omit for other orientation modes. Null means omitted."
+              },
+              "interaction": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "free_space",
+                  "precision",
+                  "contact_approach",
+                  null
+                ],
+                "description": "Physical intent, never a controller name. Omitted means free_space. Null means omitted."
+              }
+            }
+          },
+          "right": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "description": "The right arm's target. Omit to leave the right arm uncommanded. Null means omitted.",
+            "required": [
+              "position_mode",
+              "orientation_mode"
+            ],
+            "properties": {
+              "position_mode": {
+                "type": "string",
+                "enum": [
+                  "hold_current",
+                  "absolute",
+                  "delta"
+                ],
+                "description": "Choose with its companion fields in the same target: hold_current takes no position fields; absolute REQUIRES position_m; delta REQUIRES translation_m AND position_frame. A mode alone supplies no values."
+              },
+              "position_m": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite metre component."
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "REQUIRED with position_mode=absolute. [x,y,z] in world metres. Omit for other position modes. Null means omitted."
+              },
+              "translation_m": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite metre component."
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "REQUIRED with position_mode=delta, together with position_frame. [dx,dy,dz] in metres. Omit for other position modes. Null means omitted."
+              },
+              "position_frame": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "world",
+                  "end_effector",
+                  null
+                ],
+                "description": "REQUIRED with position_mode=delta, together with translation_m. world uses fixed world axes; end_effector uses current controlled-frame axes. Never inferred. Omit for other position modes. Null means omitted."
+              },
+              "orientation_mode": {
+                "type": "string",
+                "enum": [
+                  "hold_current",
+                  "absolute_quaternion",
+                  "axis_angle_delta"
+                ],
+                "description": "Choose with its companion fields in the same target: hold_current takes no orientation fields; absolute_quaternion REQUIRES orientation_xyzw; axis_angle_delta REQUIRES rotation_axis AND rotation_angle_deg AND orientation_frame. A mode alone supplies no values."
+              },
+              "orientation_xyzw": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "description": "One finite quaternion component."
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "REQUIRED with orientation_mode=absolute_quaternion. Unit quaternion [x,y,z,w]. Omit for other orientation modes. Null means omitted."
+              },
+              "rotation_axis": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "x",
+                  "y",
+                  "z",
+                  null
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_angle_deg, orientation_frame. An x, y or z axis in orientation_frame. Omit for other orientation modes. Null means omitted."
+              },
+              "rotation_angle_deg": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, orientation_frame. Signed DEGREES, not radians. Omit for other orientation modes. Null means omitted."
+              },
+              "orientation_frame": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "world",
+                  "end_effector",
+                  null
+                ],
+                "description": "REQUIRED with orientation_mode=axis_angle_delta, together with rotation_axis, rotation_angle_deg. world or current end_effector axes. Never inferred. Omit for other orientation modes. Null means omitted."
+              },
+              "interaction": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "free_space",
+                  "precision",
+                  "contact_approach",
+                  null
+                ],
+                "description": "Physical intent, never a controller name. Omitted means free_space. Null means omitted."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "move_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

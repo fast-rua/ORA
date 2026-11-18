@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
+# Preview or build the ORA documentation site (docs-site/, Blume) from docs/.
 set -euo pipefail
 ORA_DOCS_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd -- "$ORA_DOCS_ROOT"
-if ! command -v uv >/dev/null 2>&1; then
-  echo 'Install uv first: https://docs.astral.sh/uv/getting-started/installation/' >&2
-  exit 1
+usage() {
+  echo 'Usage: ./scripts/docs [serve|build]'
+  echo 'serve: live preview under /ORA; build: static site plus strict link, anchor and sidebar checks.'
+}
+for tool in node npm uv; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "./scripts/docs needs $tool (Node.js >= 22.19 and uv: https://docs.astral.sh/uv/)." >&2
+    exit 1
+  fi
+done
+if [[ ! -d docs-site/node_modules ]]; then
+  npm ci --prefix docs-site --no-audit --no-fund
 fi
 case "${1:-serve}" in
-  build|serve) ORA_DOCS_COMMAND="${1:-serve}"; [[ $# -eq 0 ]] || shift ;;
-  -h|--help)
-    echo 'Usage: ./scripts/docs [serve|build] [MkDocs options]'
-    echo 'serve: local preview with live reload; build: strict validation and static output.'
-    exit 0 ;;
-  *) echo 'Usage: ./scripts/docs [serve|build] [MkDocs options]' >&2; exit 2 ;;
+  serve) exec npm run dev --prefix docs-site ;;
+  build)
+    npm run build --prefix docs-site
+    npm run validate --prefix docs-site
+    npm run test:content --prefix docs-site ;;
+  -h|--help) usage ;;
+  *) usage >&2; exit 2 ;;
 esac
-exec uv run --isolated --no-project --python 3.11 \
-  --with-requirements docs/requirements.txt \
-  python -m mkdocs "$ORA_DOCS_COMMAND" --strict "$@"

@@ -1,0 +1,9 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_check_task_answers_the_recorded_verdict/check[None]": "ae5fa35aa528104ffa5766d1e72b5f7ed2ee96d4b68bf1e8c011c2b4550b12b1",
+  "test_check_task_answers_the_recorded_verdict/check[verdict1]": "4dac2e385330c52d48a5b1b0f2cbafae30f53b4a644655b2ed91e2288449682a",
+  "test_check_task_answers_the_recorded_verdict/check[verdict2]": "4dac2e385330c52d48a5b1b0f2cbafae30f53b4a644655b2ed91e2288449682a",
+  "test_check_task_answers_the_recorded_verdict/check[verdict3]": "98f44597391862a7114fa0569c4cca002ca1eb7ca7badd12c178185e6ca22e97"
+ }
+}

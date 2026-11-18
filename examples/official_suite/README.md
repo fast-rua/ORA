@@ -16,8 +16,8 @@ persistent session:
   states 0-49, 8,000 cells at the pinned code and data revisions. The
   instruction is the perturbation's BDDL language from the pinned task catalog.
 - **RoboTwin:** per task and scene configuration, every expert-accepted seed a
-  sealed seed manifest lists (`robotwin_evaluation prepare --accepted-per-task
-  100 --task-config demo_clean|demo_randomized`, then `qualify`). The
+  sealed seed manifest lists (`ora qualify robotwin prepare --accepted-per-task
+  100 --task-config demo_clean|demo_randomized`, then `ora qualify robotwin qualify`). The
   instruction is the public per-task instruction in
   `ora/environment/benchmarks/robotwin-instructions-v1.json`;
   `place_a2b_left` and `place_a2b_right` name the
@@ -33,7 +33,7 @@ for a self-hosted model.
 `build_spec` writes `runtime.task` for a RoboTwin cell, which binds the
 reviewed completion contract; without it the plan records
 `task_contract.delivered: false`. Single cells and other cell lists compose
-through the maintained `ora/orchestrator/benchmark_spec.py`
+through the maintained `ora/orchestrator/spec/benchmark.py`
 ([RunSpec inputs](../../docs/reference/configuration-and-evidence.md#fresh-benchmark-specifications)).
 
 ## Commands

@@ -1,0 +1,15 @@
+# One RoboDojo task on the file-backed toolkit surface v6 (docs/reference/tasks.md).
+# Run it on another cell with overrides, e.g.
+#   ./scripts/ora task resolve examples/tasks/robodojo-toolkit-v6.yaml --task align_blocks --layout 3
+schema: ora.task.v1
+simulator: robodojo
+experiment: robodojo-toolkit-v6
+task: stack_bowls
+seed: 0
+layout: 0
+# The model by name; the run binding's replica must serve it.
+model: deepseek-ai/DeepSeek-V4.1-Flash-1017
+policy:
+  tool_surface: robodojo_placement_toolkit_v6   # RoboDojo's default; brings baseline robodojo_toolkit_v7
+record_toolkit_io: true
+ground_truth_capture: true

@@ -17,21 +17,23 @@ There are two ways to run it:
 | Run | `./scripts/ora run --env libero --task libero_goal/0 --confirm-launch` | `./scripts/ora local --confirm-launch` |
 | Use it for | benchmark-comparable runs | trying ORA on your own computer |
 
-Both need ORA itself (`git clone https://github.com/hao-ai-lab/ORA.git
+Both need ORA itself (`git clone https://github.com/fast-rua/ORA.git
 && cd ORA && uv sync --all-extras --locked`) and a DeepSeek API key.
 
 ## On one GPU
 
 ```bash
 ./scripts/ora setup --env libero
-export DEEPSEEK_LOW_API_KEY=sk-...
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY      # once; or export DEEPSEEK_LOW_API_KEY=sk-...
 ./scripts/ora run --env libero --task libero_goal/0 --confirm-launch
 ```
 
-- **Install** (~35 GB, mostly downloads; CuRobo builds in about 6 minutes):
+- **Install** (up to ~114 GB, mostly downloads):
   LIBERO-Pro sources and task data at pinned revisions, a Python 3.11
-  simulator environment with CUDA 12.8 PyTorch, CuRobo built for your GPU,
-  the SAM3 and Contact-GraspNet perception services, and the terminal UI.
+  simulator environment with CUDA 12.8 PyTorch, the RoboDojo runtime whose
+  cuRobo V2 is LIBERO's motion planner (66 GB of assets), the motion-timing
+  interpreter, the SAM3 and Contact-GraspNet perception services, the agent
+  core's Pi packages and the terminal UI.
   Check the [tools to install first](single-gpu.md#2-user-space-tools).
 - **Run.** `ora run` starts the perception services if needed (about
   3 minutes the first time), writes the run's specification and opens the
@@ -58,9 +60,9 @@ export DEEPSEEK_LOW_API_KEY=sk-...
 ## On a computer without a GPU
 
 ```bash
-./scripts/ora setup                       # ~2 GB: LIBERO sources, a CPU simulator environment, the terminal UI
-export DEEPSEEK_LOW_API_KEY=sk-...
-./scripts/ora doctor                      # "ready for task selection"
+./scripts/ora setup                       # ~2 GB: LIBERO sources, a CPU simulator environment, the agent core, the terminal UI
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY   # once; or export DEEPSEEK_LOW_API_KEY=sk-...
+./scripts/ora doctor --env local          # "ready for task selection"
 ./scripts/ora local --confirm-launch      # pick a suite and task in the picker
 ```
 

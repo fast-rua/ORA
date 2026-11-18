@@ -15,11 +15,11 @@ from ora.environment.workspace_profiles import (
 
 
 REVISIONS = {
-    "robodojo": "ee67a1468510da7624a089164402359f2afc72c8",
+    "robodojo": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
     "isaaclab": "afca7b09d60d8beb9c1cb28b43066499940b969b",
     "curobo": "d17b54ce32cba095c0b000c4c58777075d11de0e",
-    "xpolicylab": "432f82b1758c5b1202e42a3dfe014546dbc50871",
-    "assets": "a14409d7fae673c00499e01fd88b4457df6351b1",
+    "xpolicylab": "5d0be1499634d3176258c8f2e31f5fe816497b0a",
+    "assets": "1127bda94f172d757386945af3eb3a6754d1a4e6",
 }
 REVISION_FIELDS = {
     "robodojo": "required_revision",
@@ -128,6 +128,9 @@ SCENE_REGISTRATION_FIELDS = (
     "native_action_limit",
 )
 PUBLIC_CAMERAS = ("head", "left_wrist", "right_wrist")
+#: The evaluation seeds of the pinned Assets (Eval_Layout/RoboDojo/arx_x5/<seed>/); 0 is the default.
+#: A seed other than 0 has no reviewed task contract: a RunSpec on one names its own task file.
+EVAL_SEEDS = (0, 1, 2)
 #: Every first-stage action codec the isolated worker may be bound to. The
 #: worker's own source manifest reports the codec it was actually configured
 #: with, so a cell that changes codec cannot be attested under another one.
@@ -148,14 +151,21 @@ CONTROL_HZ = 25
 #:
 #: Source of every number: the single literal ``self.step_lim = N`` in
 #: ``task/RoboDojo/tasks/<task>.py`` at RoboDojo ``REVISIONS["robodojo"]``
-#: (ee67a146), at the line named beside each entry. The task set is the 42
+#: (f57e163), at the line named beside each entry. The task set is the 42
 #: base simulation tasks of ``scripts/internal/task_inventory.py``
-#: ``DIMENSION_TASKS`` at that revision (the ``*_random`` variants are other
-#: task modules and are not admitted). Admission does not need a reviewed
-#: task contract; ``agent/composition/robodojo_task_contract.py`` records an
-#: absent one, and every scene still needs its own task qualification.
+#: ``DIMENSION_TASKS`` at that revision plus the 12 ``*_random`` variants of
+#: its generalization tasks, each its own task module (``<task>_random.py``,
+#: ``config/<task>_random.yml``) with its own ``<task>_random_<n>.json``
+#: layouts: 54 tasks. Admission does not need a reviewed task contract;
+#: ``agent/composition/task_contract/robodojo.py`` records an absent one, and
+#: every scene still needs its own task qualification.
 #:
-#: All 42 official tasks are admitted. The last two, ``pour_by_language``
+#: The 12 ``*_random`` variants were admitted on 2026-11-14 with the f57e163
+#: pin, kernel side only: no reviewed contract binds them yet, so the default
+#: roster (registry tasks with a limit here) leaves them out until a registry
+#: lists them. Each keeps its base task's ``step_lim`` and physics device.
+#:
+#: All 42 official base tasks are admitted. The last two, ``pour_by_language``
 #: (step_lim 800) and ``pour_liquid_into_cup`` (400), joined on 2026-10-04
 #: (0059 pour admission): both are judged on a Fluid object, which upstream
 #: ``SceneManager`` never creates on a CUDA physics device
@@ -176,6 +186,7 @@ CONTROL_HZ = 25
 NATIVE_ACTION_LIMITS = {
     "align_blocks": 200,                      # tasks/align_blocks.py:9
     "arrange_largest_number": 1050,           # tasks/arrange_largest_number.py:11
+    "arrange_largest_number_random": 1050,    # tasks/arrange_largest_number_random.py:11
     "build_tower": 1050,                      # tasks/build_tower.py:9
     "classify_objects": 1100,                 # tasks/classify_objects.py:9
     "classify_objects_by_language": 1100,     # tasks/classify_objects_by_language.py:11
@@ -185,16 +196,20 @@ NATIVE_ACTION_LIMITS = {
     "fill_egg_holder": 700,                   # tasks/fill_egg_holder.py:11
     "fill_pen_holder": 1100,                  # tasks/fill_pen_holder.py:11
     "fold_clothes": 500,                      # tasks/fold_clothes.py:9
+    "fold_clothes_random": 500,               # tasks/fold_clothes_random.py:9
     "general_pickup": 200,                    # tasks/general_pickup.py:9
     "hang_mugs": 800,                         # tasks/hang_mugs.py:11
+    "hang_mugs_random": 800,                  # tasks/hang_mugs_random.py:11
     "imitate_sorting_sequence": 1600,         # tasks/imitate_sorting_sequence.py:15
     "insert_key": 300,                        # tasks/insert_key.py:11
     "insert_tubes": 500,                      # tasks/insert_tubes.py:11
     "make_kong": 600,                         # tasks/make_kong.py:15
     "make_toast": 1400,                       # tasks/make_toast.py:15
+    "make_toast_random": 1400,                # tasks/make_toast_random.py:15
     "match_and_pick_from_conveyor": 700,      # tasks/match_and_pick_from_conveyor.py:9
     "organize_table": 1000,                   # tasks/organize_table.py:11
     "pack_objects_into_box": 1300,            # tasks/pack_objects_into_box.py:11
+    "pack_objects_into_box_random": 1300,     # tasks/pack_objects_into_box_random.py:11
     "pick_from_conveyor_by_image": 700,       # tasks/pick_from_conveyor_by_image.py:9
     "play_stacking_toy": 1200,                # tasks/play_stacking_toy.py:11
     "play_tic_tac_toe": 1100,                 # tasks/play_tic_tac_toe.py:17
@@ -203,19 +218,26 @@ NATIVE_ACTION_LIMITS = {
     "pour_balls_into_vase": 600,              # tasks/pour_balls_into_vase.py:9
     "pour_by_language": 800,                  # tasks/pour_by_language.py:10
     "pour_liquid_into_cup": 400,              # tasks/pour_liquid_into_cup.py:10
+    "pour_liquid_into_cup_random": 400,       # tasks/pour_liquid_into_cup_random.py:10
     "press_by_number": 700,                   # tasks/press_by_number.py:9
     "push_T": 600,                            # tasks/push_T.py:9
+    "push_T_random": 600,                     # tasks/push_T_random.py:9
     "put_bottles_into_dustbin": 700,          # tasks/put_bottles_into_dustbin.py:11
     "solve_equation": 300,                    # tasks/solve_equation.py:9
     "sort_nesting_dolls_by_size": 1050,       # tasks/sort_nesting_dolls_by_size.py:9
+    "sort_nesting_dolls_by_size_random": 1050, # tasks/sort_nesting_dolls_by_size_random.py:9
     "stack_blocks": 550,                      # tasks/stack_blocks.py:19
     "stack_blocks_by_language": 400,          # tasks/stack_blocks_by_language.py:9
+    "stack_blocks_random": 550,               # tasks/stack_blocks_random.py:19
     "stack_bowls": 800,                       # tasks/stack_bowls.py:9
+    "stack_bowls_random": 800,                # tasks/stack_bowls_random.py:9
     "store_laptop_and_headphones": 800,       # tasks/store_laptop_and_headphones.py:9
+    "store_laptop_and_headphones_random": 800, # tasks/store_laptop_and_headphones_random.py:9
     "store_tools_in_toolbox": 900,            # tasks/store_tools_in_toolbox.py:11
     "swap_blocks": 700,                       # tasks/swap_blocks.py:9
     "swap_T": 400,                            # tasks/swap_T.py:9
     "sweep_blocks": 1000,                     # tasks/sweep_blocks.py:9
+    "sweep_blocks_random": 1000,              # tasks/sweep_blocks_random.py:9
 }
 #: Physics steps RoboDojo advances per native action, at the pinned
 #: ``physics_dt: 0.004`` / ``control_hz: 25`` pair: one control tick is
@@ -246,7 +268,7 @@ assert set(CARD_CONFIGURATION_FIELDS) | set(TASK_CONFIGURATION_FIELDS) == set(
 
 
 #: The only non-default contact route; absent keeps the released refusal of a
-#: contact approach beyond the local envelope (backends/robodojo/staged_contact.py).
+#: contact approach beyond the local envelope (the toolkit's lib/motion_plan/route.py).
 CONTACT_APPROACH_STAGED = "global_precontact_then_local"
 
 
@@ -254,13 +276,15 @@ class RoboDojoBenchmarkError(ValueError):
     """A RoboDojo source, layout or infrastructure binding is invalid."""
 
 
-def physics_step_ceiling(task: str) -> int:
+def physics_step_ceiling(task: str, multiple: int = 1) -> int:
     """The most physics steps one RoboDojo episode of ``task`` can admit.
 
     ``RobodojoSession.__init__`` refuses any ``max_sim_steps`` outside
-    ``[10, native_action_limit * 10]`` or off a ten-step boundary, because the
-    episode itself ends at the task's official native-action limit and each
-    native action is exactly ``PHYSICS_STEPS_PER_NATIVE_ACTION`` PhysX steps.
+    ``[10, native_action_limit * multiple * 10]`` or off a ten-step boundary,
+    because the episode itself ends at the task's official native-action limit,
+    or at ``multiple`` times it under an extended RunPlan
+    (``runtime.official_limit_multiple``), and each native action is exactly
+    ``PHYSICS_STEPS_PER_NATIVE_ACTION`` PhysX steps.
     A physics budget above this number is therefore not a looser budget, it is
     a worker that refuses to start. Every caller that sizes ``max_sim_steps``
     for a RoboDojo cell reads it here rather than restating a constant, so the
@@ -272,7 +296,7 @@ def physics_step_ceiling(task: str) -> int:
             "RoboDojo task must be one of the reviewed fixed-layout tasks: "
             + ", ".join(sorted(NATIVE_ACTION_LIMITS))
         )
-    return NATIVE_ACTION_LIMITS[task] * PHYSICS_STEPS_PER_NATIVE_ACTION
+    return NATIVE_ACTION_LIMITS[task] * multiple * PHYSICS_STEPS_PER_NATIVE_ACTION
 
 
 def source_revisions(runtime: Mapping[str, Any]) -> dict[str, str]:
@@ -421,7 +445,7 @@ def qualification_binding_layers(qualification: Any) -> tuple[str, ...]:
 def validate_qualification_binding(qualification: Any) -> tuple[str, ...]:
     """Admit either the combined record or the card/task layered pair."""
 
-    return qualification_binding_layers(qualification)
+    return () if qualification is None else qualification_binding_layers(qualification)
 
 
 def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
@@ -445,12 +469,12 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
         *REVISION_FIELDS.values(), "required_host", "require_gpu",
         "eval_seed", "layout_id", "layout_file", "layout_sha256", "num_envs",
         "task_variant", "env_config", "sensor_profile", "physics_dt",
-        "control_hz", "native_action_limit", "native_actions_per_command",
+        "control_hz", "native_action_limit", "official_limit_multiple", "native_actions_per_command",
         "physics_device", "renderer_gpu", "cuda_visible_devices",
         "main_camera", "policy_cameras", "startup_timeout_s", "request_timeout_s",
         "close_timeout_s", "workspace_bounds_m", "environment_signal_policy", "execution_capture",
         "public_environment_context", "public_geometry_descriptor", "infrastructure_qualification",
-        "resource_binding", "expected_task_language", "layout_schedule",
+        "resource_binding", "expected_task_language", "task_language_source", "layout_schedule",
         # Unified-instance bindings (EXP08A robodojo_x5): the resolver replaces
         # a source-owned workspace profile selector with its resolved body and
         # keeps the literal bounds beside it, and composition records which
@@ -459,10 +483,20 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
         # Derived by the RunSpec from robodojo_staged_contact_approach_v1 and
         # robodojo_retract_then_unwind_recovery_v1.
         "contact_approach_route", "recovery_route",
+        # The shared motion base (environment/backends/robodojo/shared_motion.py).
+        "motion_planner", "motion_timing",
+        # The ARX X5 motion profile the toolkit plans and actuates with (fast, the jaw forms):
+        # a policy asset's {path, sha256}, ora/policy/embodiments/arx-x5/motion-profile-v<N>.json.
+        "motion_profile",
+        # Optional developer-only ground truth written beside the run, never
+        # into it (environment/backends/robodojo/ground_truth.py).
+        "ground_truth_capture",
     }
     unexpected = set(runtime) - allowed
     if unexpected:
         raise RoboDojoBenchmarkError(f"unsupported RoboDojo runtime fields: {sorted(unexpected)}")
+    if not isinstance(runtime.get("ground_truth_capture", False), bool):
+        raise RoboDojoBenchmarkError("runtime.ground_truth_capture must be true or false")
     if runtime.get("transport") != "local_rpc":
         raise RoboDojoBenchmarkError("RoboDojo requires local_rpc")
     for field in ("root_env", "python_env", "asset_root_env"):
@@ -470,9 +504,7 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
             r"[A-Z][A-Z0-9_]*", runtime[field],
         ) is None:
             raise RoboDojoBenchmarkError(f"runtime.{field} must name an environment variable")
-    from .robodojo_asset_revision import asset_revision_for
-    expected_revisions = {**REVISIONS, "assets": asset_revision_for(runtime.get("task_variant"))}
-    if source_revisions(runtime) != expected_revisions:
+    if source_revisions(runtime) != REVISIONS:
         raise RoboDojoBenchmarkError("RoboDojo requires the reviewed code/fork/asset revisions")
     task = runtime.get("task_variant")
     if not isinstance(task, str) or task not in NATIVE_ACTION_LIMITS:
@@ -480,8 +512,11 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
             "RoboDojo task must be one of the reviewed fixed-layout tasks: "
             + ", ".join(sorted(NATIVE_ACTION_LIMITS))
         )
+    eval_seed = runtime.get("eval_seed")
+    if type(eval_seed) is not int or eval_seed not in EVAL_SEEDS:
+        raise RoboDojoBenchmarkError(f"runtime.eval_seed must be one of {EVAL_SEEDS}")
     exact = {
-        "task_variant": task, "eval_seed": 0,
+        "task_variant": task,
         "num_envs": 1, "env_config": "arx_x5", "sensor_profile": "rgbd_metric_v1",
         "physics_dt": 0.004, "control_hz": 25, "native_action_limit": NATIVE_ACTION_LIMITS[task],
         "native_actions_per_command": 20, "main_camera": "head",
@@ -503,6 +538,7 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
         raise RoboDojoBenchmarkError("runtime.recovery_route must be 'retract_then_unwind' or absent")
     if runtime.get("policy_cameras") != list(PUBLIC_CAMERAS):
         raise RoboDojoBenchmarkError("RoboDojo requires the qualified three-camera order")
+    validate_motion_profile_binding(runtime.get("motion_profile"))
     profile = runtime.get("workspace_profile")
     if profile is not None and (
         not isinstance(profile, Mapping)
@@ -527,7 +563,7 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
     path = runtime.get("layout_file")
     if not isinstance(path, str) or Path(path).is_absolute() or ".." in Path(path).parts:
         raise RoboDojoBenchmarkError("layout_file must be relative to the pinned Assets root")
-    if re.fullmatch(rf"Eval_Layout/RoboDojo/arx_x5/0/{re.escape(task)}_\d+\.json", path) is None:
+    if re.fullmatch(rf"Eval_Layout/RoboDojo/arx_x5/{eval_seed}/{re.escape(task)}_\d+\.json", path) is None:
         raise RoboDojoBenchmarkError("layout_file does not belong to the selected task/seed")
     if re.fullmatch(r"[0-9a-f]{64}", str(runtime.get("layout_sha256", ""))) is None:
         raise RoboDojoBenchmarkError("RoboDojo requires layout_sha256")
@@ -536,20 +572,41 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
         # whether the bytes exist and match is the preflight's and worker's.
         from .robodojo_layouts import layout_file_for
         layout_id = runtime.get("layout_id")
-        if type(layout_id) is not int or layout_id < 0 or path != layout_file_for(task, 0, layout_id):
+        if type(layout_id) is not int or layout_id < 0 or path != layout_file_for(task, eval_seed, layout_id):
             raise RoboDojoBenchmarkError(
                 "runtime.layout_id must be one official layout ordinal whose file is layout_file "
                 "without a reviewed layout_schedule")
     else:
         from .robodojo_layouts import validate_layout_schedule
         validate_layout_schedule(
-            runtime["layout_schedule"], task=task, eval_seed=0, layout_id=runtime.get("layout_id"),
+            runtime["layout_schedule"], task=task, eval_seed=eval_seed, layout_id=runtime.get("layout_id"),
             layout_file=path, layout_sha256=runtime.get("layout_sha256"),
         )
     public = runtime.get("public_environment_context")
     if public is not None and public != public_context():
         raise RoboDojoBenchmarkError("RoboDojo public environment context drift")
+    if runtime.get("task_language_source") not in (None, "live_reset_readback"):
+        raise RoboDojoBenchmarkError("unsupported task_language_source")
+    if runtime.get("task_language_source") == "live_reset_readback" and runtime.get("expected_task_language") is not None:
+        raise RoboDojoBenchmarkError("live task language may not also bind an expected language")
     validate_qualification_binding(runtime.get("infrastructure_qualification"))
+
+
+#: Where a RoboDojo plan's motion profile lives (``runtime.motion_profile``): an ARX X5 profile of the policy tree.
+MOTION_PROFILE_PATH = re.compile(r"ora/policy/embodiments/arx-x5/motion-profile-v[1-9][0-9]*\.json")
+
+
+def validate_motion_profile_binding(binding: Any) -> None:
+    """``runtime.motion_profile`` is absent (profile v1, the toolkit's built-in values) or an ARX X5 profile's
+    ``{path, sha256}``; its bytes are the RunPlan's policy pins' to verify."""
+    if binding is None:
+        return
+    if (not isinstance(binding, Mapping) or set(binding) != {"path", "sha256"}
+            or not isinstance(binding["path"], str) or MOTION_PROFILE_PATH.fullmatch(binding["path"]) is None
+            or re.fullmatch(r"[0-9a-f]{64}", str(binding["sha256"])) is None):
+        raise RoboDojoBenchmarkError(
+            "runtime.motion_profile must be the {path, sha256} of an ARX X5 motion profile "
+            "(ora/policy/embodiments/arx-x5/motion-profile-v<N>.json)")
 
 
 def selected_layout(asset_root: Path, *, task: str, eval_seed: int, layout_id: int) -> Path:
@@ -560,10 +617,10 @@ def selected_layout(asset_root: Path, *, task: str, eval_seed: int, layout_id: i
     enters the ordinal. Which ordinals a RunPlan may select is decided by
     ``validate_runtime_extension`` and the reviewed layout catalog.
     """
-    if (task not in NATIVE_ACTION_LIMITS or type(eval_seed) is not int or eval_seed != 0
+    if (task not in NATIVE_ACTION_LIMITS or type(eval_seed) is not int or eval_seed not in EVAL_SEEDS
             or type(layout_id) is not int or layout_id < 0):
         raise RoboDojoBenchmarkError(
-            "only the reviewed tasks / eval_seed 0 / a non-negative layout ordinal are admitted"
+            f"only the reviewed tasks / eval_seed {EVAL_SEEDS} / a non-negative layout ordinal are admitted"
         )
     folder = asset_root / "Eval_Layout" / "RoboDojo" / "arx_x5" / str(eval_seed)
     pattern = re.compile(rf"{re.escape(task)}_(\d+)\.json")
@@ -608,7 +665,7 @@ ROUND_END_BASES = (
     "episode_incomplete",
 )
 UPSTREAM_ENDING_CONDITIONS = (
-    "official_success_latch", "official_failure_latch", "native_action_limit",
+    "official_success_latch", "success_after_official_limit", "official_failure_latch", "native_action_limit",
 )
 #: Control-only environment status reason for each upstream ending condition.
 #: Before the failure latch was named, both false endings shared
@@ -616,6 +673,7 @@ UPSTREAM_ENDING_CONDITIONS = (
 #: record whose native-action counts are unreadable.
 OFFICIAL_TERMINAL_REASONS = {
     "official_success_latch": "official_success",
+    "success_after_official_limit": "success_after_official_limit",
     "official_failure_latch": "official_failure_latch",
     "native_action_limit": "official_native_action_limit",
     "official_episode_end": "official_native_action_limit_or_failure",
@@ -639,8 +697,10 @@ def classify_round_ending(
     fault_reason: str | None,
     abort_reason: str | None,
     official_success: bool | None = None,
+    success_after_official_limit: bool = False,
+    official_limit_passed: bool = False,
     native_actions: int | None = None,
-    native_action_limit: int | None = None,
+    extended_native_action_limit: int | None = None,
 ) -> dict[str, Any]:
     """Name how one RoboDojo round ended and whether that is comparable.
 
@@ -652,17 +712,23 @@ def classify_round_ending(
     an operator interrupt or an episode that had not stopped -- because those
     are excluded from every denominator anyway and calling them "not
     comparable" would imply they were a truncated behaviour sample.
+
+    A false ending is the native-action limit only at the extended limit, the
+    round's real stop: past the official limit but short of it, the simulator
+    ended the round on a failure latch, or the late success has its own name.
     """
 
     if official_terminal:
         counted = isinstance(native_actions, int) and isinstance(
-            native_action_limit, int,
+            extended_native_action_limit, int,
         )
         condition = (
             "official_success_latch"
             if official_success is True
+            else "success_after_official_limit"
+            if success_after_official_limit
             else "native_action_limit"
-            if counted and native_actions >= native_action_limit
+            if counted and native_actions >= extended_native_action_limit
             else "official_failure_latch"
             if counted and official_success is False
             # Unreadable counts cannot attribute a false ending.
@@ -699,8 +765,9 @@ def classify_round_ending(
     elif abort_reason in HARNESS_BUDGET_REASONS:
         basis, comparable, note = (
             "harness_budget_exhausted", False,
-            f"a Harness allowance ({abort_reason}) stopped the round before "
-            "either upstream ending condition",
+            f"a Harness allowance ({abort_reason}) stopped the round "
+            + ("after the official limit; its result stands at the limit" if official_limit_passed
+               else "before either upstream ending condition"),
         )
     else:
         basis, comparable, note = (
@@ -717,7 +784,7 @@ def classify_round_ending(
 
 
 def official_terminal_reason(
-    official_terminal: Mapping[str, Any], native_action_limit: int | None,
+    official_terminal: Mapping[str, Any], extended_native_action_limit: int | None,
 ) -> str:
     """Name the upstream condition behind a terminal RoboDojo status."""
 
@@ -725,7 +792,8 @@ def official_terminal_reason(
     ending = classify_round_ending(
         official_terminal=True, fault_reason=None, abort_reason=None,
         official_success=bool(official_terminal.get("official_success")),
+        success_after_official_limit=official_terminal.get("success_after_official_limit") is True,
         native_actions=None if native_actions is None else int(native_actions),
-        native_action_limit=native_action_limit,
+        extended_native_action_limit=extended_native_action_limit,
     )
     return OFFICIAL_TERMINAL_REASONS[ending["upstream_ending_condition"]]

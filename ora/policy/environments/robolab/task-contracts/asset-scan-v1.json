@@ -1,0 +1,4577 @@
+{
+ "schema": "ora.robolab-asset-scan.v1",
+ "revision": "ad45d4f974725d020f82c2b0d77d78533aeba2b3",
+ "method": "pxr UsdUtils.ComputeAllDependencies and Usd.Stage.Open of each roster scene with the interpreter's omni.usd.libs (no Kit, no Omniverse client: http(s) assets stay unresolved)",
+ "scanned_at": "2026-11-05",
+ "scenes": {
+  "bagel_plate_banana_bowl.usda": {
+   "layers": 9,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plate_large": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bagel_00": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 32
+    },
+    "bagel_06": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 32
+    }
+   }
+  },
+  "banana_bowl.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bananas_5_grey_bin.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_03": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_04": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bananas_5_in_crate.usda": {
+   "layers": 5,
+   "remote_geometry": [
+    "https:/omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/Props/KLT_Bin/small_KLT_visual_collision.usd"
+   ],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "purple_crate": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_03": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_04": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bin_condiments.usda": {
+   "layers": 16,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ranch_dressing": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bbq_sauce_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "oatmeal_raisin_cookies": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "canned_tuna": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "soft_scrub": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wood_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "coffee_pot": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bbq_sauce_bottle_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bin_mug_mustard_marker_bowl.usda": {
+   "layers": 9,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "dry_erase_marker": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "blue.usda": {
+   "layers": 7,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plasticjerrican_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "plasticpail_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "pitcher": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bottles_crate.usda": {
+   "layers": 7,
+   "remote_geometry": [
+    "https:/omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/Props/KLT_Bin/small_KLT_visual_collision.usd"
+   ],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "salad_dressing_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bbq_sauce_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "purple_crate": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "bowls_2_table.usda": {
+   "layers": 5,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "bowl_1": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl_2": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "breakfast_table.usda": {
+   "layers": 21,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl",
+    "gltf/pbr.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bagel_07": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 32
+    },
+    "coffee_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yogurt_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "coffee_pot": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pitcher": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "fork_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spoon_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "apple_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange2": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "milk_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_juice_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bagel_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 32
+    },
+    "bagel_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 32
+    },
+    "plate_small": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plate_large": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "butter_raisin_box.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "butter": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "raisin_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "butter_raisin_box_grey_bin.usda": {
+   "layers": 7,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "butter": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "raisin_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "cartons_in_crate.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "alphabet_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "milk_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_juice_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "container_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mayonnaise_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ketchup_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "cartons_in_vertical_crate.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "alphabet_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "milk_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_juice_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "container_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mayonnaise_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ketchup_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "cartons_on_box.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "alphabet_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "milk_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_juice_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mayonnaise_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ketchup_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cubebox_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 4
+    }
+   }
+  },
+  "clutter_fruit_bottle_bluebin.usda": {
+   "layers": 17,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "orange_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "pomegranate01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinlarge": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinsmall": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "whitepackerbottle_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "avocado01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "crabbypenholder": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "milkjug_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "utilityjug_a03": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "right_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "red_onion": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "colored_blocks.usda": {
+   "layers": 8,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "blue_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "green_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yellow_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "cooking_table.usda": {
+   "layers": 15,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "redonion": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "clay_plates": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_spoons": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spatula": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "storage_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tomato_sauce_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "measuring_cups_1": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pink_spaghetti_spoon": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spoon_1": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "green_serving_spoon": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "storage_box_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ladle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "potato_masher": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "food_packing.usda": {
+   "layers": 13,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bin_a06": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cheez_it": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "chocolate_pudding": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "coffee_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spam_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "sugar_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tomato_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bin_b03": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "foodpacking_1bin_1box_1can.usda": {
+   "layers": 8,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bin_a06": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cheez_it": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tomato_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "foodpacking_1bin_2box_2can.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bin_a06": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cheez_it": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "sugar_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tomato_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tuna_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "foodpacking_1bin_3box_3can.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bin_a06": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cheez_it": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "chocolate_pudding": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spam_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "sugar_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tomato_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "tuna_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "fruits_in_basket.usda": {
+   "layers": 16,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "orange_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "pomegranate01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinlarge": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinsmall": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "redonion": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "clay_plates": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_spoons": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spatula": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "storage_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "fruits_out_of_basket.usda": {
+   "layers": 15,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lemon_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lime01_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "orange_02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "pomegranate01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinlarge": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pumpkinsmall": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "redonion": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "clay_plates": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_spoons": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spatula": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "storage_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "green.usda": {
+   "layers": 8,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "blackandbrassbowl_large": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "screwtoppail_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 3
+    },
+    "utilityjug_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "frozen_vegetable_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "ladle_pot.usda": {
+   "layers": 13,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "anza_medium": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ladle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plate_large": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plate_small": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "fork_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "fork_small": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spatula_13": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "spatula_14": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "spatula_15": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "pink_spaghetti_spoon": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ladle_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_serving_spoon": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "green_serving_spoon": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "mug_banana_ketchup_bowl_rubiks3_bin.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ketchup_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_middle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_top": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_bottom": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "mugs2_bananas2_ketchup_rubiks3_bin.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ketchup_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_near": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana_far": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_middle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_top": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_bottom": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "mugs4_measuringcup_drill_bowl.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "measuring_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cordless_drill": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "sideways_white_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "upright_white_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "mugs4_measuringcup_drill_bowl_v2.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "measuring_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cordless_drill": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "upright_white_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "sideways_white_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "mugs_on_shelf.usda": {
+   "layers": 9,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rack_l04": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 4
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "utilityjug_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    }
+   }
+  },
+  "mustard_raisin_box.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "raisin_box": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mustard_bottle": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "objects_around_table.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "alphabet_soup_can": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "milk_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "orange_juice_carton": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "rubiks_cube_3.usda": {
+   "layers": 5,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_1": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_2": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "rubiks_cube_banana_bowl.usda": {
+   "layers": 7,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "rubiks_cube_banana_bowl_mug_bin.usda": {
+   "layers": 9,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "banana": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "rubiks_cube_bowl.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "shelf_mugs_jug_bowl.usda": {
+   "layers": 9,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rack_l04": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 4
+    },
+    "serving_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "utilityjug_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    }
+   }
+  },
+  "shelf_with_cleaning_products.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 1,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "large_storage_rack": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 1,
+     "colliders": 3
+    },
+    "whitepackerbottle_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "whitepackerbottle_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "utilityjug_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "utilityjug_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "squarepail_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 3
+    },
+    "plasticpail_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "whitepackerbottle_a03": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "tools_container.usda": {
+   "layers": 10,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cordless_drill": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spring_clamp": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "husky_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "left_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "right_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "tools_picking.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "clamp": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "cordless_drill": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spring_clamp": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "clamp_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "right_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "center_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "left_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "husky_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wood_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "blue_hammer": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "PushGraph": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    }
+   }
+  },
+  "toys_cleanup.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_1": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube_2": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lizard_figurine": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "birdhouse": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yellow_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "red_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "green_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "blue_block": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lizard_figurine_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "two_bin.usda": {
+   "layers": 6,
+   "remote_geometry": [],
+   "remote_render_assets": 38,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "mustard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin_right": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin_left": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "wire_shelf_mugs_plate_spatula.usda": {
+   "layers": 12,
+   "remote_geometry": [],
+   "remote_render_assets": 10,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wireshelving_a01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spatula_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 3
+    },
+    "plate_small": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "fork_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "fork_small": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "mug_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "workdesk.usda": {
+   "layers": 15,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "glasses": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "keyboard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lizard_figurine": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "marker": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "remote_control": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "rubiks_cube": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spoon_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "computer_mouse": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yogurt_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "oatmeal_raisin_cookies": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "granola_bars": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "workdesk_bin.usda": {
+   "layers": 14,
+   "remote_geometry": [],
+   "remote_render_assets": 28,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "glasses": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "keyboard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "lizard_figurine": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "marker": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "remote_control": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spoon_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "computer_mouse": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yogurt_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "granola_bars": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "grey_bin": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  },
+  "workdesk_snacks.usda": {
+   "layers": 14,
+   "remote_geometry": [],
+   "remote_render_assets": 0,
+   "local_missing_geometry": [],
+   "unresolved_render_assets": [
+    "OmniPBR.mdl",
+    "gltf/pbr.mdl"
+   ],
+   "objects": {
+    "Looks": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "PhysicsMaterial": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 0
+    },
+    "table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 5
+    },
+    "franka_table": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "GroundPlane": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 0,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "ceramic_mug": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "glasses": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "keyboard": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "marker": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "remote_control": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "smartphone": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "wooden_bowl": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "spoon_big": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "computer_mouse": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "yogurt_cup": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "pitcher": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    },
+    "plasticpail_a02": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 2
+    },
+    "apple_01": {
+     "joints": 0,
+     "articulation_root": false,
+     "rigid_bodies": 1,
+     "kinematic_bodies": 0,
+     "colliders": 1
+    }
+   }
+  }
+ }
+}

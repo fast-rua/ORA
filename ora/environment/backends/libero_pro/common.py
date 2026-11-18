@@ -38,9 +38,14 @@ LIBERO_EMBODIMENTS = {("Panda",): "franka_panda"}
 def _sparse_planning_failure(reason: str) -> tuple[str, str, str]:
     if reason.startswith("route_"):
         return "plan_rejected", "route", reason
-    if reason == "planner_error":
+    # The pacing refused the planned path before any controller write
+    # (``ora/environment/controllers/motion_pace.py``): an unrequested wrist
+    # turn, or more ticks than one action may spend.
+    if reason in {"paced_path_wrist_unwind", "paced_motion_budget"}:
+        return "plan_rejected", "pacing", reason
+    if reason in {"planner_error", "timeout"}:
         return "execution_fault", "planner", reason
-    if "INVALID_START_STATE_" in reason:
+    if reason in {"start_in_collision", "start_outside_limits"}:
         return "plan_rejected", "planner", reason
     return "planner_failed", "planner", reason
 

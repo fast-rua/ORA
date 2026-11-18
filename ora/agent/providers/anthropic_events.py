@@ -3,7 +3,7 @@
 ``AnthropicMessagesProvider._parse_events`` reads a completed response in two
 steps. This module checks the event order of a streamed response (or the shape
 of one non-streamed message) and accumulates its content blocks, tool-input
-fragments, usage, stop reason and response ID; ``native.py`` then decodes the
+fragments, usage, stop reason and response ID; ``anthropic_reply`` then decodes the
 tool inputs and normalizes the assistant message. Each event kind has one
 handler, applied in stream order; any violation raises before a block can
 reach the canonical message.

@@ -209,6 +209,41 @@ class RoboTwinOperatorCaptureMixin:
         Image.fromarray(rgb).save(path)
         self.operator_frame_sequence += 1
 
+    def operator_view(self) -> dict[str, Any] | None:
+        """The observer camera now, for the operator only (base.validate_operator_view).
+
+        Asked right after an observation is published, whose ``get_obs`` already
+        refreshed the render transforms, so the frame shows the world the
+        policy's cameras just saw. A scene of ORA's play scene sets answers with
+        its own operator camera instead (``operator_camera``, 1280 x 720). Neither
+        is ever an observation camera; nothing here advances physics or changes
+        the scene's RNG.
+        """
+
+        if self.environment is None:
+            return None
+        camera = "observer_camera"
+        getter = getattr(getattr(self.environment, "cameras", None), "get_observer_rgb", None)
+        operator = getattr(self.environment, "operator_rgb", None)
+        if getattr(self, "play_scene_set", None) is not None and callable(operator):
+            # A scene of ORA's play scene sets has its own operator camera (play_scenes/base.py), 1280 x 720,
+            # which the execution capture records too; RoboTwin's 320 x 240 observer stays for every other scene.
+            getter, camera = operator, str(getattr(self.environment, "operator_camera_name", "operator_camera"))
+        if not callable(getter):
+            return None
+        import io
+
+        import numpy as np
+        from PIL import Image
+
+        rgb = np.asarray(getter())
+        if rgb.ndim != 3 or rgb.shape[2] != 3:
+            raise RoboTwinLiveError(f"operator {camera} returned an invalid RGB frame")
+        output = io.BytesIO()
+        Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).save(output, format="PNG", compress_level=1)
+        return {"png": output.getvalue(), "camera": camera, "width": int(rgb.shape[1]),
+                "height": int(rgb.shape[0])}
+
     def finalize_operator_video(self) -> dict[str, Any] | None:
         """Encode trusted observer keyframes without blocking controller steps."""
         if self._execution_recorder is not None:

@@ -1,0 +1,207 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "return_home",
+  "events": {},
+  "call": [{"if": {"has": "args.arms"}, "text": "{args.arms|join}"}],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"eq": ["dry.feasible", false]}, "text": "dry run: would be refused, {dry.failure_code}", "failed": true},
+    {
+      "if": {"lt": ["dry.motion.fraction_of_move", 1]},
+      "text": "dry run: feasible but cut short, {dry.motion.fraction_of_move|pct} of the path"
+    },
+    {"if": {"has": "dry"}, "text": "dry run: feasible"},
+    {
+      "if": {"all": [{"has": "result.receipt"}, {"ne": ["result.receipt.status", "reached"]}]},
+      "text": "executed, not reached",
+      "failed": true
+    },
+    {"if": {"has": "result.receipt"}, "text": "executed"},
+    {"text": "{result.status|or:no result}"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "the arms the call moves",
+      "when": {"has": "args.arms"},
+      "line": "{args.arms|count|n:arm} to return to the reset joints: {args.arms|join}"
+    },
+    {
+      "name": "plan",
+      "doc": "the path (a lift of the end effector, then a screened unwind of the joints to the reset joints) and the order or method the first clear screen kept",
+      "when": {"any": [{"has": "dry.route"}, {"has": "result.receipt"}, {"has": "error"}]},
+      "line": [
+        {
+          "if": {"has": "dry.route"},
+          "text": "{dry.route}, {dry.motion.native_actions|n:native action} ({dry.motion.duration_s|f2} s)"
+        },
+        {"if": {"has": "dry.arms.left.method"}, "text": "left: {dry.arms.left.method}"},
+        {"if": {"has": "dry.arms.right.method"}, "text": "right: {dry.arms.right.method}"},
+        {"if": {"has": "dry.arms.left.unwind_order"}, "text": "left unwinds {dry.arms.left.unwind_order}"},
+        {"if": {"has": "dry.arms.right.unwind_order"}, "text": "right unwinds {dry.arms.right.unwind_order}"},
+        {"if": {"has": "dry.arms.left.lift"}, "text": "left lift {dry.arms.left.lift}"},
+        {"if": {"has": "dry.arms.right.lift"}, "text": "right lift {dry.arms.right.lift}"},
+        {"if": {"has": "error.constraints.failure_code"}, "text": "{error.message}"},
+        {"if": {"has": "dry.refusal"}, "text": "{dry.refusal.message}"}
+      ],
+      "verdict": [
+        {
+          "if": {
+            "any": [
+              {
+                "in": [
+                  "error.constraints.failure_code",
+                  ["retrace_not_recorded", "retrace_nothing_to_undo", "retrace_arm_off_path"]
+                ]
+              },
+              {
+                "in": ["dry.failure_code", ["retrace_not_recorded", "retrace_nothing_to_undo", "retrace_arm_off_path"]]
+              }
+            ]
+          },
+          "text": "nothing to retrace"
+        },
+        {
+          "if": {
+            "any": [
+              {
+                "in": [
+                  "error.constraints.failure_code",
+                  [
+                    "recovery_self_collision_path",
+                    "recovery_inter_arm_collision_path",
+                    "recovery_table_collision_path"
+                  ]
+                ]
+              },
+              {
+                "in": [
+                  "dry.failure_code",
+                  [
+                    "recovery_self_collision_path",
+                    "recovery_inter_arm_collision_path",
+                    "recovery_table_collision_path"
+                  ]
+                ]
+              }
+            ]
+          },
+          "text": "every path blocked"
+        },
+        {"if": {"has": "error"}, "text": "refused"},
+        {"text": "planned"}
+      ]
+    },
+    {
+      "name": "screening",
+      "doc": "each candidate path against the arm itself, the table top and the other arm (SDK collision spheres), in order; the first clear one is kept",
+      "when": {"any": [{"has": "dry.screening"}, {"has": "result.receipt"}]},
+      "line": [
+        {
+          "if": {"has": "dry.screening.candidates_screened"},
+          "text": "{dry.screening.candidates_screened|n:candidate} screened, the last against {dry.screening.against}"
+        },
+        {"if": {"has": "result.receipt"}, "text": "the planned path was screened clear before it moved"}
+      ],
+      "verdict": [{"text": "clear"}]
+    },
+    {
+      "name": "budget",
+      "doc": "the native actions the plan needs against what the call may spend",
+      "when": {"has": "dry.motion"},
+      "line": "{dry.motion.whole_native_actions|n:native action} for the whole path, {dry.motion.native_action_budget} may be spent",
+      "verdict": [
+        {
+          "if": {"lt": ["dry.motion.fraction_of_move", 1]},
+          "text": "cut short: covers {dry.motion.fraction_of_move|pct}"
+        },
+        {"text": "fits"}
+      ]
+    },
+    {
+      "name": "prediction",
+      "doc": "where the plan ends each arm (world position and xyzw orientation)",
+      "when": {"has": "dry.arms"},
+      "line": [
+        {"if": {"has": "dry.arms.left.predicted_pose"}, "text": "left ends at {dry.arms.left.predicted_pose|xyz}"},
+        {"if": {"has": "dry.arms.right.predicted_pose"}, "text": "right ends at {dry.arms.right.predicted_pose|xyz}"}
+      ]
+    },
+    {
+      "name": "execution",
+      "doc": "what the executed trajectory did: the receipt's own summary, how it ended",
+      "when": {"has": "result.receipt"},
+      "line": "{result.receipt.action_summary|or:executed}",
+      "verdict": [
+        {"if": {"eq": ["result.receipt.status", "reached"]}, "text": "reached"},
+        {
+          "if": {"has": "result.receipt.failure_code"},
+          "text": "not reached: {result.receipt.failure_code} at {result.receipt.failure_stage|or:execution}"
+        },
+        {"text": "{result.receipt.status|or:unknown}"}
+      ]
+    }
+  ],
+  "conclusion": [
+    {
+      "if": {"eq": ["dry.feasible", true]},
+      "text": "the call would run as planned; the same call without dry_run executes it"
+    },
+    {
+      "if": {"eq": ["dry.feasible", false]},
+      "text": "the call would be refused with {dry.failure_code}; nothing was executed"
+    },
+    {"if": {"eq": ["result.receipt.status", "reached"]}, "text": "the arms reached their targets"},
+    {
+      "if": {"has": "result.receipt.failure_code"},
+      "text": "the arm did not arrive ({result.receipt.failure_code}); the next observation shows where it stands"
+    }
+  ],
+  "next": [
+    {
+      "if": {"eq": ["error.code", "dry_run_unavailable"]},
+      "text": "make the call itself: {error.constraints.reason}; a call the environment refuses before it moves costs nothing"
+    },
+    {
+      "if": {
+        "any": [
+          {
+            "in": [
+              "error.constraints.failure_code",
+              ["retrace_not_recorded", "retrace_nothing_to_undo", "retrace_arm_off_path"]
+            ]
+          },
+          {"in": ["dry.failure_code", ["retrace_not_recorded", "retrace_nothing_to_undo", "retrace_arm_off_path"]]}
+        ]
+      },
+      "text": "move_pose moves to a pose of your choice"
+    },
+    {
+      "if": {
+        "any": [
+          {
+            "in": [
+              "error.constraints.failure_code",
+              ["recovery_self_collision_path", "recovery_inter_arm_collision_path", "recovery_table_collision_path"]
+            ]
+          },
+          {
+            "in": [
+              "dry.failure_code",
+              ["recovery_self_collision_path", "recovery_inter_arm_collision_path", "recovery_table_collision_path"]
+            ]
+          }
+        ]
+      },
+      "text": "no path is clear of the arm itself, the table or the other arm: move one arm at a time, or move_pose through an intermediate pose"
+    },
+    {
+      "if": {"has": "result.receipt.failure_code"},
+      "text": "observe, then decide: return_home again continues from where the arm stands"
+    },
+    {
+      "if": {"all": [{"has": "error"}, {"eq": ["decision.by", "tool"]}]},
+      "text": "correct {error.field|or:the arguments}: {error.message}"
+    }
+  ]
+}

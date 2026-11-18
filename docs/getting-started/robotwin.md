@@ -8,18 +8,18 @@ both arms through perception, grasp-planning and motion tools; RoboTwin's own
 | | |
 |---|---|
 | Machine | x86_64 Linux with one NVIDIA GPU, 32 GB or more |
-| Disk | ~57 GB (14 GB of asset archives, unpacked to 16 GB) |
+| Disk | ~148 GB, with the RoboDojo runtime its planner runs under (RoboTwin's own 14 GB of asset archives unpack to 16 GB) |
 | Install | `./scripts/ora setup --env robotwin` |
 | Run | `./scripts/ora run --env robotwin --task click_bell --confirm-launch` |
 
-You need ORA itself (`git clone https://github.com/hao-ai-lab/ORA.git &&
+You need ORA itself (`git clone https://github.com/fast-rua/ORA.git &&
 cd ORA && uv sync --all-extras --locked`) and a DeepSeek API key.
 
 ## Install and run
 
 ```bash
 ./scripts/ora setup --env robotwin
-export DEEPSEEK_LOW_API_KEY=sk-...
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY      # once; or export DEEPSEEK_LOW_API_KEY=sk-...
 ./scripts/ora run --env robotwin --task click_bell --confirm-launch
 ```
 
@@ -28,8 +28,10 @@ export DEEPSEEK_LOW_API_KEY=sk-...
   - a Python 3.10 environment with CUDA 12.8 PyTorch and the upstream SAPIEN and MPLib;
   - CuRobo built for your GPU (about 6 minutes);
   - the RoboTwin 2.0 assets;
+  - the RoboDojo runtime, whose cuRobo V2 is the motion planner (as for
+    LIBERO), and the motion-timing interpreter;
   - the SAM3 and Contact-GraspNet services;
-  - the terminal UI.
+  - the agent core's Pi packages and the terminal UI.
 
   Check the [tools to install first](single-gpu.md#2-user-space-tools).
 - **First run of a task.** RoboTwin needs a seed that the upstream expert

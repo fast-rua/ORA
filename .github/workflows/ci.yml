@@ -17,21 +17,28 @@ concurrency:
 jobs:
   docs:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Check out the exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-      - name: Install pinned uv and Python
+      - name: Install pinned uv and Python (Python API reference)
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.12.1"
           python-version: "3.11"
+          # The Python API reference runs Griffe at the version docs-site/site.json pins.
           enable-cache: true
-          cache-dependency-glob: docs/requirements.txt
-      - name: Build and validate the documentation
+          cache-dependency-glob: docs-site/site.json
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - name: Build the documentation site and check links, anchors and the sidebar
         run: ./scripts/docs build
 
   tests:
@@ -41,9 +48,18 @@ jobs:
       - name: Check out the exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
           persist-credentials: false
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Start installing the video test dependency
+        # ffmpeg and ffprobe for the Viewer video tests. apt runs in the background
+        # while uv and npm install, without the man-db trigger that re-indexes
+        # every manual page after an install.
+        run: |
+          sudo rm -f /var/lib/man-db/auto-update
+          nohup sh -c 'sudo apt-get update -qq && sudo apt-get install -qq --no-install-recommends -y ffmpeg
+            echo $? > "$RUNNER_TEMP/ffmpeg.status.tmp" && mv "$RUNNER_TEMP/ffmpeg.status.tmp" "$RUNNER_TEMP/ffmpeg.status"' \
+            > "$RUNNER_TEMP/ffmpeg.log" 2>&1 &
 
       - name: Install pinned uv and Python
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -53,13 +69,35 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      - name: Install pinned Node.js for the Pi agent core
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+          cache: npm
+          cache-dependency-path: ora-pi/package-lock.json
+
       - name: Sync the locked environment
         run: uv sync --all-extras --locked
 
-      - name: Install video test dependency
+      - name: Install the locked agent-core packages
+        working-directory: ora-pi
+        run: npm ci --no-audit --no-fund
+
+      - name: Wait for the video test dependency
+        timeout-minutes: 12
         run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y ffmpeg
+          # A stalled apt shows its log here instead of a bare step timeout.
+          deadline=$((SECONDS + 600))
+          until [ -f "$RUNNER_TEMP/ffmpeg.status" ]; do
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "ffmpeg is still installing after 10 minutes"; tail -n 40 "$RUNNER_TEMP/ffmpeg.log"; exit 1
+            fi
+            sleep 2
+          done
+          tail -n 5 "$RUNNER_TEMP/ffmpeg.log"
+          test "$(cat "$RUNNER_TEMP/ffmpeg.status")" = 0
+          ffmpeg -hide_banner -version | head -n 1
+          ffprobe -hide_banner -version | head -n 1
 
       - name: Verify installation discovery
         run: uv run --locked ora doctor --json
@@ -71,4 +109,69 @@ jobs:
         run: ./scripts/ora lock --check
 
       - name: Run the deterministic test suite
-        run: uv run --locked python -m pytest -q tests
+        # In parallel, with a per-test timeout and the reason of every skip.
+        # The agent-core tests (marker agent_core, tests/agent_core/) run in
+        # the agent-core job; the no-write check compares the checkout's
+        # ignored files, so it runs alone next. The quickstart's Pi-core cases
+        # fail instead of skipping when the agent core installed above is
+        # unusable.
+        env:
+          ORA_TEST_REQUIRE_AGENT_CORE: "1"
+        run: >-
+          uv run --locked python -m pytest -q -rs -n auto --timeout 300 tests
+          -m "not agent_core"
+          --deselect tests/ora/app/test_baselines.py::test_the_command_writes_no_files
+
+      - name: Check that ora baselines --explain writes no files
+        run: uv run --locked python -m pytest -q -rs tests/ora/app/test_baselines.py::test_the_command_writes_no_files
+
+  agent-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # A missing node, ora-pi package or clean checkout fails instead of skipping.
+      ORA_TEST_REQUIRE_AGENT_CORE: "1"
+    steps:
+      - name: Check out the exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install pinned uv and Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.1"
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install pinned Node.js for the Pi agent core
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+          cache: npm
+          cache-dependency-path: |
+            ora-pi/package-lock.json
+            ora-pi/web/package-lock.json
+
+      - name: Sync the locked environment
+        run: uv sync --all-extras --locked
+
+      - name: Install the locked agent-core packages
+        working-directory: ora-pi
+        run: npm ci --no-audit --no-fund
+
+      - name: Run the TypeScript agent-core and terminal front-end tests against Python
+        run: uv run --locked node --test ora-pi/test/*.test.ts ora-pi/test/*.test.mjs
+
+      - name: Check, test and build ORA's web page
+        working-directory: ora-pi/web
+        run: |
+          npm ci --no-audit --no-fund
+          npm run typecheck
+          npm test
+          npm run build
+
+      - name: Run the agent-core tests
+        run: uv run --locked python -m pytest -q -rs -m agent_core tests

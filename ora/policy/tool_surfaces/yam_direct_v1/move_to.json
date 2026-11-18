@@ -1,0 +1,88 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_to",
+  "description": "Move selected TCPs to world-frame positions while holding each measured action-start orientation.\nUse when: the intended change is translation-only repositioning in free space.\nEffect: world mutation; compiles to move_pose with interaction=free_space, so a target more than a few centimetres away horizontally is reached by lifting, traversing and descending, and every planned tick is checked before anything moves.\nReturns: an immediate acknowledgement with status=submitted, action and compiled_pose; compiled_pose.targets is the requested target, not a measured arrival. The later receipt and fresh observation report the plan, execution status and measured pose.\nDoes not: rotate, command a gripper, steer around objects on the table, or guarantee reachability.\nOn error: read failure_stage and failure_code as for move_pose, then choose a reachable intermediate or recover_pose. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "targets"
+    ],
+    "properties": {
+      "targets": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Non-empty translation-only targets over left and right. Omitted arms are not commanded; use move_pose first when an orientation must change.",
+        "properties": {
+          "left": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "position_m"
+            ],
+            "description": "The left arm's translation-only target; use it once that arm's current orientation is already suitable. Null means omitted.",
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Absolute world-frame [x,y,z] left TCP position in metres. The action-start orientation is held: decreasing world z lowers the TCP but does not pitch the gripper."
+              }
+            }
+          },
+          "right": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "position_m"
+            ],
+            "description": "The right arm's translation-only target; use it once that arm's current orientation is already suitable. Null means omitted.",
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Absolute world-frame [x,y,z] right TCP position in metres. The action-start orientation is held: decreasing world z lowers the TCP but does not pitch the gripper."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "move_to"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

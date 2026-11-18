@@ -1,0 +1,26 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "close_gripper",
+  "description": "Propose a close command while holding the measured current grip-site pose. Use when: current evidence supports closing the jaws; use move_pose for a pose change. Effect: submits one observation-bound gripper-only action v3 proposal to the Supervisor and ends this turn. Returns: submitted status and close_gripper action immediately; the later receipt and fresh observation show measured motion and opening. Does not: move the pose target, establish contact, identify an object or prove retention; nominal aperture is not calibrated contact evidence. On error: wait for a pending action to finish and use fresh evidence before another mutation.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "const": "submitted"
+      },
+      "action": {
+        "const": "close_gripper"
+      }
+    },
+    "required": [
+      "status",
+      "action"
+    ],
+    "additionalProperties": false
+  }
+}

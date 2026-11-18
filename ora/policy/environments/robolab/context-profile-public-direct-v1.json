@@ -1,0 +1,27 @@
+{
+  "schema": "ora.environment-prompt-profile.v1",
+  "profile_id": "robolab_public_direct_v1",
+  "default": false,
+  "match": {
+    "environment_id": "robolab",
+    "embodiment_id": "droid_franka_robotiq",
+    "robot_models": [
+      "Franka_Panda_Robotiq_2F85"
+    ],
+    "controller": "ROBOLAB_ABS_IK_CARTESIAN_SERVO",
+    "public_cameras": [
+      "agentview",
+      "wrist"
+    ]
+  },
+  "sources": {
+    "environment_policy": "ora/policy/environments/robolab/boundary-v1.md",
+    "embodiment_policy": "ora/policy/embodiments/droid-franka-robotiq/manual-public-geometry-v1.md"
+  },
+  "compiled_embodiment": {
+    "descriptor": "ora/policy/embodiments/droid-franka-robotiq/descriptor-public-geometry-v1.json",
+    "review": "ora/policy/embodiments/droid-franka-robotiq/wording-review-public-geometry-v1.json",
+    "card_sha256": "403bf5e02cdbcba9cf416963da62adfb83720884f17bd9e180a59a3fbbbd2a19",
+    "runtime_verification": "loaded_robot_geometry_before_policy_v1"
+  }
+}

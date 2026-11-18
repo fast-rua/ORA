@@ -1,8 +1,9 @@
-"""Isolated simulator worker for Viewer-derived controller replay videos."""
+"""Isolated simulator worker: Viewer-derived controller replay videos and replay-program checks."""
 
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import importlib
 import json
@@ -10,17 +11,28 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 
 JOB_SCHEMA = "ora.viewer-controller-replay-job.v2"
 RESULT_SCHEMA = "ora.viewer-controller-replay.v2"
+PROGRAM_JOB_SCHEMA = "ora.replay-program-job.v1"
 FRAME_SCHEMA = "ora.viewer-controller-replay-frame.v2"
 ROBOTWIN_DENSE_TARGET_CONTROLLERS = frozenset({
     "robotwin_dense_joint_targets",
     "robotwin_local_cartesian_dls",
     "robotwin_global_then_local_settle",
     "robotwin_global_precontact_then_local",
+})
+ROBOTWIN_HOLD_CONTROLLER = "robotwin_hold_current_drive_targets"
+ROBOTWIN_STAGED_CONTROLLERS = frozenset({
+    "robotwin_global_then_local_settle",
+    "robotwin_global_precontact_then_local",
+})
+# Faults raised before a sample's physics step: a target was (or may have been)
+# written without the step that followed it, so the record is not a prefix.
+ROBOTWIN_PRE_STEP_FAULTS = frozenset({
+    "backend_write_fault", "before_step_fault", "backend_step_fault",
 })
 
 
@@ -346,6 +358,146 @@ def _recorded_control_step_count(
     return max(counts, default=0)
 
 
+@functools.lru_cache(maxsize=1)
+def _robotwin_gripper_planner_steps() -> int:
+    """The length of RoboTwin's planned gripper ramp, read from its own planner."""
+    planner = importlib.import_module("envs.robot.planner")
+    for name in ("MplibPlanner", "CuroboPlanner"):
+        plan = getattr(getattr(planner, name, None), "plan_grippers", None)
+        if callable(plan):
+            return int(plan(None, 0.0, 1.0)["num_step"])
+    raise ReplayWorkerError("RoboTwin's gripper planner is unavailable")
+
+
+def _legacy_gripper_steps(
+    sequence: Any, planner_steps: Callable[[], int] = _robotwin_gripper_planner_steps,
+) -> Any:
+    """Restore the per-step limit a legacy RoboTwin trace recorded as zero.
+
+    The original passed its planned ramp's ``per_step`` to ``robot.set_gripper``,
+    which moves the drive target by at most that much per step. A trace recorded
+    before the recorder kept it says 0.0, so the replay jumped to each value and
+    closed the jaws one step early; under contact the arm then drifted from the
+    original (up to 1.3 mm at an action end in the runs checked). RoboTwin plans the ramp as
+    ``linspace(now, target, n)`` with ``per_step = (target - now) / n``, so the
+    recorded uniform increment ``d`` gives ``per_step = d * (n - 1) / n``, also for
+    a ramp the action cut short. A moving path that is not such a ramp is refused.
+    """
+    import numpy as np
+
+    if not isinstance(sequence, Mapping):
+        return sequence
+    result = dict(sequence)
+    for channel in ("left_gripper", "right_gripper"):
+        path = sequence.get(channel)
+        if not isinstance(path, Mapping) or path.get("per_step"):
+            continue
+        values = np.asarray(path.get("result", []), dtype=np.float64)
+        steps = np.diff(values)
+        moving = steps[np.abs(steps) > 1e-12]
+        if not moving.size:
+            continue
+        if not np.allclose(moving, moving[0], rtol=0.0, atol=1e-9):
+            raise ReplayWorkerError(f"legacy RoboTwin {channel} path is not a planned ramp")
+        n = planner_steps()
+        result[channel] = {**path, "per_step": float(moving[0]) * (n - 1) / n}
+    return result
+
+
+def _extra_settle_steps(entry: Mapping[str, Any], arrays: Mapping[str, Any]) -> int:
+    """Free physics steps the original ran after its recorded control sequence.
+
+    The entry's ``physics_steps`` is the recorded total and decides. ``execution.settle_steps``
+    names the length of the action's closing phase, and a ``global_precontact_then_local``
+    action records that phase (its local contact steps) inside the control sequence as well.
+    Stepping it again after the sequence left the arm that many steps without a new target,
+    1-2 mm away from the original, and a same-seed replay of a successful RoboTwin run could
+    end in failure. Only the steps the total has beyond the sequence are settling; a trace
+    without a total keeps its recorded settle steps.
+    """
+    execution = entry.get("execution")
+    settle = int(execution.get("settle_steps", 0)) if isinstance(execution, Mapping) else 0
+    total = entry.get("physics_steps")
+    if isinstance(total, bool) or not isinstance(total, int):
+        return max(0, settle)
+    return max(0, min(settle, total - _recorded_control_step_count(entry, arrays)))
+
+
+def _robotwin_hold_steps(entry: Mapping[str, Any]) -> int:
+    """Physics steps a RoboTwin ``wait`` ran while holding every drive target.
+
+    A wait writes no target: SAPIEN keeps each joint and gripper drive target it
+    was last given and the scene steps. Its record has no control sequence and
+    is marked not replayable, but the steps ran, and skipping them starts every
+    later action from a different state. Replaying them is the same number of
+    plain scene steps. Any other non-replayable entry returns 0.
+    """
+    if entry.get("controller") != ROBOTWIN_HOLD_CONTROLLER or entry.get("action") != "wait":
+        return 0
+    steps = entry.get("physics_steps")
+    if isinstance(steps, bool) or not isinstance(steps, int) or steps < 0:
+        raise ReplayWorkerError("RoboTwin wait entry records no physics step count")
+    return steps
+
+
+def _robotwin_fault_prefix_steps(entry: Mapping[str, Any], arrays: Mapping[str, Any]) -> int:
+    """Physics steps a RoboTwin action ran before an execution guard stopped it.
+
+    The measured-convergence loop writes a sample's targets, steps physics, then
+    measures and applies its guards. A guard that fires after the step leaves a
+    record holding every issued target, one row per step that ran, and the
+    recorder marks it not replayable only because it faulted. Those steps ran,
+    and skipping them shifts every later action, so replay runs them like any
+    other dense entry. The record is accepted only when its counters prove it is
+    such a prefix; otherwise the replay refuses rather than skip or guess.
+    Returns 0 for an entry that is not an execution fault or ran nothing.
+    """
+    execution = entry.get("execution")
+    if not isinstance(execution, Mapping) or execution.get("status") != "execution_fault":
+        return 0
+    label = f"RoboTwin action {entry.get('action_sequence')} execution fault"
+    metadata = entry.get("metadata")
+    tracking = metadata.get("controller_tracking") if isinstance(metadata, Mapping) else None
+    abort = tracking.get("abort") if isinstance(tracking, Mapping) else None
+    code = abort.get("code") if isinstance(abort, Mapping) else None
+    if not isinstance(code, str):
+        raise ReplayWorkerError(f"{label} records no controller abort")
+    if code in ROBOTWIN_PRE_STEP_FAULTS:
+        raise ReplayWorkerError(f"{label} {code} wrote a target without its physics step")
+    counters = {name: tracking.get(name) for name in ("physics_step_attempts", "sampled_steps")}
+    counters["physics_steps"] = entry.get("physics_steps")
+    if any(isinstance(value, bool) or not isinstance(value, int) for value in counters.values()):
+        raise ReplayWorkerError(f"{label} records no step counters")
+    steps = counters["physics_steps"]
+    if len(set(counters.values())) != 1:
+        raise ReplayWorkerError(f"{label} step counters disagree: {counters}")
+    if steps == 0:
+        return 0
+    controller = entry.get("controller")
+    if controller not in ROBOTWIN_DENSE_TARGET_CONTROLLERS:
+        raise ReplayWorkerError(f"{label} has no dense controller sequence: {controller}")
+    if controller in ROBOTWIN_STAGED_CONTROLLERS and tracking.get("mode") != "global":
+        raise ReplayWorkerError(f"{label} stopped after its global phase; the record keeps only the last phase")
+    settle = execution.get("settle_steps", 0)
+    if settle not in (0, None):
+        raise ReplayWorkerError(f"{label} records settle steps after the fault")
+    sequence = _robotwin_control_sequence(entry, arrays)
+    arms = 0
+    for channel, path in sequence.items():
+        if path is None:
+            continue
+        rows = len(path["position"]) if channel.endswith("_arm") else len(path.get("result", []))
+        if channel.endswith("_arm"):
+            arms += 1
+            if len(path.get("velocity", [])) != rows:
+                raise ReplayWorkerError(f"{label} {channel} positions and velocities differ in length")
+        if rows != steps:
+            raise ReplayWorkerError(f"{label} {channel} holds {rows} rows for {steps} physics steps")
+    if tracking.get("controller_write_attempts") != steps * arms:
+        raise ReplayWorkerError(f"{label} target writes do not match its {steps} physics steps")
+    return steps
+
+
 def _robotwin_replay_needs_planner(manifest: Mapping[str, Any]) -> bool:
     """Return whether any replayable entry must reconstruct a legacy EE action."""
 
@@ -443,11 +595,10 @@ def _apply_robotwin_control_target(
                 )
 
 
-def _replay_robotwin(
-    *, plan: Mapping[str, Any], manifest: Mapping[str, Any],
-    manifest_path: Path, project_root: Path, output_root: Path,
-    sampling: Mapping[str, Any],
-) -> tuple[int, list[str]]:
+def _robotwin_replay_session(
+    plan: Mapping[str, Any], project_root: Path, output_root: Path,
+) -> Any:
+    """The run's RoboTwin session, rebuilt from its RunPlan without capture."""
     from ora.environment.backends.robotwin.session import RoboTwinLiveSession
     from ora.environment.controllers.embodiment_control import (
         load_embodiment_control_profile,
@@ -466,7 +617,7 @@ def _replay_robotwin(
         control_profile = load_embodiment_control_profile(
             project_root / relative, digest,
         )
-    session = RoboTwinLiveSession(
+    return RoboTwinLiveSession(
         robotwin_root=_required_environment_path(runtime, "root_env"),
         output_root=output_root / "runtime",
         task=str(plan["task"]),
@@ -485,17 +636,169 @@ def _replay_robotwin(
         action_codec=str(plan.get("policy", {}).get("action_codec", "runtime_action_v3")),
         control_profile=control_profile,
     )
+
+
+def _robotwin_scene_trace(directory: Path, run_id: str) -> Any:
+    """The scene trace of a RoboTwin re-execution (``environment/scene_trace.py``)."""
+    from ora.environment.backends.robotwin.scene_trace import RoboTwinSceneTrace
+
+    return RoboTwinSceneTrace(directory, run_id=run_id)
+
+
+def _libero_scene_trace(directory: Path, run_id: str) -> Any:
+    """The scene trace of a LIBERO-Pro re-execution (``environment/scene_trace.py``)."""
+    from ora.environment.backends.libero_pro.scene_trace import LiberoSceneTrace
+
+    return LiberoSceneTrace(directory, run_id=run_id)
+
+
+def _robocasa_replay_session(plan: Mapping[str, Any], output_root: Path, region_order: Mapping[int, Any]) -> Any:
+    """The run's RoboCasa365 session, rebuilt from its RunPlan: no planner, recorded controls need none."""
+    from ora.environment.backends.robocasa.session import RoboCasaSession
+
+    return RoboCasaSession(output_root=output_root / "runtime", config={
+        **plan["runtime"], "task": plan["task"], "seed": plan["seed"], "motion_planner": None,
+        "action_codec": plan["policy"]["action_codec"], "region_order": region_order})
+
+
+def _robocasa_scene_trace(directory: Path, run_id: str) -> Any:
+    """The scene trace of a RoboCasa365 re-execution (``environment/scene_trace.py``)."""
+    from ora.environment.backends.robocasa.scene_trace import RoboCasaSceneTrace
+
+    return RoboCasaSceneTrace(directory, run_id=run_id)
+
+
+def _replay_robotwin_entry(
+    environment: Any, entry: Mapping[str, Any], arrays: Mapping[str, Any], *,
+    sampling: Mapping[str, Any], capture: Callable[[Any, Any, str, int | None], None],
+    hold_steps: int | None = None,
+) -> str:
+    """Run one recorded RoboTwin entry; returns what ran: ``controls``, ``hold`` or ``skipped``.
+
+    ``capture(environment, entry, phase, control_step)`` sees the sampled steps;
+    sampling selects captures only, never which steps run. ``hold_steps`` lets a
+    replay program run a wait for another number of steps.
+    """
+    replay = bool(entry.get("replayable")) or _robotwin_fault_prefix_steps(entry, arrays) > 0
+    hold = 0 if replay else _robotwin_hold_steps(entry)
+    if hold and hold_steps is not None:
+        hold = int(hold_steps)
+    if not replay and not hold:
+        ran = entry.get("physics_steps")
+        if isinstance(ran, int) and not isinstance(ran, bool) and ran > 0 and hold_steps is None:
+            # Skipping steps that ran starts every later action from
+            # another state: that is no longer a replay of this run.
+            raise ReplayWorkerError(
+                f"RoboTwin action {entry.get('action_sequence')} ran {ran} physics steps "
+                "that its record cannot replay"
+            )
+        capture(environment, entry, "not_replayed", None)
+        return "skipped"
+    controller = entry.get("controller")
+    if bool(getattr(environment, "eval_success", False)):
+        raise ReplayWorkerError("RoboTwin replay would write after a terminal boundary")
+    if hold:
+        # The wait's own steps, with no new target: run every one.
+        selected_steps = _capture_steps(hold, sampling)
+        original_update = getattr(environment, "_update_render")
+        last_captured_global_step = None
+        for index in range(hold):
+            environment.scene.step()
+            if index in selected_steps:
+                original_update()
+                capture(environment, entry, "hold", index)
+                last_captured_global_step = index
+        if _needs_final_capture(hold, last_captured_global_step):
+            original_update()
+            capture(environment, entry, "hold_final", hold - 1)
+        return "hold"
+    step = 0
+    last_captured_global_step: int | None = None
+    settle = _extra_settle_steps(entry, arrays)
+    expected_control_steps = _recorded_control_step_count(entry, arrays)
+    selected_steps = _capture_steps(
+        expected_control_steps + settle, sampling,
+    )
+    original_update = getattr(environment, "_update_render")
+
+    # Sampling controls camera capture only. Every recorded target and
+    # settle step must run, and none twice: skipping or repeating steps
+    # changes contact/grasp physics.
+    def recorded_update() -> None:
+        nonlocal step, last_captured_global_step
+        if step in selected_steps:
+            original_update()
+            capture(environment, entry, "control", step)
+            last_captured_global_step = step
+        step += 1
+
+    setattr(environment, "_update_render", recorded_update)
+    try:
+        replay_route = _robotwin_replay_route(controller)
+        if replay_route == "dense_targets":
+            original_picture = getattr(environment, "_take_picture", None)
+            original_render_freq = getattr(environment, "render_freq", None)
+            if callable(original_picture):
+                setattr(environment, "_take_picture", lambda: None)
+            if original_render_freq is not None:
+                setattr(environment, "render_freq", 0)
+            try:
+                environment.take_dense_action(
+                    _legacy_gripper_steps(_robotwin_control_sequence(entry, arrays)),
+                    save_freq=1,
+                )
+            finally:
+                if callable(original_picture):
+                    setattr(environment, "_take_picture", original_picture)
+                if original_render_freq is not None:
+                    setattr(environment, "render_freq", original_render_freq)
+        else:
+            environment.take_action(arrays["ee_action"], action_type="ee")
+    finally:
+        setattr(environment, "_update_render", original_update)
+    scene_step = getattr(getattr(environment, "scene", None), "step", None)
+    for index in range(settle):
+        if not callable(scene_step):
+            break
+        scene_step()
+        global_step = step + index
+        if global_step in selected_steps:
+            original_update()
+            capture(environment, entry, "settle", index)
+            last_captured_global_step = global_step
+    actual_total_steps = step + settle
+    if _needs_final_capture(actual_total_steps, last_captured_global_step):
+        original_update()
+        capture(
+            environment, entry, "settle_final" if settle else "control_final",
+            (settle - 1) if settle else (step - 1),
+        )
+    return "controls"
+
+
+def _replay_robotwin(
+    *, plan: Mapping[str, Any], manifest: Mapping[str, Any],
+    manifest_path: Path, project_root: Path, output_root: Path,
+    sampling: Mapping[str, Any],
+) -> tuple[int, list[str]]:
+    session = _robotwin_replay_session(plan, project_root, output_root)
     cameras = list(manifest["camera_panels"])
     writer = _FrameWriter(
         output_root, cameras=cameras, sampling=sampling,
     )
+
+    def capture(environment: Any, entry: Any, phase: str, control_step: int | None) -> None:
+        writer.append(
+            _robotwin_images(environment), entry=entry, phase=phase, control_step=control_step,
+        )
+
     planner_patch = None
     if not _robotwin_replay_needs_planner(manifest):
         planner_patch = _disable_unused_robotwin_planners(session.robotwin_root)
     try:
         session.start()
         environment = session._require_environment()
-        writer.append(_robotwin_images(environment), entry=None, phase="reset", control_step=None)
+        capture(environment, None, "reset", None)
         current_round = 0
         for entry in manifest["entries"]:
             if not isinstance(entry, Mapping):
@@ -509,90 +812,11 @@ def _replay_robotwin(
                 session.restart_round(round_index)
                 current_round = round_index
                 environment = session._require_environment()
-                writer.append(
-                    _robotwin_images(environment), entry=None,
-                    phase="round_reset", control_step=None,
-                )
+                capture(environment, None, "round_reset", None)
             arrays = _artifact_arrays(manifest_path, entry)
-            if not entry.get("replayable"):
-                writer.append(
-                    _robotwin_images(environment), entry=entry,
-                    phase="not_replayed", control_step=None,
-                )
-                continue
-            controller = entry.get("controller")
-            if bool(getattr(environment, "eval_success", False)):
-                raise ReplayWorkerError("RoboTwin replay would write after a terminal boundary")
-            step = 0
-            last_captured_global_step: int | None = None
-            execution = entry.get("execution")
-            settle = (
-                int(execution.get("settle_steps", 0))
-                if isinstance(execution, Mapping) else 0
+            _replay_robotwin_entry(
+                environment, entry, arrays, sampling=sampling, capture=capture,
             )
-            expected_control_steps = _recorded_control_step_count(entry, arrays)
-            selected_steps = _capture_steps(
-                expected_control_steps + settle, sampling,
-            )
-            original_update = getattr(environment, "_update_render")
-
-            # Sampling controls camera capture only. Every recorded target and
-            # settle step must run: skipping targets changes contact/grasp physics.
-            def recorded_update() -> None:
-                nonlocal step, last_captured_global_step
-                if step in selected_steps:
-                    original_update()
-                    writer.append(
-                        _robotwin_images(environment), entry=entry,
-                        phase="control", control_step=step,
-                    )
-                    last_captured_global_step = step
-                step += 1
-
-            setattr(environment, "_update_render", recorded_update)
-            try:
-                replay_route = _robotwin_replay_route(controller)
-                if replay_route == "dense_targets":
-                    original_picture = getattr(environment, "_take_picture", None)
-                    original_render_freq = getattr(environment, "render_freq", None)
-                    if callable(original_picture):
-                        setattr(environment, "_take_picture", lambda: None)
-                    if original_render_freq is not None:
-                        setattr(environment, "render_freq", 0)
-                    try:
-                        environment.take_dense_action(
-                            _robotwin_control_sequence(entry, arrays), save_freq=1,
-                        )
-                    finally:
-                        if callable(original_picture):
-                            setattr(environment, "_take_picture", original_picture)
-                        if original_render_freq is not None:
-                            setattr(environment, "render_freq", original_render_freq)
-                else:
-                    environment.take_action(arrays["ee_action"], action_type="ee")
-            finally:
-                setattr(environment, "_update_render", original_update)
-            scene_step = getattr(getattr(environment, "scene", None), "step", None)
-            for index in range(settle):
-                if not callable(scene_step):
-                    break
-                scene_step()
-                global_step = step + index
-                if global_step in selected_steps:
-                    original_update()
-                    writer.append(
-                        _robotwin_images(environment), entry=entry,
-                        phase="settle", control_step=index,
-                    )
-                    last_captured_global_step = global_step
-            actual_total_steps = step + settle
-            if _needs_final_capture(actual_total_steps, last_captured_global_step):
-                original_update()
-                writer.append(
-                    _robotwin_images(environment), entry=entry,
-                    phase="settle_final" if settle else "control_final",
-                    control_step=(settle - 1) if settle else (step - 1),
-                )
     finally:
         try:
             session.close()
@@ -635,17 +859,17 @@ def _libero_qualified_controller_binding(manifest_path: Path) -> Mapping[str, An
     return binding
 
 
-def _replay_libero(
-    *, plan: Mapping[str, Any], manifest: Mapping[str, Any],
-    manifest_path: Path, output_root: Path,
-) -> tuple[int, list[str]]:
+def _libero_replay_session(
+    plan: Mapping[str, Any], manifest_path: Path, output_root: Path,
+) -> Any:
+    """The run's LIBERO-Pro session, rebuilt from its RunPlan and sealed reset evidence."""
     from ora.environment.backends.libero_pro.session import LiberoProSession
 
     runtime = plan.get("runtime")
     if not isinstance(runtime, Mapping):
         raise ReplayWorkerError("run omits Runtime configuration")
     qualified_controller_binding = _libero_qualified_controller_binding(manifest_path)
-    session = LiberoProSession(
+    return LiberoProSession(
         environment_driver=str(runtime.get("environment_driver", "direct_libero_v1")),
         libero_pro_root=_required_environment_path(runtime, "libero_pro_root_env"),
         data_root=_required_environment_path(runtime, "data_root_env"),
@@ -672,21 +896,81 @@ def _replay_libero(
         action_codec="runtime_action_v3",
         execution_capture={"enabled": False},
     )
+
+
+def _libero_command_setter(session: Any) -> Callable[[str, Any], None]:
+    environment = session._require_environment()
+    setter = getattr(getattr(environment, "env", None), "set_env_attr", None)
+    if not callable(setter):
+        raise ReplayWorkerError("LIBERO replay command transport is unavailable")
+    return setter
+
+
+def _replay_libero_entry(
+    session: Any, entry: Mapping[str, Any], arrays: Mapping[str, Any], *,
+    capture: Callable[[Any, str, int | None], None],
+) -> str:
+    """Run one recorded LIBERO entry; returns what ran: ``controls`` or ``skipped``.
+
+    ``capture(entry, phase, control_step)`` sees every command step.
+    """
+    if not entry.get("replayable"):
+        ran = entry.get("physics_steps")
+        if isinstance(ran, int) and not isinstance(ran, bool) and ran > 0:
+            raise ReplayWorkerError(
+                f"LIBERO action {entry.get('action_sequence')} ran {ran} control steps "
+                "that its record cannot replay"
+            )
+        capture(entry, "not_replayed", None)
+        return "skipped"
+    setter = _libero_command_setter(session)
+    controller = entry.get("controller")
+    if controller == "libero_joint_position":  # a v3 run's joint segment names its gains (libero_joint_controller)
+        setter("harness_replay_controller_mode", (entry.get("metadata") or {}).get("joint_controller") or "JOINT_POSITION")
+        commands = arrays.get("commands", [])
+        for index, command in enumerate(commands):
+            setter("harness_replay_command", command.tolist())
+            _refresh_libero_replay_observation(session)
+            capture(entry, "control", index)
+        setter("harness_replay_controller_mode", "OSC_POSE")
+        refresh = arrays.get("refresh_osc_command", [])
+        for offset, command in enumerate(refresh):
+            setter("harness_replay_command", command.tolist())
+            _refresh_libero_replay_observation(session)
+            capture(entry, "refresh", len(commands) + offset)
+    elif controller == "libero_osc_pose":
+        setter("harness_replay_controller_mode", "OSC_POSE")
+        for index, command in enumerate(arrays.get("commands", [])):
+            setter("harness_replay_command", command.tolist())
+            _refresh_libero_replay_observation(session)
+            capture(entry, "control", index)
+    else:
+        raise ReplayWorkerError(
+            f"unsupported LIBERO replay controller: {controller}"
+        )
+    return "controls"
+
+
+def _replay_libero(
+    *, plan: Mapping[str, Any], manifest: Mapping[str, Any],
+    manifest_path: Path, output_root: Path,
+) -> tuple[int, list[str]]:
+    session = _libero_replay_session(plan, manifest_path, output_root)
     cameras = list(manifest["camera_panels"])
     writer = _FrameWriter(
         output_root,
         cameras=cameras,
         sampling={"mode": "physics_stride_v1", "capture_stride": 1},
     )
+
+    def capture(entry: Any, phase: str, control_step: int | None) -> None:
+        writer.append(_libero_images(session), entry=entry, phase=phase, control_step=control_step)
+
     try:
         session.start()
-        writer.append(_libero_images(session), entry=None, phase="reset", control_step=None)
+        capture(None, "reset", None)
         current_round = 0
-        environment = session._require_environment()
-        vector_environment = getattr(environment, "env", None)
-        setter = getattr(vector_environment, "set_env_attr", None)
-        if not callable(setter):
-            raise ReplayWorkerError("LIBERO replay command transport is unavailable")
+        _libero_command_setter(session)
         for entry in manifest["entries"]:
             if not isinstance(entry, Mapping):
                 raise ReplayWorkerError("LIBERO replay entry is malformed")
@@ -694,50 +978,9 @@ def _replay_libero(
             if round_index != current_round:
                 session.restart_round(round_index)
                 current_round = round_index
-                writer.append(
-                    _libero_images(session), entry=None,
-                    phase="round_reset", control_step=None,
-                )
+                capture(None, "round_reset", None)
             arrays = _artifact_arrays(manifest_path, entry)
-            if not entry.get("replayable"):
-                writer.append(
-                    _libero_images(session), entry=entry,
-                    phase="not_replayed", control_step=None,
-                )
-                continue
-            controller = entry.get("controller")
-            if controller == "libero_joint_position":
-                setter("harness_replay_controller_mode", "JOINT_POSITION")
-                commands = arrays.get("commands", [])
-                for index, command in enumerate(commands):
-                    setter("harness_replay_command", command.tolist())
-                    _refresh_libero_replay_observation(session)
-                    writer.append(
-                        _libero_images(session), entry=entry,
-                        phase="control", control_step=index,
-                    )
-                setter("harness_replay_controller_mode", "OSC_POSE")
-                refresh = arrays.get("refresh_osc_command", [])
-                for offset, command in enumerate(refresh):
-                    setter("harness_replay_command", command.tolist())
-                    _refresh_libero_replay_observation(session)
-                    writer.append(
-                        _libero_images(session), entry=entry,
-                        phase="refresh", control_step=len(commands) + offset,
-                    )
-            elif controller == "libero_osc_pose":
-                setter("harness_replay_controller_mode", "OSC_POSE")
-                for index, command in enumerate(arrays.get("commands", [])):
-                    setter("harness_replay_command", command.tolist())
-                    _refresh_libero_replay_observation(session)
-                    writer.append(
-                        _libero_images(session), entry=entry,
-                        phase="control", control_step=index,
-                    )
-            else:
-                raise ReplayWorkerError(
-                    f"unsupported LIBERO replay controller: {controller}"
-                )
+            _replay_libero_entry(session, entry, arrays, capture=capture)
     finally:
         session.close()
     return writer.sequence, cameras
@@ -749,6 +992,10 @@ def run(job_path: Path) -> dict[str, Any]:
     )
 
     job = _load(job_path)
+    if job.get("schema") == PROGRAM_JOB_SCHEMA:
+        from .replay_program_worker import run_program  # replay programs: their own module
+
+        return run_program(job)
     if job.get("schema") != JOB_SCHEMA:
         raise ReplayWorkerError("invalid Viewer replay job")
     run_root = Path(str(job["run_root"])).resolve()

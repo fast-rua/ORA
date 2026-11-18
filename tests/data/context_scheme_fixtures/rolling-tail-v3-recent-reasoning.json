@@ -1,0 +1,92 @@
+{
+ "schema": "ora.context-scheme.v2",
+ "id": "context_rolling_tail_v3_recent_reasoning",
+ "description": "Retired 2026-11-05 from ora/policy/context_schemes; kept as a test fixture of the stages and management versions that remain. context_rolling_tail_v3 with reasoning_replay recent_exchanges: only the latest 6 to 11 exchanges are sent with their provider continuation state (the replayed reasoning); older assistant messages go without it, in strides of 6, and the withheld state is stored as an artifact. A comparison arm, not a default.",
+ "policy": {
+  "context_profile": "native_causal_context_v1",
+  "context_composition": "native_slots_v4",
+  "context_retention": "action_step_lossless_v4",
+  "summary_policy": "rollout_checkpoint_v1",
+  "memory_policy": "disabled",
+  "provider_continuation_replay": "exact_v1",
+  "initial_observation": "automatic",
+  "context_tools": [
+   "artifact_read"
+  ]
+ },
+ "segments": {
+  "unit": "exchange",
+  "exact_tail": 3
+ },
+ "limits": {
+  "reserve_tokens": 2048
+ },
+ "estimator": {
+  "image_tokens": 530
+ },
+ "references": {
+  "pointers": true,
+  "advertise_over_bytes": null,
+  "preview": {
+   "head_bytes": 0
+  }
+ },
+ "stages": [
+  {
+   "stage": "materialize",
+   "params": {}
+  },
+  {
+   "stage": "exchange_aging",
+   "params": {
+    "trigger_tokens": 100000,
+    "trigger_ratio": 0.5,
+    "exact_tail_exchanges": 6,
+    "argument_bytes": 1024,
+    "result_bytes": 2048,
+    "preview": {
+     "head_bytes": 128,
+     "tail_bytes": 128
+    }
+   }
+  },
+  {
+   "stage": "reasoning_replay",
+   "params": {
+    "mode": "recent_exchanges",
+    "tail_exchanges": 6
+   }
+  },
+  {
+   "stage": "camera_delivery",
+   "params": {
+    "mode": "exchange_window_v1",
+    "tail_observations": null
+   }
+  },
+  {
+   "stage": "episode_capsule",
+   "params": {
+    "trigger_tokens": 150000,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "emergency_checkpoint",
+   "params": {
+    "trigger_tokens": 150000,
+    "trigger_ratio": 0.8,
+    "target_ratio": 0.65,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "hard_backstop",
+   "params": {
+    "exact_tail_exchanges": 2
+   }
+  }
+ ]
+}

@@ -1,0 +1,98 @@
+{
+ "schema": "ora.context-scheme.v2",
+ "id": "context_keep_written_unaged_reasoning",
+ "description": "context_keep_written with reasoning_replay unaged_exchanges: each aging also withholds the reasoning of the exchanges it ages (the latest robot action's exchange keeps it), in the same rewrite, so below the watermark nothing is withheld. Since no assistant message is rewritten, the agings, the hard backstop and L5/L6 are the only ways reasoning leaves the request. A comparison arm, not a default.",
+ "prompt": "keep-written.md",
+ "policy": {
+  "context_profile": "native_causal_context_v1",
+  "context_composition": "native_slots_v4",
+  "context_retention": "action_step_lossless_v4",
+  "summary_policy": "rollout_checkpoint_v1",
+  "memory_policy": "disabled",
+  "provider_continuation_replay": "exact_v1",
+  "initial_observation": "automatic",
+  "context_tools": [
+   "artifact_read"
+  ]
+ },
+ "segments": {
+  "unit": "exchange",
+  "exact_tail": 6,
+  "exact_tail_unit": "exchange"
+ },
+ "limits": {
+  "reserve_tokens": 2048
+ },
+ "estimator": {
+  "image_tokens": 530
+ },
+ "references": {
+  "pointers": true,
+  "advertise_over_bytes": null,
+  "preview": {
+   "head_bytes": 0
+  }
+ },
+ "stages": [
+  {
+   "stage": "materialize",
+   "params": {}
+  },
+  {
+   "stage": "exchange_aging",
+   "params": {
+    "trigger_tokens": 100000,
+    "trigger_ratio": 0.5,
+    "exact_tail_exchanges": 6,
+    "argument_bytes": null,
+    "result_bytes": 8192,
+    "preview": {
+     "head_bytes": 128,
+     "tail_bytes": 128
+    },
+    "result_preview": "structured",
+    "keep_anchor": true
+   }
+  },
+  {
+   "stage": "reasoning_replay",
+   "params": {
+    "mode": "unaged_exchanges",
+    "binding": "strict"
+   }
+  },
+  {
+   "stage": "camera_delivery",
+   "params": {
+    "mode": "exchange_window_v1",
+    "tail_observations": null
+   }
+  },
+  {
+   "stage": "episode_capsule",
+   "params": {
+    "trigger_tokens": null,
+    "trigger_ratio": 0.15,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "emergency_checkpoint",
+   "params": {
+    "trigger_tokens": null,
+    "trigger_ratio": 0.6,
+    "target_ratio": 0.5,
+    "unit": "exchange",
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "hard_backstop",
+   "params": {
+    "exact_tail_exchanges": 2
+   }
+  }
+ ]
+}

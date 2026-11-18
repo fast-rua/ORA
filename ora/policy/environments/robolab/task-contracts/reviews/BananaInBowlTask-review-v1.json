@@ -1,0 +1,119 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "BananaInBowlTask",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robolab BananaInBowlTask at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Pick up the banana and place it in the bowl",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/banana_in_bowl_task.py",
+   "sha256": "ceaba5a9944cf6a9cd1ba6809a73251c01786059c0d4bd02604bf0c9c824ab4a"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/BananaInBowlTask-s0-witness.json",
+   "sha256": "6ee82941af9e4bf7b386be15ef9f13c1b12c0164ea3b1b59120cb86e89e5ddc1"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read BananaInBowlTerminations.success, object_in_container, in_opentop_container, in_contact and gripper_detached."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene banana_bowl.usda with banana, bowl and table; seed selects the upstream reset event."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Container test is in the bowl's local frame, so a tipped bowl fails."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RoboLab freezes the episode at success and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Banana, bowl and gripper are visible in the over-shoulder and wrist cameras."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness: banana dropped into the bowl with the robot held away gives the success termination on seed 0."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: banana beside the bowl and the reset state give false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "object_in_container(object=banana, container=bowl, tolerance=0, require_contact_with=True): centroid within the bowl's local box (open-top slack) and banana-bowl contact.",
+   "interpretation": "Banana inside the bowl, touching it.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks no gripper contact above 0.1 N.",
+   "interpretation": "Release the banana.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_in_container and predicate_logic.gripper_detached.",
+   "interpretation": "Contact force bar and container box slack withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The banana must end up inside the bowl and touching it.",
+  "Let go of the banana there: the task is not complete while any part of the gripper still touches it."
+ ],
+ "counterexamples": [
+  {
+   "case": "Banana on the table beside the bowl: false.",
+   "expected": "witness case banana_on_table_beside_bowl"
+  },
+  {
+   "case": "Banana in the bowl while still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

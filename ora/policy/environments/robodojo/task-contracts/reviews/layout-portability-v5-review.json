@@ -1,0 +1,3550 @@
+{
+ "schema": "ora.robodojo-task-contract-layout-portability-review.v1",
+ "table": "ora/policy/environments/robodojo/task-contracts/layout-portability-v5.json",
+ "predecessor": {
+  "path": "ora/policy/environments/robodojo/task-contracts/reviews/layout-portability-v4-review.json",
+  "sha256": "f12ed0b3e408595593c978758f7157ec74ea5805caa314164a336401d68bb861",
+  "status": "the v4 review record, kept in the tree with layout-portability-v4.json and registry-v9 for plans composed before registry-v10; its 42 entries are carried into v5 unchanged."
+ },
+ "registry": "ora/policy/environments/robodojo/task-contracts/registry-v10.json",
+ "status": "approved",
+ "review": {
+  "date": "2026-11-14",
+  "reviewer": "ORA RoboDojo random-variant contract audit (Claude)",
+  "scope": "offline source and layout review of the *_random variants: each variant's record and completion layer, upstream gen_instruction and run_reward at the pinned revision, and every task instance of its official layouts 0-9 of eval seed 0 with the asset metadata it names; no simulator, scene smoke, provider or physical run",
+  "human_approval": {
+   "status": "approved",
+   "by": "the user",
+   "date": "2026-11-14",
+   "time": "about 21:2xZ, as relayed",
+   "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+   "user_words": "\u6279\u51c6\uff0c\u5408\u5e76\u540e\u52a0\u8fdb RoboDojo",
+   "scope": "the *_random entries this record reviews and their listed layouts"
+  }
+ },
+ "source": {
+  "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+  "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6",
+  "eval_seed": 0,
+  "layout_folder": "Eval_Layout/RoboDojo/arx_x5/0",
+  "ordinal_rule": "ordinal k of a variant is <task>_random_<k>.json (robodojo.selected_layout matches only its own task module's files); only k = 0-9 are reviewed",
+  "byte_provenance": "Read from the pinned RoboDojo f57e163 checkout and its Assets tree at 1127bda (robodojo-runtime-f57e163)."
+ },
+ "carried_from_v4": [
+  "align_blocks",
+  "arrange_largest_number",
+  "build_tower",
+  "classify_objects",
+  "classify_objects_by_language",
+  "cover_blocks",
+  "deposit_coin",
+  "fasten_screws",
+  "fill_egg_holder",
+  "fill_pen_holder",
+  "fold_clothes",
+  "general_pickup",
+  "hang_mugs",
+  "imitate_sorting_sequence",
+  "insert_key",
+  "insert_tubes",
+  "make_kong",
+  "make_toast",
+  "match_and_pick_from_conveyor",
+  "organize_table",
+  "pack_objects_into_box",
+  "pick_from_conveyor_by_image",
+  "play_Xylophone",
+  "play_stacking_toy",
+  "play_tic_tac_toe",
+  "plug_in_charger",
+  "pour_balls_into_vase",
+  "pour_by_language",
+  "pour_liquid_into_cup",
+  "press_by_number",
+  "push_T",
+  "put_bottles_into_dustbin",
+  "solve_equation",
+  "sort_nesting_dolls_by_size",
+  "stack_blocks",
+  "stack_blocks_by_language",
+  "stack_bowls",
+  "store_laptop_and_headphones",
+  "store_tools_in_toolbox",
+  "swap_T",
+  "swap_blocks",
+  "sweep_blocks"
+ ],
+ "criteria": [
+  "The v4 criteria: a completion layer is portable to a layout when every count, side, ordering, fixture and identity it states holds there; layout-0-specific private notes are evidence for layout 0 only.",
+  "Instruction: every variant's gen_instruction returns one constant template, so every layout renders the record's instruction ('fixed').",
+  "Objects: per-category counts, models and labels of every task instance against what the layer and run_reward name. Cluttered distractors carry no label, so the evaluator's label lookups never match them (layout_manager.get_labels_by_prefix); they are listed per layout by count.",
+  "A layout that fails a stated count or identity is left out of the task's rows, so the table refuses it."
+ ],
+ "not_reviewed": [
+  "Reachability: no scene smoke or IK measured these layouts; clutter may also obstruct motions.",
+  "Evaluator metadata and usdz bytes of models only layouts 1-9 hold (listed per task): the records' evaluator_dependencies hash layout 0's objects only.",
+  "Physical feasibility of the tasks on any layout, layout 0 included."
+ ],
+ "tasks": {
+  "arrange_largest_number_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/arrange_largest_number_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/arrange_largest_number-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Four number pieces and four pads; pads mat_0..mat_3 increase in world X, so the pad that receives the largest digit (mat_0) is the one furthest toward -X; digits are model_id mod 10 and distinct (6, 3, 5, 2), so 'the largest possible number' is unique (6532); centring is the 0.02 m root xy check.",
+    "2: Models 46, 43, 45, 42 carry the same metadata (extents, place-up orientation) as base digit models 6, 3, 5, 2, so local +Y is the numeral's top and local +X its reading direction as on the base pieces; the evaluator reads the same axes.",
+    "3: all_robot_back_to_origin is the last conjunct (line 46)."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/number/41": {
+     "layouts": [
+      1,
+      8
+     ],
+     "checked": "metadata.json equals Rigid/number/00001 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/48": {
+     "layouts": [
+      1
+     ],
+     "checked": "metadata.json equals Rigid/number/00008 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/49": {
+     "layouts": [
+      2
+     ],
+     "checked": "metadata.json equals Rigid/number/00009 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/44": {
+     "layouts": [
+      3
+     ],
+     "checked": "metadata.json equals Rigid/number/00004 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/40": {
+     "layouts": [
+      3,
+      8,
+      9
+     ],
+     "checked": "metadata.json equals Rigid/number/00000 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/37": {
+     "layouts": [
+      4,
+      6,
+      7
+     ],
+     "checked": "metadata.json equals Rigid/number/00007 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/32": {
+     "layouts": [
+      4,
+      6,
+      7
+     ],
+     "checked": "metadata.json equals Rigid/number/00002 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/38": {
+     "layouts": [
+      4,
+      5
+     ],
+     "checked": "metadata.json equals Rigid/number/00008 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/39": {
+     "layouts": [
+      4,
+      5,
+      6,
+      7
+     ],
+     "checked": "metadata.json equals Rigid/number/00009 (a base-config model of the same digit) except its uuid and a sub-degree difference in its place-up orientation; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/36": {
+     "layouts": [
+      5
+     ],
+     "checked": "metadata.json equals Rigid/number/00006 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/33": {
+     "layouts": [
+      5,
+      6
+     ],
+     "checked": "metadata.json equals Rigid/number/00003 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/34": {
+     "layouts": [
+      5
+     ],
+     "checked": "metadata.json equals Rigid/number/00004 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/35": {
+     "layouts": [
+      6
+     ],
+     "checked": "metadata.json equals Rigid/number/00005 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/30": {
+     "layouts": [
+      7
+     ],
+     "checked": "metadata.json equals Rigid/number/00000 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    },
+    "Rigid/number/47": {
+     "layouts": [
+      9
+     ],
+     "checked": "metadata.json equals Rigid/number/00007 (a base-config model of the same digit) except its uuid; usdz main layer within a few hundred bytes of the base digit's"
+    }
+   },
+   "known_limits": [
+    "No render or mesh probe of number models 30-49; their numeral shapes are inferred from metadata identical to the same-digit base models and near-identical usdz main layers."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "c7897e5204ca76bbd7c6cb3c93a794a4e5218c0c17a4312f047930f5e7e822d5",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       46,
+       43,
+       45,
+       42
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 46, 43, 45, 42; digits 6, 3, 5, 2, all distinct, largest number 6532) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "f24eb21ce320f29577217f7cf9fa44e9213435964038ed481bb99e99bb7ae370",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       41,
+       48,
+       46,
+       45,
+       43
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "5 number pieces (models 41, 48, 46, 45, 43; digits 1, 8, 6, 5, 3, all distinct, largest number 86531) and 5 cube_cushion/1 pads mat_0..mat_4 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "b3e22d7d04bdcdbbf00dd498b177ff2b2f463a59df568fc38963009ac6f4707a",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       45,
+       49,
+       43,
+       42
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 45, 49, 43, 42; digits 5, 9, 3, 2, all distinct, largest number 9532) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "c664029559d8dfed02a5f54e63ecd3c837ded0a22825e3c76684a02f60fa2cd1",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       43,
+       46,
+       44,
+       40
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 43, 46, 44, 40; digits 3, 6, 4, 0, all distinct, largest number 6430) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "6186c9f8b2cdcd948b5c4579ce062e402804402c9b91f0969f3c7a0bcf69e184",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       37,
+       32,
+       38,
+       39
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 37, 32, 38, 39; digits 7, 2, 8, 9, all distinct, largest number 9872) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "99f4cea6d781cb38483e5cfda3558c1a175c4c6181ece6d1605feae8c40294dc",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       38,
+       39,
+       36,
+       33,
+       34
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "5 number pieces (models 38, 39, 36, 33, 34; digits 8, 9, 6, 3, 4, all distinct, largest number 98643) and 5 cube_cushion/1 pads mat_0..mat_4 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "89f229ca1e02e13671aa818709cea98c18923477609cefc169c7c22231e93721",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       39,
+       37,
+       33,
+       35,
+       32
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "5 number pieces (models 39, 37, 33, 35, 32; digits 9, 7, 3, 5, 2, all distinct, largest number 97532) and 5 cube_cushion/1 pads mat_0..mat_4 in strictly increasing world X (mat_0 furthest toward -X); 19 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "68c3f79e220fc895405e52a107fb8e178ceaaac62762a2b069d17b614d89368c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       30,
+       37,
+       32,
+       39
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "4 number pieces (models 30, 37, 32, 39; digits 0, 7, 2, 9, all distinct, largest number 9720) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 19 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "13684bc65cf497b806856ac47455ddb412c6910bfef27ebce310465072dae1a6",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       41,
+       45,
+       40,
+       43
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 41, 45, 40, 43; digits 1, 5, 0, 3, all distinct, largest number 5310) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "08d3cea2802937d2fe6a885b6e5d9593680db1b1d67d0962e9e85cb672699d2b",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "Rigid/number": [
+       46,
+       47,
+       43,
+       40
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "4 number pieces (models 46, 47, 43, 40; digits 6, 7, 3, 0, all distinct, largest number 7630) and 4 cube_cushion/1 pads mat_0..mat_3 in strictly increasing world X (mat_0 furthest toward -X); 20 unlabelled clutter objects, none within 0.06 m of a pad centre at reset."
+    }
+   ]
+  },
+  "fold_clothes_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/fold_clothes_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/fold_clothes-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Top_Long/00006 is a long-sleeved top with left/right sleeve and left/right chest tags (ids [463], [1945], [4363], [5826]); the sleeve tests compare exactly those, as for the base garment.",
+    "2: 00006 carries left/right hem and left/right shoulder tags with ids and qpos ([3615], [5002], [4648], [5310]); the hem-to-shoulder range tests and the hem-line/shoulder-line angle read exactly those.",
+    "3: Same trigger_check (fold_clothes_random.py:105-109): rising edge of all grippers open and all arms back at their reset poses; nothing layout-specific.",
+    "4: Same two trigger_query latches (fold_clothes_random.py:110-121), aim 0; nothing layout-specific."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Garment/Top_Long/7": {
+     "layouts": [
+      2,
+      5,
+      7
+     ],
+     "checked": "Long-sleeved top; left/right sleeve, chest, hem and shoulder tags all present with ids and qpos (left_shoulder has two vertices, averaged); aligned box 0.559 x 0.291 m.",
+     "metadata_sha256_note": "see notes_with_hashes"
+    },
+    "Garment/Top_Long/11": {
+     "layouts": [
+      4,
+      6
+     ],
+     "checked": "Long-sleeved top; all eight tags present with one id and one qpos each; same mesh size as base model 1; aligned box 0.504 x 0.328 m."
+    }
+   },
+   "known_limits": [
+    "The base record binds no task config and no garment usdz although the functional vertex ids index that mesh; this audit follows the base practice (reward_manager.py, func_parser.py, the garment metadata). Binding Top_Long/00006/object.usdz and config/fold_clothes_random.yml as well would be stricter.",
+    "Whether the fixed fold ranges are attainable on the smaller test-split garments (00006 is about 18 % narrower than base 00009) was not measured; no physical witness exists for any variant layout.",
+    "Whether a distractor ever lies under or across the spread garment at reset was not checked beyond centre distances (0.18 m minimum against garment half-widths of about 0.25-0.28 m along the sleeve axis); the generator's footprint check should prevent overlap but was not re-verified per layout."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "91ca045a523167ea32cf84551db921862b49d107995586a853c6b9eff1db10f0",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       6
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "One Garment Top_Long/00006 labelled target (the only garment), centre (-0.002, -0.144), near-identity yaw; 19 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_magenta, Table material_0040, Ground material_0203, Background brown_photostudio_02_4k.hdr. Model 00006 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds. Its distractors include a rigid pair of jeans, which no clause names and run_reward does not read."
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "d6ccfa56ee655613306344c2c4ad493bc54588ff082d961604da322929089658",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       6
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "One Garment Top_Long/00006 labelled target (the only garment), centre (0.013, -0.122), near-identity yaw; 19 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_orange, Table material_0041, Ground material_0240, Background brown_photostudio_02_4k.hdr. Model 00006 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "cdaab145fbadb25e0b452ae5ece2d384c8fe2201e8decb646db67c08f6723384",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       7
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00007 labelled target (the only garment), centre (0.012, -0.109), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_purple, Table material_0042, Ground material_0277, Background brown_photostudio_02_4k.hdr. Model 00007 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "1793bba7894d0a9d760d9074805fc4b74a98f3a536a1acf7eb94b65a16608518",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       6
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00006 labelled target (the only garment), centre (0.007, -0.108), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_red, Table material_0047, Ground material_0073, Background brown_photostudio_02_4k.hdr. Model 00006 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "fa2656d465e9f81480e1affbf7efb63c70a3cfcf412e503c7c63b48d7e184ffb",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       11
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00011 labelled target (the only garment), centre (0.013, -0.119), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_teal, Table material_0044, Ground material_0376, Background brown_photostudio_02_4k.hdr. Model 00011 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "d23d32c278a020b3d4836b4e77fd6ba91324296f74c46b363d9a642eb635562a",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       7
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00007 labelled target (the only garment), centre (-0.007, -0.139), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_yellow, Table material_0047, Ground material_0376, Background brown_photostudio_02_4k.hdr. Model 00007 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "13270f18f6d57886f912fb7273d909eb4a307df1dd058e830968496804ca34c4",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       11
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00011 labelled target (the only garment), centre (0.005, -0.141), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_azure, Table material_0046, Ground material_0450, Background brown_photostudio_02_4k.hdr. Model 00011 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "8e15e8f3552aeedc2d8eceaba15fb979fb61e5267ce87787e978b3c23df4416a",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       7
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "One Garment Top_Long/00007 labelled target (the only garment), centre (0.001, -0.130), near-identity yaw; 19 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_blue, Table material_0047, Ground material_0487, Background brown_photostudio_02_4k.hdr. Model 00007 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "ba3b7597d4c8d4c388b696391cd323f4dce9359207108bf4a396b548fd0d88d2",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       6
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00006 labelled target (the only garment), centre (-0.011, -0.139), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_pink, Table material_0048, Ground material_0552, Background brown_photostudio_02_4k.hdr. Model 00006 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "af004d26a4decf40de92b0266ec1485fbdc14e573a5a32ac445fb1c313c1754e",
+     "portable": true,
+     "inventory": {
+      "Garment/Top_Long": [
+       6
+      ],
+      "Geometry/camera_stand": [
+       0
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "One Garment Top_Long/00006 labelled target (the only garment), centre (-0.011, -0.137), near-identity yaw; 20 cluttered distractors without labels; Geometry camera_stand; Room Simple_Room_deep_blue, Table material_0049, Ground material_0019, Background brown_photostudio_02_4k.hdr. Model 00006 carries non-empty ids and qpos for left/right sleeve, chest, hem and shoulder, the eight tags run_reward reads. Every contract clause names only the garment's own parts and the arms/grippers, so it holds."
+    }
+   ]
+  },
+  "hang_mugs_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/hang_mugs_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/hang_mugs-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_1_2_3_4_6_7_8_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Three Rigid mugs mug0-mug2 and exactly one rack (Geometry cup_holder, one instance) are in the layout; no clutter item is a mug or cup. The predicate's lift and hook-closeness terms name exactly these three mugs and this rack.",
+    "2: Mugs 10 and 14 carry active 'handle' frames whose local +Z is the mug's body-to-handle direction (quaternion (0.5,0.5,0.5,0.5)), exactly like the base mugs; c3 (handle +Z within 60 degrees of hook 0's +Z) and c5 (handle within 0.045 m of a hook) encode hanging by the handle on a peg. Rack 00001 hook +Z axes lie 0, 50.0, 35.0, 35.0, 50.0 and 6.0 degrees from hook 0's, all inside 60, so no hook choice fails c3 on the reference frame alone (base max 45.8).",
+    "3: The handle-height floor (0.9 m world) is below every hook of rack 00001 in this layout (0.9127, 0.9177, 0.9877, 0.9827, 1.0557, 1.0557 m), so a mug seated on any peg can satisfy it; one sagging well below its peg fails. On the bottom pair the margin is only 0.013-0.018 m (base 0.027-0.029 m), which the clause's 'rather than sagging below the peg' covers.",
+    "4: Recomputed from cup_holder/00001 metadata composed with this layout's rack pose (pos (-0.1951, 0.0224, 0.9177), yaw -6.3 degrees), the way the base record computed rack 00000: hook tiers z 0.9127/0.9177 (lowest), 0.9877/0.9827 (middle), 1.0557/1.0557 (highest); the hooks' +X axes lie 0.0, 130.0, 79.9, 79.9, 130.0 and 6.0 degrees from hook 0's. The lowest and highest pairs pass c4 (inside 60 or beyond 120 degrees), the middle pair falls in the excluded 60-120 band, and the middle pair's horizontal direction is at right angles to the others'. So 'lowest and highest pairs share one direction, middle pair crosswise, either way along it counts' holds verbatim for this rack model; four of six hooks admit c4, enough for three mugs.",
+    "5: run_reward ends with all_robot_back_to_origin() (hang_mugs_random.py:156), the shared arm-return sentence."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/mug/11": {
+     "layouts": [
+      2,
+      5,
+      7
+     ],
+     "checked": "two active 'handle' frames at (0.055, 0, 0.015) with the base orientations"
+    },
+    "Rigid/mug/12": {
+     "layouts": [
+      1,
+      6,
+      8,
+      9
+     ],
+     "checked": "two active 'handle' frames at (0.058, 0, 0.01) with the base orientations"
+    },
+    "Rigid/mug/13": {
+     "layouts": [
+      1,
+      3,
+      5,
+      7,
+      9
+     ],
+     "checked": "two active 'handle' frames at (0.058, 0, 0.01) with the base orientations; metadata has no geometry bbox/center"
+    }
+   },
+   "known_limits": [
+    "Whether Clutter cup/00000 (layout 5) and cup/00003 (layout 13) are mug-shaped; only their metadata extents were read. Layouts 10-29 were not audited for portability.",
+    "Physical: that a mug settled on a peg of rack 00001 keeps its heading along that peg (carried from the base record's NEEDS CONFIRMATION), and that the bottom-tier pegs leave enough room above the 0.9 m handle floor; no simulator evidence."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "9fb225ebf9b9039191c836e46b5343d9f87ec38f5c805e95e1ef7edb3270997e",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       10,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 10/14/14, rack cup_holder/00001 yaw -6.3 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "153a73fe450b324ae0c758d8e2402b5f8123681ec6cf41d9810ebea9f331df36",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       13,
+       12,
+       14
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 13/12/14, rack 00001 yaw +3.1 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "2ee6d8de2b60a2c30f3dc729571f0470bd8ba99072afd9ce006ee8f18df68ca5",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       10,
+       11,
+       10
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 10/11/10, rack 00001 yaw +9.6 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "05a49d123a752b009f7154474218a858f3d556deeb312c2e6c637798774b5aaf",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       13,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 13/14/14, rack 00001 yaw -19.9 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "884d92e56baf0a84d0e9273d1415c153cfc7a62965c51fce4624aca901fa6572",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       14,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "mugs 14/14/14, rack 00001 yaw +18.4 deg, 18 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "e9cced3d752d957878041fec01e12d9fe6739ffcaa03b87d1583d5631205495e",
+     "portable": false,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       10,
+       11,
+       13
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 10/11/13, rack 00001 yaw -7.0 deg; clutter includes Clutter cup/00000 at (-0.234, 0.315) and a bowl: a cup that may look like a fourth mug makes 'all three mugs' ambiguous; left out"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "3bc5efb65a57440fe6f591c430834e314ca88ed627266afa0a18d7894855b401",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       12,
+       10,
+       14
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 12/10/14, rack 00001 yaw +1.7 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "91211a8e8810077e309c7ade5b86080f023612064e3b23321c0720e9d1f154b4",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       11,
+       10,
+       13
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 11/10/13, rack 00001 yaw -15.3 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "f8c1acf1f9500c537e84e00511ba8ebb224d9f4d950f1caf0ddc0189481d1c7e",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       14,
+       12,
+       12
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 14/12/12, rack 00001 yaw -22.6 deg, 20 clutter, no cup/mug clutter"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "5a907ca81f92b512d18d1750c0a0b68f7f698063f6f0dfab1dc4fbbf9de478cd",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/cup_holder": [
+       1
+      ],
+      "Rigid/mug": [
+       13,
+       12,
+       14
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "mugs 13/12/14, rack 00001 yaw +17.0 deg, 20 clutter, no cup/mug clutter"
+    }
+   ]
+  },
+  "make_toast_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/make_toast_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/make_toast-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Probe of toaster/00004 (layout 0): a slice seated in a physical slot has its root within about 4 mm of that slot's centre line; there, slot A (y -0.0175) lies only inside toast_slot1's polygon and slot B (y +0.0175) inside both polygons, so one slice per slot passes both slot terms. Resting on the insert floor (local z -0.0300 at its lower limit) puts the root 0.0615 m above the slot frames (-0.033), inside (-0.05, 0.068); resting on the base floor (-0.0348) gives 0.0567. A slice held 7 mm or more above the insert floor, perched in the opening or on top fails the height term. Model 2 (layouts 1,3,4,5,8): seated roots lie only in their own slot's polygon; floor -0.0614 gives 0.052-0.067 above the frames. The evaluator is weaker than the clause in two places (scoring gaps recorded): on model 4 one slice in slot B alone satisfies both slot terms, and on model 2 slot 2's top-surface frame lets a slice high in or on top of slot 2 pass its height term. The clause states the intent and a policy that follows it is scored correctly.",
+    "2: is_N_A_in_B(label_A_list=bread_0..bread_3, label_B='bread_shelf', N=2) at line 63 is unchanged and the rack is the same bread_shelf/00000 holding four slices at reset.",
+    "3: _all_bread_axis_up_checks (lines 41-51, AXIS_UP_THRESHOLD 30 at line 8) unchanged; bread/00000 is thin along local z (0.117 x 0.116 x 0.012 m), so it means standing on an edge.",
+    "4: Probe: on toaster/00004 the lever tag names prismatic joint_0 whose positive direction is down and whose upper limit (0.0432 m) is the bottom of its travel; ratio above 0.85 means within 6.5 mm of the bottom. On toaster/00002 the tag names prismatic joint_1, positive direction down, upper limit 0.0012 m the bottom; ratio above 0.85 means within 13 mm of the bottom. Both reset near the top (ratio 0.07 and 0.002). Model 4's lever has a weak, heavily damped return drive toward the top (stiffness 5, damping 2000; time constant about 400 s): pressed fully down it stays above the 0.85 ratio for about 65 s of simulated time, longer than the 56 s the 1400 native actions allow, but a lever pressed only part way can creep out; 'all the way down, not only part of the way' covers this.",
+    "5: run_reward ends with all_robot_back_to_origin() at line 65."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Articulation/toaster/2": {
+     "layouts": [
+      1,
+      3,
+      4,
+      5,
+      8
+     ],
+     "checked": "pxr probe: lever joint_1 prismatic, +axis down, upper limit = bottom; slots at y -0.042..-0.012 and 0.006..0.039, floors -0.0614; seated roots inside their own slot's polygon only; slot-2 frame at the top surface (scoring gap)"
+    }
+   },
+   "known_limits": [
+    "Physical feasibility: every collider is convexDecomposition; whether a slice enters a 1.75 cm model-4 slot and reaches the insert floor (or a model-2 slot floor) in simulation was not checked, as in the base record.",
+    "Whether upstream issue #10 (make_toast_random hangs on the second layout) still reproduces at f57e163.",
+    "Layouts 10-44 not audited."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "2a4a101c6703de7b6f4357ef78d76d7435b6931d173d6d327f8333bbdedcb03a",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       4
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00004 yaw -94.1, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like)"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "cbf646a3193f822ec39a71f249ec621598dcf18485dd95ce07f68985ce53c9d4",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       2
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00002 yaw -87.4, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like); binds toaster/00002 metadata and usdz"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "34ebcdfb74fa234e20770b954fc7220acbfefb89d652a42798a18e8735bea6ec",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       4
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 7,
+     "facts": "toaster/00004 yaw -80.6, four bread/00000 slices in bread_shelf/00000, 7 unlabelled distractors (none bread-like)"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "970027e9ca0d2b5657afb7cad4e7ee1d63b029404c7724d90837e9a84ee3fb06",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       2
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00002 yaw -95.2, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like); binds toaster/00002 metadata and usdz"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "ea7e7c7649912c95a8c7bf8e9d60cf5da598faae92f4dccb0f6fe2063a8b0fda",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       2
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00002 yaw -100.7, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like); binds toaster/00002 metadata and usdz"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "2f43aa4ab035a3edd53093042a8addb580f7eefdd2e446bebd4ef61c42d81857",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       2
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00002 yaw -90.2, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like); binds toaster/00002 metadata and usdz"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "4f85a64789d63bea17fbccd38d63b793ffdc459883b5d90fd99c182be94a14fd",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       4
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00004 yaw -94.5, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like)"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "75ca00ee249430ce29f5e5b5da5374125b5e2ff2162fc5140693e3f6a22a7fd8",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       4
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 7,
+     "facts": "toaster/00004 yaw -79.3, four bread/00000 slices in bread_shelf/00000, 7 unlabelled distractors (none bread-like)"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "51c17372690406230ee9c3da68e4fa4b651c94f0571234bf8b2d9dabf93e78a9",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       2
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00002 yaw -76.0, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like); binds toaster/00002 metadata and usdz"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "8777a2459191c3a828a493a2cd6a55916f818c6243b3ff199b6e1a2fce912fb7",
+     "portable": true,
+     "inventory": {
+      "Articulation/toaster": [
+       4
+      ],
+      "Geometry/bread_shelf": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bread": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "toaster/00004 yaw -85.0, four bread/00000 slices in bread_shelf/00000, 8 unlabelled distractors (none bread-like)"
+    }
+   ]
+  },
+  "pack_objects_into_box_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/pack_objects_into_box_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/pack_objects_into_box-completion-v4.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Four objects and the same box/0 with its box_bottom region; the inside and length-along checks are identical.",
+    "2: Read-only pxr mesh probe: car/00003's checked axis (object +X) points at its rear (fastback), electric_toothbrush/00006's (object -Z) at the bottom of its handle, hammer/00008's (object +X) at the free end of its handle (mallet head at the other end) and shoe/00015's root +X at its heel; the same probe reproduced the base review's ends on every base-config model.",
+    "3: Read-only pxr mesh probe: car/00003's checked axis (object +X) points at its rear (fastback), electric_toothbrush/00006's (object -Z) at the bottom of its handle, hammer/00008's (object +X) at the free end of its handle (mallet head at the other end) and shoe/00015's root +X at its heel; the same probe reproduced the base review's ends on every base-config model.",
+    "4: Same box/0 and identical box checks; it spawns upright with its long direction along world X.",
+    "5: all_robot_back_to_origin is the last conjunct (line 33)."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/car/5": {
+     "layouts": [
+      1,
+      3,
+      4,
+      6,
+      8,
+      9
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/electric_toothbrush/4": {
+     "layouts": [
+      1,
+      2,
+      3,
+      6
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/17": {
+     "layouts": [
+      1,
+      4
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/car/4": {
+     "layouts": [
+      2,
+      7
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/14": {
+     "layouts": [
+      2
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/16": {
+     "layouts": [
+      3,
+      7
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/car/1": {
+     "layouts": [
+      5
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/electric_toothbrush/5": {
+     "layouts": [
+      5,
+      8
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/10": {
+     "layouts": [
+      5
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/11": {
+     "layouts": [
+      6
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/hammer/6": {
+     "layouts": [
+      7,
+      8,
+      9
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/13": {
+     "layouts": [
+      8
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    },
+    "Rigid/shoe/9": {
+     "layouts": [
+      9
+     ],
+     "checked": "mesh probe: checked axis (checkpoint -X; shoe root +X) points at the back end (rear, handle bottom, handle free end, heel), as on the base models"
+    }
+   },
+   "known_limits": [
+    "hammer/00007 has a mesh and the probe confirms its handle end, but it appears in no audited layout (0-9); its missing place metadata does not affect the evaluator."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "f51946657574f10da34a6760128dd5701ec948a3ce638b6168f5ceb6478166c4",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       3
+      ],
+      "Rigid/electric_toothbrush": [
+       6
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       15
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 3, electric_toothbrush 6, hammer 8, shoe 15 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "afd36f32cca5734104502a24c2085bf415315da85aad4b81800d9eb5bf0f019f",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       4
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       17
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 4, hammer 8, shoe 17 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "a55c44608c7ea8ae11c1206d0fdc24e595b8650e7b14a86da9a0a536445c8b01",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       4
+      ],
+      "Rigid/electric_toothbrush": [
+       4
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       14
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 4, electric_toothbrush 4, hammer 8, shoe 14 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "4e41ee025b02387541fb21a7d787a05dba52214ee8bbf44c57249f7ee846b366",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       4
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       16
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 4, hammer 8, shoe 16 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "c6731cc43638f1362e17cd6eac42d7847be85a6b7a730261413ddb6b0288932f",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       6
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       17
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 6, hammer 8, shoe 17 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "f435ec684530c1f068c0e338e5134b9c2aef8d9dcb130b3e4f5dc9ef99ee0bbd",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       1
+      ],
+      "Rigid/electric_toothbrush": [
+       5
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       10
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 1, electric_toothbrush 5, hammer 8, shoe 10 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "2339a0ada454dddb56c43f87902a800011a807640471ba47fdc798cb3b4f7f8c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       4
+      ],
+      "Rigid/hammer": [
+       8
+      ],
+      "Rigid/shoe": [
+       11
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 4, hammer 8, shoe 11 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "2940d2df7fae9a963fbc373afee08155c8c77d4c986e322f2e9efce542c92fb5",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       4
+      ],
+      "Rigid/electric_toothbrush": [
+       6
+      ],
+      "Rigid/hammer": [
+       6
+      ],
+      "Rigid/shoe": [
+       16
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 4, electric_toothbrush 6, hammer 6, shoe 16 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "b42acc0b06efac203fe4a359226c5c99814e10f4a2ba764ca8f8c83e5537837c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       5
+      ],
+      "Rigid/hammer": [
+       6
+      ],
+      "Rigid/shoe": [
+       13
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 5, hammer 6, shoe 13 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "eccb1adb21f1c586e7608f53f934b6b69938acbbaf083450e736e119feecab2c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       5
+      ],
+      "Rigid/electric_toothbrush": [
+       6
+      ],
+      "Rigid/hammer": [
+       6
+      ],
+      "Rigid/shoe": [
+       9
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "one car, electric toothbrush, hammer and shoe and the base's box/0 (long direction within 24 degrees of world X at reset): counts and box hold; models car 5, electric_toothbrush 6, hammer 6, shoe 9 are all outside the base config; the mesh probe confirms each model's checked axis points at its back end."
+    }
+   ]
+  },
+  "pour_liquid_into_cup_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/pour_liquid_into_cup_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/pour_liquid_into_cup-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Same is_A_fluid_in_B on the same labels (wine, cup, bottle), which layout 0 carries; the bottle box is byte-identical to the base bottle's; the cup region is mug/00017's own box, so 'inside the cup' still names the evaluated container. The intent wording is unchanged.",
+    "2: Same scattered-droplet parameters; nothing model-specific in the wording.",
+    "3: Same rising-edge trigger on is_axis_up of the bottle; wuliangye/00002's local +Z runs base to neck exactly as 00000's (identical metadata: base at -0.0597, top +0.1584, upright place orientation).",
+    "4: No all_robot_back_to_origin or is_robot_back_to_origin term in run_reward (lines 20-40)."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/wuliangye/1": {
+     "layouts": [
+      3,
+      6,
+      9
+     ],
+     "checked": "metadata byte-identical to wuliangye/00000 and 00002 (box, base, top, upright orientation); usdz differs."
+    },
+    "Rigid/wuliangye/3": {
+     "layouts": [
+      2,
+      7,
+      8
+     ],
+     "checked": "metadata byte-identical to wuliangye/00000 and 00002; usdz differs."
+    },
+    "Rigid/mug/18": {
+     "layouts": [
+      4,
+      7
+     ],
+     "checked": "handled coffee mug; oriented box [0.1173, 0.099, 0.0732] m, floor at its base; a cup in the contract's sense."
+    },
+    "Rigid/mug/19": {
+     "layouts": [
+      2,
+      3,
+      8
+     ],
+     "checked": "handleless tumbler; oriented box [0.0719, 0.0718, 0.0777] m; a cup in the contract's sense, smallest capacity of the pool."
+    }
+   },
+   "known_limits": [
+    "No physics scene probe has reset any pour_liquid_into_cup_random layout: the reset scatter, the particle count and whether the liquid fits each cup with at most 3 % outside (notably the tumbler mug/00019) are unmeasured; the base record's feasibility numbers do not transfer.",
+    "Bottle models 1-3 have the base bottle's metadata but different usdz meshes; whether their inner cavity holds the spawned liquid exactly as bottle 0 does was not checked (no mesh probe was run for this review).",
+    "The base record binds the bottle usdz but not the cup usdz; this audit follows that practice for the layout-0 models (wuliangye/00002 usdz bound, mug/00017 usdz not)."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "17aa3d03d67f2a17c9292bcfb219368bb2f8300d8450d02637b06506cc9d6658",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       17
+      ],
+      "Rigid/wuliangye": [
+       2
+      ]
+     },
+     "clutter_instances": 9,
+     "facts": "One Rigid wuliangye/00002 labelled bottle at (0.156, -0.082) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00017 labelled cup at (-0.046, -0.037) (oriented box 0.1051 x 0.0746 x 0.0823 m), Geometry camera_stand; 9 cluttered distractors; Room Simple_Room_lime, Table material_0491, Ground material_0213, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "147d8df043726777ca38bb23f280aa71cd3ddec1d27a77d353bf80fd17638987",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       17
+      ],
+      "Rigid/wuliangye": [
+       2
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00002 labelled bottle at (0.251, -0.003) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00017 labelled cup at (-0.026, -0.087) (oriented box 0.1051 x 0.0746 x 0.0823 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_magenta, Table material_0492, Ground material_0250, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "b35be8fd6be65a6d562f6746216f495d33980ab26890190c9a3cc51db8f4992c",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       19
+      ],
+      "Rigid/wuliangye": [
+       3
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00003 labelled bottle at (0.253, -0.082) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00019 labelled cup at (0.048, -0.067) (oriented box 0.0719 x 0.0718 x 0.0777 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_orange, Table material_0493, Ground material_0287, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "f22ed84898cee5eb33c77344ad0310127277155cfc68ea9b70270df16416f556",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       19
+      ],
+      "Rigid/wuliangye": [
+       1
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00001 labelled bottle at (-0.144, -0.049) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00019 labelled cup at (0.026, -0.083) (oriented box 0.0719 x 0.0718 x 0.0777 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_purple, Table material_0500, Ground material_0439, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "68c3e6a662e2897f4920c8601aa48ae9c79a9ca72a0d459cfa5538a38d2f2e3f",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       18
+      ],
+      "Rigid/wuliangye": [
+       2
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00002 labelled bottle at (0.181, -0.050) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00018 labelled cup at (-0.034, -0.074) (oriented box 0.1173 x 0.0990 x 0.0732 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_red, Table material_0521, Ground material_0192, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "fc657faeacc148c516901f140e793f23966c862d0c44a7e52fc64275c8d80a03",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       17
+      ],
+      "Rigid/wuliangye": [
+       2
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00002 labelled bottle at (-0.219, -0.088) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00017 labelled cup at (0.043, -0.079) (oriented box 0.1051 x 0.0746 x 0.0823 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_teal, Table material_0496, Ground material_0423, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "e73aa950dd2bed5dda354626ffa15025ef316dce87a399e7e0758caae66aab56",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       17
+      ],
+      "Rigid/wuliangye": [
+       1
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00001 labelled bottle at (0.120, -0.199) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00017 labelled cup at (0.009, -0.047) (oriented box 0.1051 x 0.0746 x 0.0823 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_yellow, Table material_0513, Ground material_0192, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "b7313178ea2ad7f59b6c56f553ea9f6a8e490166721999185fd95a86e346d041",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       18
+      ],
+      "Rigid/wuliangye": [
+       3
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00003 labelled bottle at (-0.246, -0.003) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00018 labelled cup at (-0.025, -0.087) (oriented box 0.1173 x 0.0990 x 0.0732 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_azure, Table material_0498, Ground material_0497, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "31899e31016a5e63c576163057680deb875b0bd243d930a90a3dc3c3d6d666a5",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       19
+      ],
+      "Rigid/wuliangye": [
+       3
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00003 labelled bottle at (0.128, -0.015) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00019 labelled cup at (-0.048, -0.007) (oriented box 0.0719 x 0.0718 x 0.0777 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_blue, Table material_0499, Ground material_0563, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "786e2f6d9fd4a9d28cc2d12449b9192661133de70391fae45992e5e9f3a47d23",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       0
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/mug": [
+       17
+      ],
+      "Rigid/wuliangye": [
+       1
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "One Rigid wuliangye/00001 labelled bottle at (0.197, -0.124) upright, one Fluid wuliangye/00000 labelled wine spawned inside it, one Rigid mug/00017 labelled cup at (0.039, -0.020) (oriented box 0.1051 x 0.0746 x 0.0823 m), Geometry camera_stand; 10 cluttered distractors; Room Simple_Room_pink, Table material_0500, Ground material_0029, Background brown_photostudio_02_4k.hdr. The contract names one bottle, its liquid and one cup, all present; it states no side, count beyond these or ordering."
+    }
+   ]
+  },
+  "push_T_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/push_T_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/push_T-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Same pad model 0 and a T block whose metadata (silhouette bbox, footprint centroid, canonical heading axis) is byte-identical to model 0; c1/c2 lines identical. One T block and one T pad in the scene; no clutter object is T-shaped.",
+    "2: is_qpos_close is a full 3D orientation test against a flat, static pad; the block spawns flat (pure-yaw quaternion).",
+    "3: The same query([is_lift(t, 0.01)], 0) at line 29 latches permanent failure; block reset centre z 0.7725 on table top 0.765, as the base.",
+    "4: all_robot_back_to_origin() at line 26."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [
+    "T model 1's mesh (object.usdz) differs from model 0's and was not parsed; the canonical-heading agreement with the pad rests on byte-identical metadata. A render of a reset scene would confirm the T silhouette and its heading.",
+    "Model 1's rendered colour against randomized table materials was not checked."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "11dcb2c9c947dd81aec783ae4235d748da3ebfc01e2091d0dcbf1e439038a709",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 14,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 14 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "6945daeaa82a92d19656c6e98e12970d8f2ac13b64a9f0bda323d0ab01bfd9cd",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 13,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 13 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "f8ad518ff2f30a46ab1616ffa789fb722ab7e92f249097bdb4a3724f56552770",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 14,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 14 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "6f2aa3a51255cc946e8d36d24317dc892a39ea4d10e0a0559a28accfa478e42b",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 16 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "eae34123c2ced2b3edfbeccc97146df996903ed281a218b81bb593793ebacc09",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 15 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "811e9da70ca7648863c3f7bdac9c3c670539f6679d6f6b5d48b22fc5a4243a1c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 15 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "dabab0790dae84910ccd76113ad6b55e48a01a80bcf5d9fa7eba3c3d3a1ece67",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 17 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "bff58c46142342728dbb1a09d80acf0ac6f9e1b0bf9467ed243f03b2d91d8695",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 16 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "ecc099ac8e04e5c1b26d582f72586dd7130bda639a4bacae9f3fdfb8655acdfb",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 16 unlabelled clutter objects, none T-shaped"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "19e4cb8b6dd57f014d4515d69cae3aa963fae359a856ed1cf4ebe7743b772777",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/t_cushion": [
+       0
+      ],
+      "Rigid/t": [
+       1
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "one T block (model [1]), one T pad (t_cushion model [0]), no other labelled object; 17 unlabelled clutter objects, none T-shaped"
+    }
+   ]
+  },
+  "sort_nesting_dolls_by_size_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/sort_nesting_dolls_by_size_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/sort_nesting_dolls_by_size-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: The left-right convention is the world frame, independent of the layout.",
+    "2: Five dolls (doll0-doll4) are present; the y-band check is identical.",
+    "3: The evaluator's -X to +X order is model_id mod 5 descending: 24 (doll1, 0.050 m tall), 23 (doll3, 0.069 m tall), 22 (doll2, 0.091 m tall), 21 (doll4, 0.107 m tall), 20 (doll0, 0.128 m tall); heights and footprints decrease strictly with mod 5, so it is smallest at the left to largest at the right.",
+    "4: Root +Z is the tall axis of models 20-24 (place-up orientation near identity); every doll spawns upright.",
+    "5: all_robot_back_to_origin is the last conjunct (line 49)."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/matryoshka_dolls/16": {
+     "layouts": [
+      2,
+      3,
+      4,
+      8,
+      9
+     ],
+     "checked": "metadata extents 0.073 x 0.073 x 0.110 m (tallest axis local Z, place-up orientation near identity); within models 15-19 height and footprint strictly decrease with model_id mod 5, so the evaluator's rank is the visible size order"
+    },
+    "Rigid/matryoshka_dolls/17": {
+     "layouts": [
+      2,
+      3,
+      4,
+      8,
+      9
+     ],
+     "checked": "metadata extents 0.061 x 0.061 x 0.091 m (tallest axis local Z, place-up orientation near identity); within models 15-19 height and footprint strictly decrease with model_id mod 5, so the evaluator's rank is the visible size order"
+    },
+    "Rigid/matryoshka_dolls/18": {
+     "layouts": [
+      2,
+      3,
+      4,
+      8,
+      9
+     ],
+     "checked": "metadata extents 0.046 x 0.046 x 0.069 m (tallest axis local Z, place-up orientation near identity); within models 15-19 height and footprint strictly decrease with model_id mod 5, so the evaluator's rank is the visible size order"
+    },
+    "Rigid/matryoshka_dolls/19": {
+     "layouts": [
+      2,
+      3,
+      4,
+      8,
+      9
+     ],
+     "checked": "metadata extents 0.034 x 0.034 x 0.050 m (tallest axis local Z, place-up orientation near identity); within models 15-19 height and footprint strictly decrease with model_id mod 5, so the evaluator's rank is the visible size order"
+    },
+    "Rigid/matryoshka_dolls/15": {
+     "layouts": [
+      2,
+      3,
+      4,
+      8,
+      9
+     ],
+     "checked": "metadata extents 0.086 x 0.085 x 0.128 m (tallest axis local Z, place-up orientation near identity); within models 15-19 height and footprint strictly decrease with model_id mod 5, so the evaluator's rank is the visible size order"
+    }
+   },
+   "known_limits": [
+    "No render of models 15-24; captions of 20-24 call them penguin roly-poly toys. Their graduated sizes (metadata) are what the contract and evaluator rely on."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "f45438f654fd1ce77dc5423e62ca21b1e56c0132f0fe3dbdb8f614c4813f6f40",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       20,
+       24,
+       22,
+       23,
+       21
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "five dolls doll0-doll4, models 20, 24, 22, 23, 21 from one texture group (20-24), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 17 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "bb51c127577b059d18aba3cb7c9a77d9e135f81697b91d81f8ae4ab145ad440e",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       20,
+       24,
+       23,
+       22,
+       21
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "five dolls doll0-doll4, models 20, 24, 23, 22, 21 from one texture group (20-24), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 15 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "1f8a8877d2a234a1425d231c1cbb6c980f7ee2c1413f10e9bfb54a3b7c2e7343",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       16,
+       17,
+       18,
+       19,
+       15
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "five dolls doll0-doll4, models 16, 17, 18, 19, 15 from one texture group (15-19), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 15 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "52d46dbcc4596091434e0baea2a6e792fefc96da14fb74c2f2086be29732e407",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       15,
+       16,
+       18,
+       17,
+       19
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "five dolls doll0-doll4, models 15, 16, 18, 17, 19 from one texture group (15-19), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 16 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "1f90b3512b155f368b30691ea50954a2694b559112115b3f2beb08cf2484dd1c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       19,
+       17,
+       18,
+       15,
+       16
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "five dolls doll0-doll4, models 19, 17, 18, 15, 16 from one texture group (15-19), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 15 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "1fcb50535b60191f452f5da2cb48b239d286b255441534fe69bc6a7fca286103",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       23,
+       24,
+       21,
+       20,
+       22
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "five dolls doll0-doll4, models 23, 24, 21, 20, 22 from one texture group (20-24), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 16 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "d444783d6f824c274ef1f073061cf44600a8bc099bcd00771aab1ab4270be113",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       20,
+       24,
+       21,
+       22,
+       23
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "five dolls doll0-doll4, models 20, 24, 21, 22, 23 from one texture group (20-24), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 15 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "a5a74b573cd3465d3cefd39e7ac131a4294571598badfdfc1ab9ce34bcbd59ff",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       23,
+       21,
+       22,
+       24,
+       20
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "five dolls doll0-doll4, models 23, 21, 22, 24, 20 from one texture group (20-24), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 16 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "d188648e32a739dd876b8bb1e3d73b0598a3ba63f7bc3fe48fefcc6771cd2d4a",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       15,
+       18,
+       17,
+       16,
+       19
+      ]
+     },
+     "clutter_instances": 15,
+     "facts": "five dolls doll0-doll4, models 15, 18, 17, 16, 19 from one texture group (15-19), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 15 unlabelled clutter objects, none a doll."
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "ec15f57acbcc0337cc9d89cd709ae564555cc648017d19cb87824fa9ddecb62c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/matryoshka_dolls": [
+       19,
+       18,
+       17,
+       15,
+       16
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "five dolls doll0-doll4, models 19, 18, 17, 15, 16 from one texture group (15-19), model_id mod 5 covering 0-4 once each, all upright at reset (local up within 2 degrees of vertical); 16 unlabelled clutter objects, none a doll."
+    }
+   ]
+  },
+  "stack_blocks_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/stack_blocks_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/stack_blocks-completion-v3.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Three blocks block_0-block_2 of three different textures; is_stacked with in_order False requires one above another with centres aligned and no texture order. Only the private horizontal allowance differs (stricter on 0.035/0.04 m layouts); the wording states no allowance.",
+    "2: all_robot_back_to_origin() at line 37."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/block/25": {
+     "layouts": [
+      2,
+      5,
+      7,
+      8,
+      9
+     ],
+     "checked": "0.04 m cube, origin at its centre, texture set B",
+     "metadata_sha256": "389fe9b0dacead530a59e0a1fe60ebf0016eebe588b49a1605b6752876968a61"
+    },
+    "Rigid/block/28": {
+     "layouts": [
+      2,
+      5,
+      7,
+      8,
+      9
+     ],
+     "checked": "0.04 m cube, origin at its centre, texture set C",
+     "metadata_sha256": "257e91e2ebb9f5d04a62b667ad461b2f209b4c648bde67694f97d2d62acabe8a"
+    },
+    "Rigid/block/22": {
+     "layouts": [
+      2,
+      5,
+      7,
+      8,
+      9
+     ],
+     "checked": "0.04 m cube, origin at its centre, texture set A",
+     "metadata_sha256": "e12d7b0f7b4eafae9e0cc9736d6e509be796c61d4ddbc4af07287ebd774bab4f"
+    },
+    "Rigid/block/24": {
+     "layouts": [
+      3
+     ],
+     "checked": "0.035 m cube, origin at its centre, texture set B",
+     "metadata_sha256": "3e25630b91b98f2f4e8ce903149174615abfd1c3a279d8e3b492253a36eb1d01"
+    },
+    "Rigid/block/27": {
+     "layouts": [
+      3
+     ],
+     "checked": "0.035 m cube, origin at its centre, texture set C",
+     "metadata_sha256": "760fec724c3fd8514d7c8c4b043c50d4c9e1c3aad6355dd8d61bcd382d633457"
+    },
+    "Rigid/block/21": {
+     "layouts": [
+      3
+     ],
+     "checked": "0.035 m cube, origin at its centre, texture set A",
+     "metadata_sha256": "53dc37e8699e6dfa90fa4a0971c60de6cd20e87e0bc462dd3c05db9704a315b7"
+    }
+   },
+   "known_limits": [
+    "Whether the stricter allowance on 0.035/0.04 m layouts is an intended upstream change or an oversight (the base table was not extended to models 20-28) is not documented upstream.",
+    "Visual distinctness of the three texture sets against randomized table materials was not rendered."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "9e4db1d50a67e9d1147295be97a9237a9ba1abf7d14f2e186ecc9eec2960ce60",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       26,
+       23,
+       20
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "three 0.03 m blocks (models [26, 23, 20]) of three different textures labelled block_0-block_2; 19 clutter objects"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "3fd2d4c32ff8299273e86654da6f0d2ed9251572698172d73f0b713d5ce768d0",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       26,
+       20,
+       23
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.03 m blocks (models [26, 20, 23]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "c052ca56f0b5abe080b956542d1ddd6e17a931eb9027ff6da5c1526faf51cbfd",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       28,
+       25,
+       22
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.04 m blocks (models [28, 25, 22]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "2c6363dadb8a84454cd12a4dd846c498a82978415fa507e6870bba5681cefc50",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       24,
+       27,
+       21
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.035 m blocks (models [24, 27, 21]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "1000730ca58c679d278c2597bab8eee884c5778e66b468abde5b83b386ad8afc",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       26,
+       23,
+       20
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.03 m blocks (models [26, 23, 20]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "735b38e0800f011f75305e7a423e9632b412b42076a124c56c062e910c9043c6",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       28,
+       25,
+       22
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.04 m blocks (models [28, 25, 22]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "fa00168f09e535d9b848aca119e16979c0e85d6c1a5c0892aa3d228ef9cc0a7c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       20,
+       26,
+       23
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "three 0.03 m blocks (models [20, 26, 23]) of three different textures labelled block_0-block_2; 19 clutter objects"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "6552299f9317d806781f67f921b0f3d63ddfca86e34d8cd6318ad49b7782e545",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       22,
+       25,
+       28
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "three 0.04 m blocks (models [22, 25, 28]) of three different textures labelled block_0-block_2; 19 clutter objects"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "21d4270cfea37f25df811714f92cccba0f61875e39cbb548620152ee24b8e9d1",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       28,
+       25,
+       22
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.04 m blocks (models [28, 25, 22]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "c362500e1f46b7c424829bbae4ac1745b9e71003b1a64ce79c6c87bfac83bb31",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/block": [
+       25,
+       22,
+       28
+      ]
+     },
+     "clutter_instances": 20,
+     "facts": "three 0.04 m blocks (models [25, 22, 28]) of three different textures labelled block_0-block_2; 20 clutter objects"
+    }
+   ]
+  },
+  "stack_bowls_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/stack_bowls_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/stack_bowls-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: Same is_stacked at line 31; three bowls labelled bowl0-bowl2, one model (14), origin at bbox centre so root z ranks the physical stack.",
+    "2: Same is_axis_up(45) at lines 22-24; bowl 14's opening is along local +Z (place up orientation identity), spawned upright.",
+    "3: Same is_axis_up(select_label_by_zmin, 7) at lines 25-30; root z of identical bowls ranks the bottom bowl.",
+    "4: all_robot_back_to_origin() at line 32."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/bowl/11": {
+     "layouts": [
+      1,
+      2,
+      6,
+      8
+     ],
+     "checked": "0.18 x 0.18 x 0.08 m, origin at bbox centre, place up orientation about 0.3 deg off identity; three of one model per layout, so the lowest root is the bottom bowl",
+     "metadata_sha256": "32dc76ba75256e0b87d39aaf40dea3b6bc4cf9c7a5ba79cc190bb79a97406699"
+    },
+    "Rigid/bowl/13": {
+     "layouts": [
+      3,
+      7
+     ],
+     "checked": "0.16 x 0.16 x 0.06 m, origin at bbox centre, place up identity; three of one model per layout, so the lowest root is the bottom bowl",
+     "metadata_sha256": "a0da390a2fd18b0e3e7247dafce83319eba1861faf618c7edf77cba22194563d"
+    },
+    "Rigid/bowl/15": {
+     "layouts": [
+      4
+     ],
+     "checked": "0.16 x 0.16 x 0.06 m, origin at bbox centre, place up identity; three of one model per layout, so the lowest root is the bottom bowl",
+     "metadata_sha256": "e9cf91c48c307f6907849108e009c1dfb362b9606c2b32bfa4542b72c7b5505a"
+    }
+   },
+   "known_limits": [
+    "Physical nesting of the larger models (bowl 11 is 0.18 m wide) inside the two-arm reach was not measured; no scene smoke.",
+    "Whether a bowl set partly on a distractor can still satisfy the bottom-bowl level clause is a behavioural matter, not checked."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "5d52b98d362d52ebc274fb9a3b29febbc6a8ea5a1f51617911dda7502783f678",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       14,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "three bowls of model 14 labelled bowl0-bowl2, upright; 18 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "b894dd328142a65a02c9b5f489968561b7caf7c692455bf9487d6c64185fd031",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       11,
+       11,
+       11
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "three bowls of model 11 labelled bowl0-bowl2, upright; 17 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "adbcdfe6b5a6031fda2bbfae4d67ffbe6221aa1045e2455082158fa962b96eef",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       11,
+       11,
+       11
+      ]
+     },
+     "clutter_instances": 16,
+     "facts": "three bowls of model 11 labelled bowl0-bowl2, upright; 16 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "caf62d3cd0f14fdd1e7a823d96fa63b88ab70776cda1f1ea6dda408f8fead6c3",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       13,
+       13,
+       13
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "three bowls of model 13 labelled bowl0-bowl2, upright; 18 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "be9916373af93cc3483dcb776dc7bc898fa8049208d72c6459133d44f45ddd78",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       15,
+       15,
+       15
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "three bowls of model 15 labelled bowl0-bowl2, upright; 17 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "9e6a6dde72377ed16f42c4a56200fdb99a0ae4f25597037aa9e2962ffd05c6f9",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       14,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 17,
+     "facts": "three bowls of model 14 labelled bowl0-bowl2, upright; 17 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "f958576c48130d1ed8a4aa37902030691c3fe4ec17eb3953ebdfea8ba09be7be",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       11,
+       11,
+       11
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "three bowls of model 11 labelled bowl0-bowl2, upright; 18 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "4afb92f4905505c96c6903c9e6e8c39c8aa3e58481db5ba19b81d20de5498219",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       13,
+       13,
+       13
+      ]
+     },
+     "clutter_instances": 19,
+     "facts": "three bowls of model 13 labelled bowl0-bowl2, upright; 19 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "0cb280ecfd4c194e18bd9fa3d845abb35feeca4d323ac9a43d8da49f10b233a3",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       11,
+       11,
+       11
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "three bowls of model 11 labelled bowl0-bowl2, upright; 18 clutter objects, none a bowl"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "f85e84f6bcc497f7eefde91aa7a52cddbfb1c5582a938735f0196072e21d4488",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/bowl": [
+       14,
+       14,
+       14
+      ]
+     },
+     "clutter_instances": 18,
+     "facts": "three bowls of model 14 labelled bowl0-bowl2, upright; 18 clutter objects, none a bowl"
+    }
+   ]
+  },
+  "store_laptop_and_headphones_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/store_laptop_and_headphones_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/store_laptop_and_headphones-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: One over-ear headset (model 9) and the same headset_stand/00000 whose support_cradle frame is the curved saddle on top (base pxr probe of this same stand model). headband_bridge on model 9 is identity at the band's top (local z 0.08) like the base model, so 'headband resting in the cradle, band along it, ear cups hanging each side, upright' is what c1+c2 score.",
+    "2: c2 requires the headset's root orientation within 30 degrees of the stand's. At reset headset local +X maps to world (0.908, 0.419), i.e. the ear cup on local +X lay toward world +X, and the stand's local +X maps to (0.996, 0.094), its +X side. So 'the ear cup that lay toward world +X must hang on the stand's +X side' states the same polarity as on the base layout.",
+    "3: laptop/00001's metadata is byte-identical to laptop/00000's: the same hinge tag on parent_joint RevoluteJoint_computer_9_up and the same bbox (lid open, 0.121 m tall). The base record's direction (limits -110..0 degrees, upper end closed) came from a pxr probe of laptop/00000's usdz; model 1's usdz differs in bytes (textures) and its joint limits were not re-read, recorded in open_questions.",
+    "4: Same check (local +Y up within 10 degrees; 'bottom' frame inside the rack's oriented bbox) on the same rack model 0 and a laptop whose metadata (bbox spanning local y -0.078..0.090, 'bottom' frame (0, 0.001, -0.001) on E_body_1) is identical to the base's; the flat laptop_stand/00001 it starts on and the vertical rack are both present and distinct. The base's front-edge-to-hinge reading of local +Y came from model 0's mesh and is carried by the identical metadata, not re-probed.",
+    "5: run_reward ends with all_robot_back_to_origin() at line 38."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/headset/8": {
+     "layouts": [
+      3,
+      5,
+      9
+     ],
+     "checked": "over-ear caption; identity headband_bridge at local z 0.085"
+    },
+    "Rigid/headset/10": {
+     "layouts": [
+      2,
+      8
+     ],
+     "checked": "over-ear caption; identity headband_bridge at local z 0.09"
+    },
+    "Articulation/laptop/2": {
+     "layouts": [
+      4,
+      8
+     ],
+     "checked": "metadata byte-identical to laptop/00000; usdz differs (not probed)"
+    },
+    "Articulation/laptop/3": {
+     "layouts": [
+      1,
+      3,
+      7,
+      9
+     ],
+     "checked": "metadata byte-identical to laptop/00000; usdz differs (not probed)"
+    }
+   },
+   "known_limits": [
+    "laptop/00001-00003 hinge limits and the front-edge-to-hinge direction of local +Y were not re-probed (usdz is a binary USD crate); only their byte-identical metadata supports carrying the base probe of laptop/00000. A read-only pxr probe of RevoluteJoint_computer_9_up limits/reset state on models 1-3 would close this.",
+    "Whether a clutter phone stand near the vertical rack (layouts 0, 2, 3, 7) is visually confusable with it; behavioral, not a contract fact.",
+    "Layouts 10-29 not audited."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "1d682a4a3844392f368eea462611bcfea12546d28764654874d8e7e7ce2ce418",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       1
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       9
+      ]
+     },
+     "clutter_instances": 8,
+     "facts": "headset 9 (local +X toward world (0.908,0.419)), laptop 1, stand local +X (0.996,0.094), rack yaw 94.6; 8 clutter incl. phone_stand"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "e9f16f3e40b62321aad673be82db8bde55bc3b7d181709f27508ab4d4f8da75a",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       3
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       9
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 9 (+X (0.973,-0.230)), laptop 3, stand +X (0.982,0.188), rack yaw 88.8; 10 clutter"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "f953489d5974f60743ab9d0419e9ad391e6d2ee01f732e4ac8375e1fd9f8badf",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       1
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       10
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 10 (+X (0.900,0.437)), laptop 1, stand +X (0.987,0.160), rack yaw 91.6; 10 clutter incl. phone_stand, keyboard"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "14ef1fed6023401fed7b1aa7f218c6f3e7efd620c7d3d6325bbdd56a49a81519",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       3
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       8
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 8 (+X (0.896,0.445)), laptop 3, stand +X (0.882,0.470), rack yaw 79.5; 10 clutter incl. phone_stand"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "17879e10af5d711f1edba37889aed05f1c242bf3792b876fc517333922d5a10c",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       2
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       9
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 9 (+X (0.888,-0.460)), laptop 2, stand +X (0.995,0.095), rack yaw 89.6; 10 clutter"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "2015a4bcbd923de6c306710f3cb8039d6d128bf0686c78f3e6efac709350d3c7",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       1
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       8
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 8 (+X (0.925,-0.381)), laptop 1, stand +X (0.982,0.188), rack yaw 102.8; 10 clutter"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "cc022c662565ddffc27b4dc79709357bf47c29fab986946f8cb8964ae11c919d",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       1
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       9
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 9 (+X (0.880,-0.475)), laptop 1, stand +X (0.996,0.085), rack yaw 98.8; 10 clutter"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "d47340a10bd3ac2e2a8fe1b7d6b1cca4795c755ad7c0976d790148675907257a",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       3
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       9
+      ]
+     },
+     "clutter_instances": 9,
+     "facts": "headset 9 (+X (0.998,-0.060)), laptop 3, stand +X (0.893,0.451), rack yaw 101.3; 9 clutter incl. phone_stand, keyboard, earbuds"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "3909dc3a13af166764be2668a2d0eab641378457b024c9fd2adc8435ec30885f",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       2
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       10
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 10 (+X (0.999,0.034)), laptop 2, stand +X (0.912,0.411), rack yaw 104.7; 10 clutter"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "c29bd46516233336072dba2c081ed621d91432a50c17b0d971f2ab1bec53d084",
+     "portable": true,
+     "inventory": {
+      "Articulation/laptop": [
+       3
+      ],
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Geometry/headset_stand": [
+       0
+      ],
+      "Geometry/laptop_stand": [
+       1
+      ],
+      "Geometry/vertical_laptop_storage_rack": [
+       0
+      ],
+      "Rigid/headset": [
+       8
+      ]
+     },
+     "clutter_instances": 10,
+     "facts": "headset 8 (+X (0.865,-0.502)), laptop 3, stand +X (0.936,0.353), rack yaw 84.0; 10 clutter"
+    }
+   ]
+  },
+  "sweep_blocks_random": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/sweep_blocks_random-review-v1.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/sweep_blocks_random-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-11-14 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "1: 'All three blocks' is wrong by construction: layout 0 has five scored objects (two paper balls, one brick, two earbuds), layouts 0-9 have 4-6, and none is a block. Rewritten count-free from source: every brick, earbud and paper ball, each centre in the pan's middle region.",
+    "2: The requirement holds (same is_not_lift and is_axis_up on the same dustpan model 0, lines 24-25; spawned flat), but the bullet's example 'propped on a block' names an object this variant does not have. Rewritten minimally: 'propped on one of the swept objects or on the broom'; the rest is the base text verbatim.",
+    "3: Same is_A_on_B_left at line 23; at layout 0 the broom starts 0.246 m on the dustpan's -X side, so the clause is false at reset.",
+    "4: all_robot_back_to_origin() at line 34."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/earbuds/0": {
+     "layouts": [
+      1,
+      4,
+      6
+     ],
+     "checked": "wireless earbud; aligned bbox centred on its origin, so the root is its centre",
+     "metadata_sha256": "14af6ebbf383eff4e5409a94cdebe3525d6d5c9bc0fa21e7b46cc15352b675ed"
+    },
+    "Rigid/brick/0": {
+     "layouts": [
+      1,
+      3,
+      5,
+      7,
+      8,
+      9
+     ],
+     "checked": "Lego brick; aligned bbox centred on its origin, so the root is its centre",
+     "metadata_sha256": "889f89b703b989bfa4ef3e70173073e9a3e97aac06ce531d77ef64d8bf2c7196"
+    },
+    "Rigid/brick/1": {
+     "layouts": [
+      1,
+      2,
+      3,
+      8
+     ],
+     "checked": "Lego brick; aligned bbox centred on its origin, so the root is its centre",
+     "metadata_sha256": "a5d22861b0951c9b3e85ca6b3b9db99e34800019e3abbf6363b86bb63ae6fe40"
+    },
+    "Rigid/paper_ball/1": {
+     "layouts": [
+      1,
+      3,
+      5,
+      8,
+      9
+     ],
+     "checked": "crumpled paper ball; aligned bbox centred on its origin, so the root is its centre",
+     "metadata_sha256": "8ef6b76890ce52f336f03d4f3237617f920c61d2798e1c22c8ede0f29f9ac411"
+    }
+   },
+   "known_limits": [
+    "Physical feasibility of getting four to six objects of up to 0.061 m (including round paper balls that roll) over the pan's lip and all centres into the 0.081 m circle or the front quadrilateral was not checked; if runs show objects stopping at the lip or rolling out, check this first.",
+    "Dustpan models 1 and 4 (config index list) appear in no layout 0-9; a layout that uses them needs its pan regions re-read before porting the contract."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "d04495ad79faf3f3aeb2e4e51d10818962ddb6d751ee473821646a2f41807780",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       2
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       1,
+       2
+      ],
+      "Rigid/paper_ball": [
+       2,
+       0
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 5 target objects (brick x1, earbuds x2, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "084cb6819a662ad72246c328c1ebde54b58349ac458d93e7cb2b1fb45fc572e6",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       1,
+       0
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       0,
+       2
+      ],
+      "Rigid/paper_ball": [
+       2,
+       1
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 6 target objects (brick x2, earbuds x2, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "c68af6ee9bad5851cfaf8e2ed89a619f4dd72e75970e844f36bbeca5da2d829c",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       1
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       2
+      ],
+      "Rigid/paper_ball": [
+       2,
+       0
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 4 target objects (brick x1, earbuds x1, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "cec1c6f1cbfd203b65e49e242d36439f24b3a70a92fa9a8485ea3639a272f8ae",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       0,
+       1
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       2
+      ],
+      "Rigid/paper_ball": [
+       0,
+       1
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 5 target objects (brick x2, earbuds x1, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "22b7b39769fde0222c8fc46d115e9e1c8c9d1c65f7d487f75e86a6b512df26ec",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       2
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       2,
+       0
+      ],
+      "Rigid/paper_ball": [
+       2
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 4 target objects (brick x1, earbuds x2, paper_ball x1), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "133590e4987137076b749bde71b1468ade173086ec18f0976cb1972ea615cefa",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       0
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       2,
+       1
+      ],
+      "Rigid/paper_ball": [
+       0,
+       1
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 5 target objects (brick x1, earbuds x2, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "02816a82755c6789dc6e5e4557a13e1e534c730dd30fd50f075f27b9e81d0972",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       2
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       1,
+       0
+      ],
+      "Rigid/paper_ball": [
+       0
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 4 target objects (brick x1, earbuds x2, paper_ball x1), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "03265ae97b0f612c1ffb3b8038aece162225485f693053d203895be86e0810f7",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       0
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       2,
+       1
+      ],
+      "Rigid/paper_ball": [
+       2
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 4 target objects (brick x1, earbuds x2, paper_ball x1), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "ddddf94a71b9fa0947b50b64c4731c149b6317d2aaa4f02948ea775120208760",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       1,
+       0
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       1,
+       2
+      ],
+      "Rigid/paper_ball": [
+       0,
+       1
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 6 target objects (brick x2, earbuds x2, paper_ball x2), all labelled target_*; no clutter"
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "bd9a98668137488c7200123d1ffec7a9624bf38c5cd75118be8539a145191425",
+     "portable": true,
+     "inventory": {
+      "Geometry/camera_stand": [
+       0
+      ],
+      "Rigid/brick": [
+       0
+      ],
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/earbuds": [
+       1
+      ],
+      "Rigid/paper_ball": [
+       1,
+       2
+      ]
+     },
+     "clutter_instances": 0,
+     "facts": "dustpan model 0 flat and one broom; 4 target objects (brick x1, earbuds x1, paper_ball x2), all labelled target_*; no clutter"
+    }
+   ]
+  }
+ }
+}

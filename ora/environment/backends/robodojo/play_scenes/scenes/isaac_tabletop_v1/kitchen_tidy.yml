@@ -1,0 +1,66 @@
+# ORA free-play scene isaac-tabletop-v1/kitchen_tidy: a kitchen counter after cooking.
+#
+# RoboDojo task-config format (Articulation / Clutter / Rigid blocks with xlim/ylim, rotate_deg and
+# relative_plane), read only by ORA's layout generator (benchmarks/robodojo_play_layouts.py), which writes a
+# saved layout per seed in RoboDojo's Eval_Layout record format. Table-relative xlim/ylim are
+# episode-frame metres; a block whose relative_plane names another label is placed in that
+# object's yawed frame on top of it (or with its bottom zlim above the parent's base).
+# gripper_keep_out: every table-level footprint keeps clearance_m from the home-pose gripper
+# footprints of the two ARX X5 arms (zones: x/y ranges on the table plane).
+# Only RoboDojo assets. No reward, no instruction, no task: free play.
+
+gripper_keep_out:
+  clearance_m: 0.08
+  zones:
+    - {xlim: [-0.387, -0.212], ylim: [-0.48, -0.194]}
+    - {xlim: [0.212, 0.388], ylim: [-0.48, -0.194]}
+
+Clutter:
+  - common: {xlim: [-0.34, -0.30], ylim: [0.098, 0.100], rotate_rand: true, rotate_deg: [-5, 5], relative_plane: Table}
+    category: [{name: kettle, index: [1]}]
+    physics: {mass: 0.5, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [kettle]}
+
+  - common: {xlim: [-0.010, 0.010], ylim: [-0.285, -0.275], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: plate, index: [1]}]
+    physics: {mass: 0.35, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [plate_large]}
+
+Rigid:
+  - common: {xlim: [0.045, 0.055], ylim: [0.093, 0.097], rotate_rand: true, rotate_deg: [-3, 3], relative_plane: Table}
+    category: [{name: pot, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [pot]}
+
+  - common: {xlim: [0.395, 0.400], ylim: [0.099, 0.100], rotate_rand: false, relative_plane: Table}
+    category: [{name: box, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [box]}
+
+  # a small plate stacked on the large one
+  - common: {xlim: [-0.006, 0.006], ylim: [-0.006, 0.006], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: plate_large, place_tag: up}
+    category: [{name: plate, index: [2]}]
+    physics: {mass: 0.2, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [plate_small]}
+
+  - common: {xlim: [-0.075, -0.070], ylim: [-0.092, -0.086], rotate_rand: true, rotate_deg: [-3, 3], relative_plane: Table}
+    category: [{name: noodles, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [noodles]}
+
+  - common: {xlim: [-0.380, -0.375], ylim: [-0.054, -0.045], rotate_rand: true, rotate_deg: [-3, 3], relative_plane: Table}
+    category: [{name: bowl, index: [9, 10]}]
+    select_mode: {nums: 1, mode: unique, label: [bowl_0]}
+
+  - common: {xlim: [-0.225, -0.215], ylim: [-0.061, -0.045], rotate_rand: true, rotate_deg: [-20, 20], relative_plane: Table}
+    category: [{name: mug, index: [2, 5]}]
+    select_mode: {nums: 1, mode: unique, label: [mug]}
+
+  - common: {xlim: [0.065, 0.070], ylim: [-0.078, -0.071], rotate_rand: true, rotate_deg: [-3, 3], relative_plane: Table}
+    category: [{name: peeler, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [peeler]}
+
+  - common: {xlim: [0.235, 0.245], ylim: [-0.080, -0.069], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: Table}
+    category: [{name: bottle, index: [5, 61]}]
+    select_mode: {nums: 1, mode: unique, label: [oil_bottle]}
+
+  - common: {xlim: [0.360, 0.370], ylim: [-0.059, -0.056], rotate_rand: false, relative_plane: Table}
+    category: [{name: bowl, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [bowl_1]}

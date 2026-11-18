@@ -1,0 +1,64 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "finish_episode",
+  "description": "End the current policy lifecycle with an explicit success, failure or abort outcome.\nUse when: fresh evidence shows the instruction carried out, safe attempts are genuinely exhausted, or an infrastructure condition requires abort; failure must summarize non-empty attempted strategies.\nEffect: lifecycle mutation; persists the outcome and prevents further robot proposals from this policy session.\nReturns: the accepted outcome; nothing checks it automatically.\nDoes not: move the robot, create an official verdict or repair infrastructure.\nOn error: resolve a pending action and its fresh observation first, and give a concise reason plus the exhausted attempts for failure.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "outcome"
+    ],
+    "properties": {
+      "outcome": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failure",
+          "abort"
+        ],
+        "description": "Final outcome as you judge it from fresh evidence."
+      },
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": "",
+        "description": "Concise failure or abort reason; failure requires a non-empty value. Null means omitted."
+      },
+      "attempts": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "Non-empty exhausted-attempt summaries for failure; omit or pass null otherwise."
+      }
+    }
+  },
+  "resultSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "outcome": {
+        "enum": [
+          "success",
+          "failure",
+          "abort"
+        ],
+        "type": "string"
+      },
+      "success": {
+        "const": true,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "success",
+      "outcome"
+    ],
+    "type": "object"
+  }
+}

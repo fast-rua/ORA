@@ -1,0 +1,362 @@
+{
+  "schema": "ora.embodiment-descriptor.v2",
+  "descriptor_id": "panda_omron_public_geometry_v1",
+  "embodiment_id": "panda_omron",
+  "display_name": "PandaOmron mobile manipulator in RoboCasa365",
+  "status": "draft",
+  "identity": {
+    "manufacturer": "Franka Emika (arm) on an Omron-style holonomic base",
+    "model": "PandaOmron",
+    "variant": "Panda arm with PandaGripper on a holonomic mobile base with a lifting torso (robosuite 1.5 PandaOmron)",
+    "base_mobility": "mobile"
+  },
+  "topology": {
+    "manipulators": [
+      {
+        "id": "right_arm",
+        "kind": "serial_arm",
+        "side": "right",
+        "joint_dof": 7
+      }
+    ],
+    "end_effectors": [
+      {
+        "id": "right_gripper",
+        "kind": "parallel_jaw_gripper",
+        "manipulator_id": "right_arm",
+        "command_dof": 1
+      }
+    ]
+  },
+  "control": {
+    "controlled_points": [
+      {
+        "id": "right_grip_site",
+        "manipulator_id": "right_arm",
+        "source_name": "grip_site",
+        "description": "grip_center",
+        "offset_from": "end_effector_root",
+        "offset_m": [
+          0,
+          0,
+          0.097
+        ],
+        "local_axes": {
+          "approach": [
+            0,
+            0,
+            1
+          ],
+          "closing": [
+            1,
+            0,
+            0
+          ]
+        }
+      }
+    ],
+    "action_abstraction": "cartesian_target",
+    "position_frame": "world",
+    "position_unit": "metre",
+    "orientation": {
+      "representation": "quaternion",
+      "order": "xyzw",
+      "angle_unit": "radian"
+    },
+    "controller_family": "operational_space_pose",
+    "internal_controller_policy": "tool_surface_owned"
+  },
+  "geometry": {
+    "grippers": [
+      {
+        "end_effector_id": "right_gripper",
+        "opening_mode": "symmetric",
+        "maximum_aperture_m": 0.08,
+        "aperture_semantics": "jaw_separation",
+        "contact_geometry": {
+          "controlled_point": "right_grip_site",
+          "unit": "metre",
+          "reference_finger_qpos_m": [
+            0,
+            0
+          ],
+          "fingers": [
+            {
+              "id": "finger_1",
+              "opening_direction_local": [
+                -1,
+                0,
+                0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  -0.0264033827,
+                  -0.0104794531,
+                  -0.0444683044
+                ],
+                "maximum": [
+                  0.0001326424,
+                  0.0104948191,
+                  0.0092490344
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  -0.0075,
+                  -0.008,
+                  -0.0116
+                ],
+                "maximum": [
+                  0.0005,
+                  0.008,
+                  0.0044
+                ]
+              }
+            },
+            {
+              "id": "finger_2",
+              "opening_direction_local": [
+                1,
+                0,
+                0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  -0.0001326424,
+                  -0.0104948191,
+                  -0.0444683044
+                ],
+                "maximum": [
+                  0.0264033827,
+                  0.0104794531,
+                  0.0092490344
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  -0.0005,
+                  -0.008,
+                  -0.0116
+                ],
+                "maximum": [
+                  0.0075,
+                  0.008,
+                  0.0044
+                ]
+              }
+            }
+          ],
+          "claim": "robot_geometry_not_contact_or_grasp_guarantee"
+        }
+      }
+    ],
+    "workspace_limits": {
+      "source": "tool_surface",
+      "projection": "tool_surface_enforced_bounds"
+    },
+    "collision_model": {
+      "source": "runtime",
+      "projection": "bounded_motion_execution_evidence"
+    }
+  },
+  "sensing": {
+    "cameras": [
+      {
+        "public_name": "agentview",
+        "source_name": "robot0_agentview_left",
+        "mounting": "base",
+        "attached_to": "right_arm",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      },
+      {
+        "public_name": "wrist",
+        "source_name": "robot0_eye_in_hand",
+        "mounting": "end_effector",
+        "attached_to": "right_gripper",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      }
+    ],
+    "state_fields": [
+      {
+        "name": "eef_pose_xyz_xyzw",
+        "meaning": "controlled_point_pose",
+        "unit": "world_metre_xyzw",
+        "source": "observation"
+      },
+      {
+        "name": "aperture_mm",
+        "meaning": "jaw_separation",
+        "unit": "millimetre",
+        "source": "observation"
+      }
+    ]
+  },
+  "dynamic_facts": [
+    {
+      "name": "camera_calibration",
+      "owner": "observation",
+      "reason": "camera_calibration"
+    },
+    {
+      "name": "robot_base_pose",
+      "owner": "observation",
+      "reason": "robot_base_pose"
+    },
+    {
+      "name": "workspace_bounds",
+      "owner": "tool_surface",
+      "reason": "workspace_bounds"
+    }
+  ],
+  "evidence_limits": [
+    "motion_completion_not_contact",
+    "gripper_closure_not_contact",
+    "gripper_closure_not_retention",
+    "geometry_not_collision_guarantee"
+  ],
+  "provenance": {
+    "runtime_truth": "compiled_model",
+    "sources": [
+      {
+        "source_id": "robosuite_panda_mjcf",
+        "kind": "robot_mjcf",
+        "uri": "https://github.com/ARISE-Initiative/robosuite/blob/5ce6643f3092639d08f7b0f90ed1c6a84f50552c/robosuite/models/assets/robots/panda/robot.xml",
+        "revision": "robosuite-5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+        "sha256": "67f62e98681d2ae0d5c50352105492b0041bcc9b9502e83fed02823195338c90",
+        "supports": [
+          "topology.manipulator.right_arm",
+          "sensing.camera.wrist"
+        ]
+      },
+      {
+        "source_id": "robosuite_panda_gripper_mjcf",
+        "kind": "gripper_mjcf",
+        "uri": "https://github.com/ARISE-Initiative/robosuite/blob/5ce6643f3092639d08f7b0f90ed1c6a84f50552c/robosuite/models/assets/grippers/panda_gripper.xml",
+        "revision": "robosuite-5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+        "sha256": "066fd7ae45afb11e1844869360e587646e9768210ba5389aa3cd35292cde29c1",
+        "supports": [
+          "topology.end_effector.right_gripper",
+          "embodiment_control.controlled_point.right_grip_site",
+          "geometry.gripper.right_gripper"
+        ]
+      },
+      {
+        "source_id": "robosuite_omron_base_mjcf",
+        "kind": "robot_mjcf",
+        "uri": "https://github.com/ARISE-Initiative/robosuite/blob/5ce6643f3092639d08f7b0f90ed1c6a84f50552c/robosuite/models/assets/bases/omron_mobile_base.xml",
+        "revision": "robosuite-5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+        "sha256": "703d342e1959e20da635a0983055fe876f1b47951923b279d40a86943a386288",
+        "supports": [
+          "identity.base_mobility",
+          "dynamic.robot_base_pose",
+          "sensing.camera.agentview"
+        ]
+      },
+      {
+        "source_id": "robosuite_pandaomron_controller",
+        "kind": "controller_config",
+        "uri": "https://github.com/ARISE-Initiative/robosuite/blob/5ce6643f3092639d08f7b0f90ed1c6a84f50552c/robosuite/controllers/config/robots/default_pandaomron.json",
+        "revision": "robosuite-5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+        "sha256": "4f91b12b904e8907005393e45dbb5576af470f7f3d16da017de3826fa22e8dcb",
+        "supports": [
+          "embodiment_control.action_abstraction",
+          "embodiment_control.internal_controller_policy"
+        ]
+      },
+      {
+        "source_id": "panda_collision_mesh",
+        "kind": "collision_mesh",
+        "uri": "robot-asset://robosuite-1.5.2/grippers/meshes/panda_gripper/finger.stl",
+        "revision": "robosuite-5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+        "sha256": "2d07a740392f3b9b0816f65d64fff9927d3d57c897870fc4b6ff9c56fff3a0c8",
+        "supports": [
+          "geometry.gripper.right_gripper"
+        ]
+      },
+      {
+        "source_id": "ora_robocasa_session",
+        "kind": "environment_runtime_adapter",
+        "uri": "repo://ora/environment/backends/robocasa/session.py",
+        "local_path": "ora/environment/backends/robocasa/session.py",
+        "supports": [
+          "sensing.camera.agentview",
+          "sensing.camera.wrist",
+          "sensing.state.eef_pose_xyz_xyzw",
+          "dynamic.camera_calibration",
+          "dynamic.robot_base_pose"
+        ]
+      },
+      {
+        "source_id": "ora_robocasa_robot",
+        "kind": "environment_runtime_adapter",
+        "uri": "repo://ora/environment/backends/robocasa/robot.py",
+        "local_path": "ora/environment/backends/robocasa/robot.py",
+        "supports": [
+          "embodiment_control.position_frame",
+          "embodiment_control.position_unit",
+          "embodiment_control.orientation"
+        ]
+      },
+      {
+        "source_id": "ora_robocasa_motion",
+        "kind": "environment_runtime_adapter",
+        "uri": "repo://ora/environment/backends/robocasa/motion.py",
+        "local_path": "ora/environment/backends/robocasa/motion.py",
+        "supports": [
+          "embodiment_control.position_frame",
+          "embodiment_control.position_unit",
+          "embodiment_control.orientation",
+          "geometry.collision_model"
+        ]
+      },
+      {
+        "source_id": "ora_robocasa_controller_constants",
+        "kind": "environment_runtime_adapter",
+        "uri": "repo://ora/environment/controllers/robocasa_omron.py",
+        "local_path": "ora/environment/controllers/robocasa_omron.py",
+        "supports": [
+          "embodiment_control.position_frame",
+          "embodiment_control.position_unit"
+        ]
+      },
+      {
+        "source_id": "public_robot_measurements",
+        "kind": "policy_runtime_adapter",
+        "uri": "repo://ora/agent/context/observation/public_facts.py",
+        "local_path": "ora/agent/context/observation/public_facts.py",
+        "supports": [
+          "sensing.state.aperture_mm"
+        ]
+      },
+      {
+        "source_id": "robocasa_tool_surface_definitions",
+        "kind": "tool_surface_contract",
+        "uri": "repo://ora/policy/tool_surfaces/robocasa_mobile_v1/robocasa_mobile_direct_v1-manifest.json",
+        "local_path": "ora/policy/tool_surfaces/robocasa_mobile_v1/robocasa_mobile_direct_v1-manifest.json",
+        "supports": [
+          "geometry.workspace_limits",
+          "dynamic.workspace_bounds"
+        ]
+      },
+      {
+        "source_id": "panda_omron_compiled_gripper_verification",
+        "kind": "robot_asset_verification",
+        "uri": "robot-asset-verification://robocasa-pandaomron-gripper-v1.json",
+        "revision": "mujoco-3.3.1-robocasa-a9e152e2-loaded-no-step",
+        "sha256": "95ba2e7d66dbd8c4856fbec9c7209217f027e4045406ddc7da6c0f5d596abc1f",
+        "supports": [
+          "geometry.gripper.right_gripper",
+          "embodiment_control.controlled_point.right_grip_site"
+        ]
+      }
+    ]
+  }
+}

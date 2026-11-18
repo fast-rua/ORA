@@ -10,9 +10,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["tool"]["setuptools"]
 
-#: Tracked non-Python files under a product package that the wheel need not carry.
-NOT_SHIPPED = {"ora/agent/README.md"}
-
 
 def _tracked(prefix: str) -> list[str]:
     out = subprocess.run(["git", "ls-files", prefix], cwd=ROOT, capture_output=True, text=True, check=True)
@@ -57,7 +54,7 @@ def test_runtime_data_files_under_ora_are_package_data():
     }
     unshipped = [
         path for path in _tracked("ora")
-        if not path.endswith(".py") and path not in shipped and path not in NOT_SHIPPED
+        if not path.endswith(".py") and path not in shipped
     ]
     assert unshipped == []
 
@@ -69,11 +66,11 @@ def test_vendored_robotwin_sources_ship_as_data_beside_their_installer():
     assert (ROOT / "ora/environment/backends/robotwin/vendored/planner.py").is_file()
 
 
-def test_live_world_browser_assets_are_in_the_wheel():
+def test_world_view_browser_assets_are_in_the_wheel():
     shipped = {
-        str(path.relative_to(ROOT / "viewer"))
-        for pattern in CONFIG["package-data"]["viewer"]
-        for path in (ROOT / "viewer").glob(pattern) if path.is_file()
+        str(path.relative_to(ROOT / "ora/orchestrator/world_view_assets"))
+        for pattern in CONFIG["package-data"]["ora"]
+        for path in (ROOT / "ora").glob(pattern)
+        if path.is_file() and path.is_relative_to(ROOT / "ora/orchestrator/world_view_assets")
     }
-    assert {"templates/base.html", "templates/live_world.html", "static/base.css",
-            "static/viewer.css", "static/live_world.js"} <= shipped
+    assert shipped == {"world_view.html", "static/base.css", "static/world_view.css", "static/world_view.js"}

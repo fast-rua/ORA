@@ -25,6 +25,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
+#: The services' wire protocol: request and response formats and their meaning.
+#: Bump by hand whenever either changes; a run binds a service only on an equal
+#: number (operator.binding). The adapter content hash stays evidence only.
+PROTOCOL_VERSION = 1
 CAPX_SOURCE_COMMIT = "53e9966d7a8e2fa7494676772bccc35280f5c0ed"
 SAM3_SOURCE_COMMIT = "6fe87d64a5beb9084923d7a9e002741178635b09"
 SAM3_CHECKPOINT_SHA256 = (
@@ -266,6 +270,7 @@ class SegmentService:
             "warmup_ms": self.warmup_ms,
             "warmup_complete": True,
             "adapter_sha256": self.adapter_sha256,
+            "protocol_version": PROTOCOL_VERSION,
             "instance_id": self.instance_id,
             "load_count": self.load_count,
             "started_unix_s": self.started_unix_s,
@@ -642,6 +647,7 @@ class GraspService:
             "warmup_ms": self.warmup_ms,
             "warmup_complete": True,
             "adapter_sha256": self.adapter_sha256,
+            "protocol_version": PROTOCOL_VERSION,
             "instance_id": self.instance_id,
             "load_count": self.load_count,
             "started_unix_s": self.started_unix_s,

@@ -1,0 +1,158 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "grasp_plan",
+  "events": {
+    "display_cap": ["compiled", "shown"],
+    "cut_candidate": ["candidate_id", "backend_rank", "reachable"],
+    "ik_unavailable": ["failure"]
+  },
+  "call": [
+    "{args.arm}",
+    "{args.target_ref}"
+  ],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"eq": ["result.status", "no_candidate"]}, "text": "no candidate", "failed": true},
+    {"if": {"eq": ["result.ik_reachability.reachable_candidate_count", 0]},
+     "text": "{result.candidates|count|n:candidate} shown, none of the pool reachable", "failed": true},
+    {"if": {"eq": ["result.ik_reachability.status", "annotated"]},
+     "text": "{result.candidates|count|n:candidate} shown, {result.ik_reachability.reachable_candidate_count} of {result.ik_reachability.checked_candidate_count} pool candidates reachable"},
+    {"text": "{result.candidates|count|n:candidate}"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "the target and arm the grasps were planned for, and the camera the target was segmented in",
+      "line": [
+        "plan up to {args.max_candidates|or:3|n:grasp} on {args.target_ref} with the {args.arm} arm",
+        {"if": {"has": "result.camera"}, "text": "the target's mask is from the {result.camera} camera"}
+      ]
+    },
+    {
+      "name": "proposals",
+      "doc": "how many grasps each proposal family offered and how many entered the pool",
+      "when": {"has": "result.diagnostics"},
+      "line": [
+        {"if": {"has": "result.diagnostics.candidate_family_counts"},
+         "text": "the learned model offered {result.diagnostics.candidate_family_counts.learned_available}, the public top-down geometry {result.diagnostics.candidate_family_counts.public_rgbd_topdown_available}; {result.diagnostics.candidate_family_counts.selected} entered the pool"},
+        {"if": {"all": [{"not": {"has": "result.diagnostics.candidate_family_counts"}}, {"has": "result.diagnostics.returned_candidate_count"}]},
+         "text": "the learned model returned {result.diagnostics.returned_candidate_count|n:candidate}"}
+      ]
+    },
+    {
+      "name": "admission",
+      "doc": "proposals dropped before they were compiled, each with the reason (aperture beyond the nominal ceiling, outside the action workspace)",
+      "when": {"not": {"empty": "result.diagnostics.rejected"}},
+      "line": "{result.diagnostics.rejected|count|n:proposal} dropped",
+      "verdict": [
+        {"if": {"eq": ["result.status", "no_candidate"]}, "text": "none left"}
+      ],
+      "each": {
+        "over": "result.diagnostics.rejected",
+        "limit": 4,
+        "line": [
+          "{item.candidate_id}: {item.reasons|join}",
+          {"if": {"has": "item.required_opening_m"},
+           "text": "opening needed {item.required_opening_m|mm}, nominal ceiling {item.maximum_opening_m|mm}"}
+        ]
+      }
+    },
+    {
+      "name": "compiler",
+      "doc": "proposals compiled to poses of the embodiment's controlled point, and those it dropped (outside the workspace, not liftable)",
+      "when": {"not": {"empty": "result.diagnostics.compiler_rejected"}},
+      "line": "{result.diagnostics.compiler_rejected|count|n:candidate} dropped while compiling to the {result.compiler.controlled_point|or:controlled point}",
+      "each": {
+        "over": "result.diagnostics.compiler_rejected",
+        "limit": 4,
+        "line": "{item.candidate_id}: {item.reason}"
+      }
+    },
+    {
+      "name": "reachability",
+      "doc": "the planning-time IK check of the whole pool before the display cap: pregrasp from the measured joints, approach chained onto it, exact orientation then the 180 deg jaw flip",
+      "when": {"has": "result.ik_reachability"},
+      "line": [
+        {"if": {"eq": ["result.ik_reachability.status", "annotated"]},
+         "text": "IK checked {result.ik_reachability.checked_candidate_count|n:candidate} on the {args.arm} arm, {result.ik_reachability.reachable_candidate_count} reachable"},
+        {"if": {"eq": ["result.ik_reachability.status", "annotated"]},
+         "text": "order: {result.ik_reachability.order}"},
+        {"if": {"eq": ["result.ik_reachability.status", "unavailable"]},
+         "text": "the IK check was not available, so the backend's order was kept and no candidate carries a verdict"},
+        {"if": {"has": "events.ik_unavailable[0].failure"}, "text": "failure: {events.ik_unavailable[0].failure}"},
+        {"if": {"eq": ["result.ik_reachability.status", "no_candidate"]}, "text": "no candidate reached the check"}
+      ],
+      "verdict": [
+        {"if": {"all": [{"eq": ["result.ik_reachability.status", "annotated"]}, {"eq": ["result.ik_reachability.reachable_candidate_count", 0]}]},
+         "text": "none reachable"},
+        {"if": {"eq": ["result.ik_reachability.status", "annotated"]},
+         "text": "{result.ik_reachability.reachable_candidate_count} of {result.ik_reachability.checked_candidate_count} reachable"}
+      ]
+    },
+    {
+      "name": "display cap",
+      "doc": "the pool cut to max_candidates: how many compiled, how many shown, and the candidates cut with their backend rank and IK verdict (stage events display_cap, cut_candidate)",
+      "when": {"has": "events.display_cap[0].shown"},
+      "line": "{events.display_cap[0].shown} of {events.display_cap[0].compiled} compiled candidates shown",
+      "verdict": [
+        {"if": {"not": {"empty": "events.cut_candidate"}}, "text": "{events.cut_candidate|count|n:candidate} cut"}
+      ],
+      "each": {
+        "over": "events.cut_candidate",
+        "limit": 4,
+        "line": "{item.candidate_id} (backend rank {item.backend_rank}, reachable {item.reachable|or:unknown}) cut by max_candidates"
+      }
+    },
+    {
+      "name": "candidates",
+      "doc": "each shown candidate: its backend score, predicted opening and IK verdict (which turn of the grasp is reachable, and the approach's tilt from straight down)",
+      "when": {"not": {"empty": "result.candidates"}},
+      "line": "{result.candidates|count|n:candidate} shown, best first",
+      "each": {
+        "over": "result.candidates",
+        "line": [
+          "rank {item.rank} {item.candidate_id}: score {item.backend_score|f2}, opening {item.gripper_opening_m|mm}",
+          {"if": {"eq": ["item.ik_reachability.reachable", true]}, "text": "reachable"},
+          {"if": {"all": [{"eq": ["item.ik_reachability.member", "jaw_flip"]}, {"eq": ["item.ik_reachability.jaw_symmetry.reason", "only_reachable_variant"]}]},
+           "text": "only in the jaw-flip turn (180 deg about its approach axis)"},
+          {"if": {"all": [{"eq": ["item.ik_reachability.member", "jaw_flip"]}, {"ne": ["item.ik_reachability.jaw_symmetry.reason", "only_reachable_variant"]}]},
+           "text": "published in the jaw-flip turn ({item.ik_reachability.jaw_symmetry.reason|or:more joint margin})"},
+          {"if": {"eq": ["item.ik_reachability.reachable", false]},
+           "text": "not reachable (pregrasp: {item.ik_reachability.pregrasp.reason|or:solves}; approach: {item.ik_reachability.approach.reason|or:solves})"},
+          {"if": {"not": {"has": "item.ik_reachability.reachable"}}, "text": "reachability unknown"},
+          {"if": {"has": "item.ik_reachability.approach_tilt_from_vertical_deg"},
+           "text": "approach {item.ik_reachability.approach_tilt_from_vertical_deg|deg} from straight down"}
+        ]
+      }
+    },
+    {
+      "name": "alternative found",
+      "doc": "candidates the exact orientation does not solve but the 180 deg jaw flip does; their published poses already carry that turn",
+      "when": {"not": {"empty": "result.candidates[?ik_reachability.member=jaw_flip][?ik_reachability.jaw_symmetry.reason=only_reachable_variant]"}},
+      "line": "for {result.candidates[?ik_reachability.member=jaw_flip][?ik_reachability.jaw_symmetry.reason=only_reachable_variant].candidate_id|join} only the jaw flip solves (the grasp turned 180 deg about its approach axis); the published pregrasp_pose and contact_pose are already in that turn"
+    }
+  ],
+  "conclusion": [
+    {"if": {"eq": ["result.status", "no_candidate"]},
+     "text": "no grasp was left for {args.target_ref}"},
+    {"if": {"eq": ["result.ik_reachability.reachable_candidate_count", 0]},
+     "text": "the pool has no reachable grasp for the {args.arm} arm"},
+    {"text": "{result.candidates[0].candidate_id} is the first; backend rank is not a success probability, so inspect the candidate panels and choose the target and geometry yourself; any world action makes these candidates stale"}
+  ],
+  "next": [
+    {"if": {"eq": ["result.status", "no_candidate"]},
+     "text": "get a better current view of the target or select another target, then call grasp_plan again"},
+    {"if": {"eq": ["result.ik_reachability.reachable_candidate_count", 0]},
+     "text": "try the other arm, a view that shows more of the object, or another target (this check is an IK reference at planning time; move_pose runs its own admission)"},
+    {"if": {"eq": ["error.code", "stale_observation"]},
+     "text": "a target_ref is valid only on the observation it was segmented on: ground or segment the target again on the current observation ({error.constraints.current_observation_id|or:current}) and plan with the new target_ref"},
+    {"if": {"eq": ["error.code", "target_ref_unavailable"]},
+     "text": "this round has no target like {args.target_ref|or:that}: take a target_ref from the latest vision_ground or vision_segment result"},
+    {"if": {"all": [{"eq": ["error.code", "grasp_proposal_failed"]}, {"eq": ["error.constraints.failure", "transient"]}]},
+     "text": "the grasp service failed for now ({error.constraints.service|or:grasp service}): call grasp_plan again once"},
+    {"if": {"eq": ["error.code", "grasp_proposal_failed"]},
+     "text": "the target's RGB-D input is unusable ({error.message}): ground or segment it again on a current view"},
+    {"if": {"eq": ["error.code", "invalid_arguments"]},
+     "text": "correct {error.field|or:the arguments}: {error.message}"}
+  ]
+}

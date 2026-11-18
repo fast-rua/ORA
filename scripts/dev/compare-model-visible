@@ -10,13 +10,18 @@ directory. ``resolve_run_spec`` runs ``git rev-parse HEAD`` and ``git status``,
 so every extracted tree is committed once into a throwaway repository; its
 commit id differs from the real one and ``source`` is not compared.
 
-For every cell the five items of ``ora/orchestrator/model_visible.py``
+For every cell the five items of ``ora/orchestrator/evaluation/model_visible.py``
 -- advertised composition, prompt-layer texts, embodiment card and projected
 facts, observation projection, and the masked policy/runtime/budgets blocks --
 are computed from the resolved plan with the module in this script's own
 checkout, so a base commit that predates ``policy_identity.model_visible_sha256`` is
 compared the same way. Card rendering uses each tree's own code. Both trees
 run in this checkout's locked environment (``.venv``).
+
+The cells are this script's: the child process that resolves a tree runs this
+checkout's copy, whose RunSpec builders import the tree's own modules, so a
+cell added here is resolved at a base commit that predates it as well. A tree
+from before the ``ora`` package (2026-10-12) resolves with its own copy.
 
 Exit 0 when no compared cell differs, 1 on any difference, 2 on usage or
 extraction errors or when no cell resolved at both commits.
@@ -79,8 +84,12 @@ def _default_spec(environment: str, kind: str) -> dict[str, Any]:
 
 
 def _robodojo_default_spec(tree: Path, task: str = "stack_bowls") -> dict[str, Any]:
-    """A fresh RoboDojo RunSpec naming no surface: the default (direct_v4) RoboDojo instance."""
-    from ora.agent.composition.robodojo_task_contract import REGISTRY_PATH, load_task_contract
+    """A fresh RoboDojo RunSpec naming no surface: RoboDojo's default instance (``robodojo_toolkit_v7`` since
+    2026-11-02, ``robodojo_toolkit_v6`` since 2026-10-30, ``direct_v4``'s closed skills before; the cell keeps its name so reports stay comparable)."""
+    try:
+        from ora.agent.composition.task_contract.robodojo import REGISTRY_PATH, load_task_contract
+    except ImportError:  # a tree from before the composition sub-packages (2026-10-22)
+        from ora.agent.composition.robodojo_task_contract import REGISTRY_PATH, load_task_contract
     from ora.environment.benchmarks.robodojo import NATIVE_ACTION_LIMITS
     from ora.environment.benchmarks.robodojo_physics import physics_device_for
 
@@ -100,14 +109,144 @@ def _robodojo_default_spec(tree: Path, task: str = "stack_bowls") -> dict[str, A
     return spec
 
 
+#: The RoboCasa365 cell: the documented example cell (docs/environments/robocasa.md).
+#: Each seed samples its own kitchen, so the official instruction is the scene's
+#: ``ep_meta['lang']``, which ``robocasa_spec.episode_language`` reads under the
+#: RoboCasa interpreter; at the pinned revision OpenDrawer seed 0 says this, as
+#: its sealed runs of 2026-10-18 recorded.
+ROBOCASA_CELL = {"task": "OpenDrawer", "seed": 0, "instruction": "Open the left drawer."}
+#: The RoboLab cell (docs/getting-started/robolab.md); its instruction is the task's upstream one.
+ROBOLAB_CELL = {"task": "BananaInBowlTask", "seed": 0}
+#: ``policy.code_mode`` of an extended-library cell: what a surface serves a script (``script_reads``) is recorded
+#: only with this library, so a cell without it cannot see a surface gain ``robot.query`` or ``dry_run``.
+CODE_MODE_EXTENDED = {"library": "extended", "prompt": "v3"}
+
+
+def _episode_spec(environment: str, task: str, seed: int, instruction: str, **runtime: Any) -> dict[str, Any]:
+    """A fresh default RunSpec of one episode.
+
+    RoboCasa365 and RoboLab refuse a runtime whose task and seed are not the
+    RunSpec's, or whose official language is not its instruction; the spec
+    builders (``robocasa_spec``, ``robolab_spec``) bind them the same way.
+    """
+    spec = _spec(f"{environment}-native_api", _policy("native_api"), {
+        "kind": environment, "task": task, "seed": seed, "expected_task_language": instruction, **runtime,
+    })
+    spec.update(task=task, task_instruction=instruction, seed=seed)
+    return spec
+
+
+def _robocasa_default_spec() -> dict[str, Any]:
+    """A fresh RoboCasa365 RunSpec naming no surface: the default (direct_v4) RoboCasa instance."""
+    return _episode_spec("robocasa", ROBOCASA_CELL["task"], ROBOCASA_CELL["seed"], ROBOCASA_CELL["instruction"])
+
+
+def _robolab_default_spec() -> dict[str, Any]:
+    """A fresh RoboLab RunSpec naming no surface: the default (direct_v4) RoboLab instance."""
+    from ora.environment.benchmarks.robolab import TASKS
+
+    task = ROBOLAB_CELL["task"]
+    # robolab_spec binds the slot's CUDA device as the Kit renderer; placement is masked.
+    return _episode_spec("robolab", task, ROBOLAB_CELL["seed"], TASKS[task]["instruction"], renderer_gpu=0)
+
+
+def _synthetic_quickstart_spec() -> dict[str, Any]:
+    """The quickstart's Synthetic RunSpec, with the matrix policy in place of the one it reads from
+    ``ORA_PROVIDER``/``ORA_MODEL`` and an API key, so no key is needed."""
+    try:
+        from ora.orchestrator.spec.quickstart import synthetic_spec
+    except ImportError:  # a tree from before the ora command moved to ora.app (2026-10-22)
+        from ora.orchestrator.quickstart import synthetic_spec
+
+    return synthetic_spec(_policy("native_api"))
+
+
+def _local_spec() -> dict[str, Any]:
+    """``ora local``'s default task as ``local.prepare_task`` composes it, with the matrix policy in place of its
+    Provider profile, so no key is needed."""
+    from ora.agent.composition.ora_local import compose_local_spec
+    from ora.app import local_setup as setup
+    from ora.app.local import DEFAULT_LOCAL_ENTRY as entry
+    from ora.environment.benchmarks.libero_pro_language import base_bddl_language, base_task_language
+    from ora.orchestrator.spec.benchmark import BASE_LANGUAGE_DIVERGENCE_REVIEW
+
+    suite, task_id = entry["suite"], entry["task_id"]
+    language, wording = base_task_language(suite, task_id), base_bddl_language(suite, task_id)
+    task = {"suite": suite, "task_id": task_id, "task_language": language, "bddl_task_language": wording}
+    if wording != language:
+        task["task_language_divergence_ack"] = {"bddl_task_language": wording, "policy_task_language": language,
+                                                "review": BASE_LANGUAGE_DIVERGENCE_REVIEW}
+    source = {"required_libero_pro_revision": setup.CODE_REVISION, "required_data_revision": setup.DATA_REVISION,
+              "python_env": "LIBERO_PRO_PYTHON", "libero_pro_root_env": "LIBERO_PRO_ROOT",
+              "data_root_env": "LIBERO_PRO_DATA_ROOT"}
+    return compose_local_spec(task=task, source=source, provider=_policy("native_api"), seed=entry["seed"],
+                              resources={"required_host": entry["required_host"]})
+
+
+def _yam_play_spec() -> dict[str, Any]:
+    """``ora play --env yam --rig-mode sim --no-perception``'s RunSpec, with the matrix policy in place of a Provider
+    profile.
+
+    The YAM station is no baseline instance and runs nothing but free play, so this is its one composition; free play
+    refuses ``policy.code_mode``, so it has no code-mode cell.
+    """
+    import random
+
+    from ora.app.play import play_spec
+    from ora.orchestrator.backends.yam.play import with_rig
+
+    spec, _ = play_spec("yam", policy=_policy("native_api"), host=None, count=1, rng=random.Random(0),
+                        draw={"draw_seed": 0})
+    return with_rig(spec, rig_mode="sim", operator_present=False, cell=None, host=None)
+
+
+def _yam_perception_play_spec() -> dict[str, Any]:
+    """YAM's default free play (``ora play --env yam --rig-mode sim --service-report REPORT``): the
+    ``yam_perception_v1`` surface and its bundle. The readiness report binds endpoints, not model-visible text,
+    so the cell composes without one; a tree from before the surface (2026-11-13) does not resolve it."""
+    from ora.orchestrator.backends.yam import play as yam
+
+    root = Path(yam.__file__).resolve().parents[4]
+    spec = _yam_play_spec()
+    policy = yam.yam_policy(root=root, surface=yam.SURFACE)
+    spec["policy"] = {**spec["policy"], "tool_surface": policy["tool_surface"],
+                      "tool_allowlist": policy["tool_allowlist"]}
+    spec["policy_context"] = yam.yam_policy_context(root=root, bundle=yam.YAM_PROMPT_BUNDLE)
+    return spec
+
+
+def _code_mode(build: Callable[[], dict[str, Any]], contract: Any) -> Callable[[], dict[str, Any]]:
+    """The RunSpec of ``build`` with ``policy.code_mode`` set: what a code-mode arm adds to a default RunSpec."""
+
+    def spec() -> dict[str, Any]:
+        built = build()
+        return {**built, "policy": {**built["policy"], "code_mode": contract}}
+
+    return spec
+
+
 def matrix(tree: Path) -> dict[str, Callable[[], dict[str, Any]]]:
-    """The fixed cells: a fresh default RunSpec on each of the three backends."""
+    """The fixed cells: a fresh default RunSpec on each of the five backends and the Synthetic quickstart, each of
+    those in code mode with the base and the extended library, RoboDojo with ``code_mode: null`` (tool calls, since
+    its default runs code mode from 2026-11-05), ``ora local``'s default task and YAM's free play, without and with its perception services."""
 
     cells: dict[str, Callable[[], dict[str, Any]]] = {}
     for environment in ("libero_pro", "robotwin"):
         cells[f"direct_v4/{environment}/native_api"] = (
             lambda e=environment: _default_spec(e, "native_api"))
     cells["direct_v4/robodojo/native_api"] = lambda: _robodojo_default_spec(tree)
+    cells["direct_v4/robocasa/native_api"] = _robocasa_default_spec
+    cells["direct_v4/robolab/native_api"] = _robolab_default_spec
+    cells["quickstart/synthetic/native_api"] = _synthetic_quickstart_spec
+    for cell, build in list(cells.items()):
+        environment = cell.split("/")[1]
+        cells[f"code_mode/{environment}/native_api"] = _code_mode(build, True)
+        cells[f"code_mode_extended/{environment}/native_api"] = _code_mode(build, CODE_MODE_EXTENDED)
+    # RoboDojo's opt-out: a tree from before its code-mode default resolves this cell as its default one.
+    cells["tool_calls/robodojo/native_api"] = _code_mode(cells["direct_v4/robodojo/native_api"], None)
+    cells["local/libero_pro/native_api"] = _local_spec
+    cells["play/yam/native_api"] = _yam_play_spec
+    cells["play_perception/yam/native_api"] = _yam_perception_play_spec
     return dict(sorted(cells.items()))
 
 
@@ -125,7 +264,7 @@ def resolve_tree(tree: Path, output: Path) -> int:
     if paths.resolve_workspace_root() != workspace:
         raise CompareError("the child Runtime workspace is not the isolated scratch workspace")
     loader = importlib.util.spec_from_file_location(
-        "_compare_model_visible_items", ROOT / "ora/orchestrator/model_visible.py")
+        "_compare_model_visible_items", ROOT / "ora/orchestrator/evaluation/model_visible.py")
     items_module = importlib.util.module_from_spec(loader)
     loader.loader.exec_module(items_module)
     from ora.orchestrator.spec import resolve_run_spec
@@ -181,11 +320,14 @@ def resolve(commit: str, scratch: Path, label: str) -> dict[str, Any]:
     workspace.mkdir(parents=True)
     output = scratch / label / "cells.json"
     python = ROOT / ".venv/bin/python"
-    # Each tree resolves with its own copy of this script, which moved from
-    # scripts/ to scripts/dev/; an older commit still has it at the top level.
-    script = tree / "scripts/dev/compare-model-visible"
-    if not script.is_file():
-        script = tree / "scripts/compare-model-visible"
+    # Both trees resolve this script's cells: the child runs this copy, and its
+    # builders import the tree's modules. A tree from before the ora package
+    # resolves with its own copy, at scripts/dev/ or, older, at the top level.
+    script = Path(__file__).resolve()
+    if not any((tree / "ora/orchestrator" / name).is_file() for name in ("spec.py", "spec/__init__.py")):
+        script = tree / "scripts/dev/compare-model-visible"
+        if not script.is_file():
+            script = tree / "scripts/compare-model-visible"
     command = [str(python if python.is_file() else Path(sys.executable)), str(script),
                "--resolve-tree", str(tree), "--output", str(output)]
     # claude_code binds the executable `claude` on PATH; both commits find the

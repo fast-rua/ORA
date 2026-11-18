@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
+import atexit
 from copy import deepcopy
 import hashlib
 import json
 import math
 from pathlib import Path
-import time
+import threading
 from typing import Any, Callable, Mapping
 
 import numpy as np
 
 from ora.contracts.action import MOTION_ACTION_V3_SCHEMA, RUNTIME_ACTION_SCHEMA, validate_runtime_action
+from ora.contracts.official_limit import official_limit_multiple
 from ora.environment.base import ENVIRONMENT_STATUS_SCHEMA, validate_environment_status
 from ora.environment.benchmarks.robodojo import (
     ACTION_CODECS, NATIVE_ACTION_LIMITS, SENSOR_PROFILE,
-    UPSTREAM_ENDING_CONDITIONS, classify_round_ending, configuration_binding,
+    configuration_binding,
     official_terminal_reason, public_context, validate_scene_registration,
 )
 from ora.environment.controllers.robodojo_arx import controller_binding, validate_robot_facts
@@ -26,28 +28,24 @@ from .round_lifecycle import (
     ROUND_HOME_ROTATION_TOLERANCE_DEG, ROUND_ISOLATION_SCHEMA, ROUND_RESET_SCHEMA,
 )
 from .observation import RobodojoObservationMixin
+from .round_verdict import RobodojoVerdictMixin
 from .execution_capture import RobodojoExecutionCaptureMixin
 from .feedback import gripper_state, add_receipt_feedback
-from . import layout_rounds, recovery, sparse_motion
+from . import ground_truth, layout_rounds, recovery, shared_motion, sparse_motion
 from .bridge import RobodojoError, build_environment
 from .sequence_admission import SEQUENCE_PARENT_SCHEMAS, admit_sequence_child
 from .common import (
-    GRIPPER_TOLERANCE,
-    array, file_hash, gripper_opening, json_default,
-    jsonable, measured_pose,
-    native_pose, physical_gripper, pose_error, pose_reached, workspace_violation, write_json,
+    CLOSE_EXIT_GRACE_S, GRIPPER_TOLERANCE,
+    arm_readings, array, file_hash, hard_exit, gripper_opening, json_default,
+    journal_lines, jsonable, measured_pose,
+    native_pose, physical_gripper, pose_error, pose_reached, workspace_violation, write_json, xyzw_pose,
 )
 
 
 SOURCE_SCHEMA = "ora.robodojo-source-manifest.v1"
 RESET_SCHEMA = "ora.robodojo-reset.v1"
 RECEIPT_SCHEMA = "ora.robodojo-motion-receipt.v1"
-CONTROL_TRACE_SCHEMA = "ora.robodojo-controller-trace.v1"
-VERDICT_SCHEMA = "ora.robodojo-official-verdict.v2"
-TERMINAL_BASIS = "official_terminal_transition"
-POLICY_BUDGET_BASIS = "standing_official_predicate_at_policy_budget"
-INFRASTRUCTURE_BASIS = "infrastructure_abort"
-RUNNING_BASIS = "episode_incomplete"
+CONTROL_TRACE_SCHEMA, CONTROL_TRACE_V2_SCHEMA = "ora.robodojo-controller-trace.v1", "ora.robodojo-controller-trace.v2"
 CAMERAS = {"head": "cam_head", "left_wrist": "cam_left_wrist", "right_wrist": "cam_right_wrist"}
 FORBIDDEN_ABSENT = ["actor_state", "object_gt_pose", "segmentation", "contact", "success_predicate", "expert_program", "task_source"]
 
@@ -58,36 +56,50 @@ _opening = gripper_opening
 _physical_gripper = physical_gripper
 
 
-class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExecutionCaptureMixin):
+class RobodojoSession(RobodojoRoundMixin, RobodojoVerdictMixin, RobodojoObservationMixin,
+                      RobodojoExecutionCaptureMixin):
     """The session never exposes the upstream environment or reward state."""
 
     def __init__(
         self, *, config: Mapping[str, Any], output_root: Path,
         environment_factory: Callable[..., tuple[Any, Any, dict[str, Any]]] = build_environment,
+        exit_process_on_close: bool = False,
     ) -> None:
         self.config = deepcopy(dict(config))
+        #: The RPC worker's session ends its process on ``close``; in-process owners keep the full teardown.
+        self.exit_process_on_close = exit_process_on_close
         self.task = self.config.get("task", "arrange_largest_number")
         if not isinstance(self.task, str) or self.task not in NATIVE_ACTION_LIMITS:
             raise RobodojoError("unsupported RoboDojo task")
         self.native_action_limit = NATIVE_ACTION_LIMITS[self.task]
         if self.config.get("native_action_limit", self.native_action_limit) != self.native_action_limit:
             raise RobodojoError("RoboDojo native action limit differs from the selected task")
+        try:
+            self.official_limit_multiple = official_limit_multiple(self.config)
+        except ValueError as exc:
+            raise RobodojoError(str(exc)) from exc
+        #: Where the episode stops; ``native_action_limit`` stays the official limit.
+        self.extended_native_action_limit = self.native_action_limit * self.official_limit_multiple
         if self.config.get("task_variant", self.task) != self.task:
             raise RobodojoError("RoboDojo task and runtime selection differ")
         self.action_codec = self.config.get("action_codec") or ACTION_CODECS[0]
         if self.action_codec not in ACTION_CODECS:
             raise RobodojoError("unsupported RoboDojo first-stage binding: action_codec")
         self.config["action_codec"] = self.action_codec
-        fixed = {"task": self.task, "eval_seed": 0, "num_envs": 1, "sensor_profile": SENSOR_PROFILE}
+        from ora.environment.benchmarks.robodojo import EVAL_SEEDS
+        if self.config.get("eval_seed", 0) not in EVAL_SEEDS:
+            raise RobodojoError("unsupported RoboDojo first-stage binding: eval_seed")
+        self.eval_seed_selected = int(self.config.get("eval_seed", 0))
+        fixed = {"task": self.task, "eval_seed": self.eval_seed_selected, "num_envs": 1, "sensor_profile": SENSOR_PROFILE}
         for name, expected in fixed.items():
             if self.config.get(name, expected) != expected:
                 raise RobodojoError(f"unsupported RoboDojo first-stage binding: {name}")
             self.config[name] = expected
         self._init_layout_schedule()
-        self.max_sim_steps = int(self.config.get("max_sim_steps", self.native_action_limit * 10))
+        self.max_sim_steps = int(self.config.get("max_sim_steps", self.extended_native_action_limit * 10))
         self.native_actions_per_command = int(self.config.get("native_actions_per_command", 20))
-        if not 10 <= self.max_sim_steps <= self.native_action_limit * 10 or self.max_sim_steps % 10:
-            raise RobodojoError(f"max_sim_steps must be a multiple of 10 in [10, {self.native_action_limit * 10}]")
+        if not 10 <= self.max_sim_steps <= self.extended_native_action_limit * 10 or self.max_sim_steps % 10:
+            raise RobodojoError(f"max_sim_steps must be a multiple of 10 in [10, {self.extended_native_action_limit * 10}]")
         if self.native_actions_per_command != 20:
             raise RobodojoError("native_actions_per_command is fixed at 20")
         self.free_space_clearance_m = float(self.config.get("free_space_clearance_m", sparse_motion.FREE_SPACE_CLEARANCE_M))
@@ -126,24 +138,17 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         self.round_index = 0
         self.observation_sequence = 0
         self.action_sequence = 0
-        self.motion_probe_sequence = 0
         self.world_mutation_sequence = 0
         self.world_mutation_actions: list[str] = []
-        self.plan_references: dict[str, dict[str, Any]] = {}
         self.action_sequences: list[dict[str, Any]] = []
         self.last_observation_id: str | None = None
         self.last_receipt: dict[str, Any] | None = None
-        self.pose_targets: dict[str, list[float]] = {}
-        self.gripper_directives: dict[str, float] = {}
-        self.home_joints: dict[str, list[float]] = {}
-        self.home_poses: dict[str, list[float]] = {}
-        self.last_safe_joints: dict[str, list[float]] = {}
-        self.last_safe_poses: dict[str, list[float]] = {}
-        # The pose the session's *first* reset measured, kept for the life of
-        # the session: a later round is compared against the world the run
-        # started from, not against the previous round's own reset.
-        self.session_home_poses: dict[str, list[float]] = {}
-        self.session_home_joints: dict[str, list[float]] = {}
+        # Optional developer-only capture outside the run directory (ground_truth.py).
+        self.ground_truth: ground_truth.GroundTruthRecorder | None = None
+
+    def execution_request(self, value):
+        from .execution_request import ExecutionRequest
+        return ExecutionRequest(self, value)
 
     def _clock(self) -> int:
         # This counter is advanced by PhysX callbacks, including accidental
@@ -156,6 +161,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
             raise RobodojoError("a RoboDojo session starts exactly once")
         self.output_root.mkdir(parents=True, exist_ok=True)
         try:
+            self.ground_truth = ground_truth.recorder_for(self)
             self.environment, self.app, self.source = self.environment_factory(self.config)
             self._reset_environment("reset-initialization-stack.txt")
             self.robots = {
@@ -180,6 +186,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
                     self.config["public_robot_geometry"], loaded_geometry(self),
                 )
             self._bind_reset_state()
+            shared_motion.start(self)
             manifest_path = self.output_root / "source-manifest.json"
             if manifest_path.exists():
                 raise RobodojoError("refusing to overwrite a source manifest")
@@ -210,7 +217,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
             if self.config.get("expected_task_language", instruction) != instruction:
                 raise RobodojoError("upstream public instruction differs from the selected policy task language")
             reset = {
-                "schema": RESET_SCHEMA, "task": self.task, "eval_seed": 0, "seed": 0, "layout_id": self.layout_id,
+                "schema": RESET_SCHEMA, "task": self.task, "eval_seed": self.eval_seed_selected, "seed": 0, "layout_id": self.layout_id,
                 "source_manifest": {"path": "source-manifest.json", "sha256": self.source_hash},
                 "source_binding": {"source_manifest_sha256": self.source_hash, "source_revisions": self.source["source_revisions"]},
                 "control_binding": controller_binding(),
@@ -225,6 +232,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
             }
             reset.update(layout_rounds.start_reset_fields(self))
             write_json(self.output_root / "reset.json", reset)
+            self._ground_truth_round_started()
             self._start_execution_capture()
             return reset
         except BaseException:
@@ -233,6 +241,12 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
             (self.output_root / "session-start-error.txt").write_text(traceback.format_exc())
             self._fault("robodojo_start_failed")
             raise
+
+    def _ground_truth_round_started(self) -> None:
+        ground_truth.round_started(self)
+
+    def _ground_truth_tick(self, action_id: str | None, segment: str | None) -> None:
+        ground_truth.tick(self, action_id, segment)
 
     def _task_instruction(self) -> str:
         instruction = str(self.environment.obs_manager.instruction[0])
@@ -244,18 +258,25 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         if not self.started or self.closed or self.environment is None:
             raise RobodojoError("RoboDojo session is not active")
 
-    def _proprioception(self) -> dict[str, Any]:
+    def _arm_readings(self) -> dict[str, dict[str, Any]]:
+        """Every arm's measured joints, applied targets and link6 pose now, in one copy (``common.arm_readings``)."""
+        return arm_readings(self.environment.robot_manager, self.robots)
+
+    def _proprioception(self, readings: Mapping[str, Any] | None = None) -> dict[str, Any]:
         """Publish the requested directive separately from the SDK drive target.
 
         The SDK can limit an explicit close relative to the primary encoder.
         Its resolved buffer is therefore not the requested directive. Keeping
         that distinction here makes observation, retention and receipts agree.
+        ``readings`` are this physics step's ``_arm_readings`` when the caller
+        already holds them.
         """
         manager = self.environment.robot_manager
+        readings = self._arm_readings() if readings is None else readings
         result = {}
         for arm, robot in self.robots.items():
-            joints = array(manager.get_joint(robot, env_idx_list=[0])[0])
-            fingers = array(manager.get_end_effector_real_val(robot, env_idx_list=[0])[0])
+            joints = readings[arm]["joints"][robot.arm_joint_indices]
+            fingers = readings[arm]["joints"][robot.gripper_joint_indices]
             if not np.isfinite(joints).all() or not np.isfinite(fingers).all():
                 raise RobodojoError("robot joint measurement is not finite")
             key = manager.process_name(robot.gripper_name)
@@ -263,7 +284,8 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
                 robot, float(manager.control_manager.prev_control[0][key]["position"][0]),
             )
             result[arm] = {
-                "pose_xyz_xyzw": measured_pose(manager, robot), "pose_frame": "robodojo_episode_local_ee_link",
+                "pose_xyz_xyzw": xyzw_pose(readings[arm]["link_wxyz"]),
+                "pose_frame": "robodojo_episode_local_ee_link",
                 "arm_joint_qpos": joints.tolist(),
                 **self._gripper_state(arm, fingers, command),
             }
@@ -307,13 +329,13 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
                 "arms": arms, "cameras": cameras,
                 "position_frame": "episode_local_world", "quaternion_order": "xyzw"}
 
-    def _applied_position_targets(self) -> dict[str, list[float]]:
-        """Read the SDK buffers actually submitted by RobotManager.control_robot."""
+    def _applied_position_targets(self, readings: Mapping[str, Any] | None = None) -> dict[str, list[float]]:
+        """Read the SDK buffers actually submitted by RobotManager.control_robot (``readings`` as above)."""
         manager = self.environment.robot_manager
+        readings = self._arm_readings() if readings is None else readings
         result = {}
-        for robot in self.robots.values():
-            articulation = manager.robot_key[manager.robot_list.index(robot)]
-            targets = array(articulation.data.joint_pos_target[0])
+        for arm, robot in self.robots.items():
+            targets = readings[arm]["position_targets"]
             for name, indices in ((robot.arm_name, robot.arm_joint_indices),
                                   (robot.gripper_name, robot.gripper_joint_indices)):
                 values = targets[indices]
@@ -409,13 +431,14 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         targets on held dimensions.
         """
         def record_physics(command: Mapping[str, Any]) -> None:
-            applied = self._applied_position_targets()
+            readings = self._arm_readings()
+            applied = self._applied_position_targets(readings)
             sample = {"action_id": action_id, "segment": segment,
                       "physics_clock": self._clock(), "native_action": int(self.environment.take_action_cnt[0]),
                       "command": command, "applied_position_targets": applied,
-                      "measured": self._proprioception()["end_effectors"]}
-            with journal.open("a") as stream:
-                stream.write(json.dumps(sample, default=json_default, allow_nan=False, sort_keys=True) + "\n")
+                      "measured": self._proprioception(readings)["end_effectors"]}
+            journal_lines(self).write(journal, json.dumps(sample, default=json_default, allow_nan=False,
+                                                          sort_keys=True) + "\n")
             for key, target in command.items():
                 expected = held_targets.get(key, target)["position"]
                 if (not np.allclose(applied[key], target["position"], rtol=0, atol=1e-6)
@@ -439,6 +462,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
                 self._fault("native_cadence_mismatch")
                 raise RobodojoError("native action did not advance exactly 10 physics steps")
             used += 1
+            self._ground_truth_tick(action_id, segment)
             current = self._proprioception()["end_effectors"]
             tracking.append({"native_action": self.environment.take_action_cnt[0], "physics_steps": self.sim_steps,
                              "segment": segment, "control": deepcopy(control), "measured": current})
@@ -459,6 +483,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         if self._clock() - clock_before != 10:
             self._fault("native_cadence_mismatch")
             raise RobodojoError("native action did not advance exactly 10 physics steps")
+        self._ground_truth_tick(None, "conformance")
         if terminal is not None:
             self.official_terminal = deepcopy(terminal)
 
@@ -471,9 +496,10 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         )
 
     def _persist_receipt(self, receipt: dict[str, Any], *, tracking: list[dict[str, Any]], journal: Path) -> dict[str, Any]:
+        journal_lines(self).close()  # the action's journal is complete before it is hashed
         add_receipt_feedback(receipt)
         private = self.output_root / "controller" / f"action-{self.action_sequence:04d}.json"
-        write_json(private, {"schema": CONTROL_TRACE_SCHEMA, "action_id": receipt["action_id"],
+        write_json(private, {"schema": CONTROL_TRACE_V2_SCHEMA if any("control_steps" in s for s in tracking) else CONTROL_TRACE_SCHEMA, "action_id": receipt["action_id"],
                              "samples": tracking, "physics_journal": {"path": journal.relative_to(self.output_root).as_posix(), "sha256": file_hash(journal)}})
         receipt["control_trace"] = {"path": private.relative_to(self.output_root).as_posix(), "sha256": file_hash(private)}
         # Upstream initial targets can be numpy arrays; the RPC response itself
@@ -538,6 +564,9 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         if normalized["schema"] == MOTION_ACTION_V3_SCHEMA:
             if self.action_codec != "motion_action_v3":
                 raise RobodojoError("sparse motion v3 requires the motion_action_v3 codec")
+            from .trajectory import execute_per_step_action, per_step_action
+            if per_step_action(normalized):  # follow_joint_trajectory, rate-limited set_gripper
+                return execute_per_step_action(self, normalized)
             return sparse_motion.execute_sparse_motion_v3(self, normalized)
         if normalized["schema"] != RUNTIME_ACTION_SCHEMA:
             raise RobodojoError("only runtime action v3 and motion action v3 are supported")
@@ -587,7 +616,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
             self._run_native_control(
                 action_id=normalized["action_id"], control=control, held_targets=held_targets,
                 journal=journal, tracking=tracking, segment="command", reached=reached,
-                budget=self.native_actions_per_command,
+                budget=min(self.native_actions_per_command, getattr(self, "request_action_budget", 20)),
             )
         after = self._proprioception()["end_effectors"]
         distance, angle = pose_error(target_pose, after[arm]["pose_xyz_xyzw"])
@@ -659,7 +688,7 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
     def status(self) -> dict[str, Any]:
         reason = self.abort_reason
         if reason is None and self.official_terminal is not None:
-            reason = official_terminal_reason(self.official_terminal, self.native_action_limit)
+            reason = official_terminal_reason(self.official_terminal, self.extended_native_action_limit)
         if reason is None and self.sim_steps >= self.max_sim_steps:
             reason = "max_sim_steps_per_episode_exhausted"
         return validate_environment_status({
@@ -696,74 +725,21 @@ class RobodojoSession(RobodojoRoundMixin, RobodojoObservationMixin, RobodojoExec
         self.boundary_reason = reason
         self.abort_reason = reason
 
-    def _official_outcome(self) -> tuple[bool | None, bool, str]:
-        """Resolve the official Boolean, its terminal claim and its provenance.
-
-        RoboDojo latches success inside ``RewardManager.step``, which the
-        wrapper runs after every native action, and no physics advances
-        outside a native tick. So when a policy-side budget stops a round
-        without an official terminal transition, the standing official
-        predicate was already evaluated after the last physics step and was
-        not a success. Reporting it is the same rule LIBERO applies, and it
-        avoids a forced ``get_reward(final_check=True)``, which writes
-        ``_gated_score_lst`` and can latch ``env.success`` false, is called
-        two or three times inside the upstream step loop rather than once at
-        the end of an episode, and for every shipped task evaluates nothing
-        new.
-        """
-        if self.official_terminal is not None:
-            return bool(self.official_terminal["official_success"]), True, TERMINAL_BASIS
-        if self.fault_reason is not None:
-            return None, False, INFRASTRUCTURE_BASIS
-        if self.boundary_reason is not None or self.sim_steps >= self.max_sim_steps:
-            return False, False, POLICY_BUDGET_BASIS
-        return None, False, RUNNING_BASIS
-
-    def persist_official_verdict(self) -> dict[str, Any]:
-        official_success, terminal, basis = self._official_outcome()
-        native_actions = (
-            int(self.environment.take_action_cnt[0])
-            if self.environment is not None else 0
-        )
-        # ``verdict_basis`` says where the Boolean came from. It does not say
-        # whether the round is comparable with an upstream rollout: a policy
-        # ``finish_episode`` and an exhausted decision budget both arrive as
-        # ``standing_official_predicate_at_policy_budget`` and only the first
-        # is an ending upstream has no counterpart for. The comparability
-        # fields answer that separately, so no reader has to infer it from
-        # ``abort_reason``.
-        ending = classify_round_ending(
-            official_terminal=self.official_terminal is not None,
-            fault_reason=self.fault_reason,
-            abort_reason=self.abort_reason,
-            official_success=official_success,
-            native_actions=native_actions,
-            native_action_limit=self.native_action_limit,
-        )
-        verdict = {
-            "schema": VERDICT_SCHEMA,
-            "official_success": official_success,
-            "terminal": terminal, "verdict_basis": basis, "fault_reason": self.fault_reason,
-            **ending,
-            "upstream_ending_conditions": list(UPSTREAM_ENDING_CONDITIONS),
-            "native_action_limit": self.native_action_limit,
-            "task": self.task, "eval_seed": 0, "seed": 0, "layout_id": self.layout_id, "round_index": self.round_index,
-            "native_actions": native_actions,
-            "physics_steps": self.sim_steps, "reset_physics_steps": self.reset_physics_steps,
-            "abort_reason": self.abort_reason, "source_manifest_sha256": self.source_hash,
-            "source": "RoboDojo EvalEnv.is_episode_end", "created_unix_s": time.time(),
-            **layout_rounds.verdict_fields(self),
-        }
-        self._capture_execution_boundary("terminal")
-        write_json(self.output_root / "official-verdict.json", verdict)
-        return verdict
-
     def close(self) -> None:
+        """Finish the evidence; a worker then ends with ``os._exit``: Kit's teardown takes minutes."""
         if self.closed:
             return
+        if self.ground_truth is not None:  # first: final once the episode is
+            self.ground_truth.close()
+        journal_lines(self).close()
         self.finalize_operator_video()
         self.closed = True
+        if self.exit_process_on_close:
+            atexit.register(hard_exit)
+            threading.Thread(target=hard_exit, args=(CLOSE_EXIT_GRACE_S,), daemon=True).start()
+            return
         try:
+            shared_motion.close(self)
             if self.environment is not None:
                 self.environment.close()
         finally:

@@ -1,0 +1,42 @@
+{
+  "schema": "ora.arx-x5-motion-profile.v1",
+  "profile_id": "arx_x5_motion_profile_v1",
+  "embodiment_id": "arx_x5",
+  "summary": "The RoboDojo ARX X5 toolkit motion before 2026-11-15: what every run whose plan binds no runtime.motion_profile executes (the toolkit's built-in values).",
+  "fast": {
+    "pace": {
+      "linear_m_s": null,
+      "angular_deg_s": null,
+      "linear_accel_m_s2": null,
+      "angular_accel_deg_s2": null,
+      "joint_speed_rad_s": 4.0,
+      "joint_accel_rad_s2": 40.0,
+      "joint_jerk_rad_s3": null
+    },
+    "settle": {
+      "native_actions": 5,
+      "joint_tolerance_rad": 0.003,
+      "joint_speed_rad_s": 0.05
+    }
+  },
+  "gripper": {
+    "close": {
+      "rate_per_s": 2.0,
+      "max_lead_m": 0.005,
+      "arm_settle": {
+        "joint_speed_rad_s": 0.05,
+        "max_native_actions": 5
+      }
+    },
+    "release": {
+      "rate_per_s": 2.0,
+      "max_lead_m": null,
+      "arm_settle": null
+    },
+    "open": {
+      "rate_per_s": null,
+      "max_lead_m": null,
+      "arm_settle": null
+    }
+  }
+}

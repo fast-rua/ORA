@@ -374,10 +374,10 @@
         ]
       },
       {
-        "source_id": "placement_unified_v7_definitions",
+        "source_id": "explicit_motion_v1_libero_definitions",
         "kind": "tool_surface_contract",
-        "uri": "repo://ora/policy/tool_surfaces/placement_unified_v7/libero-definitions-v7.json",
-        "local_path": "ora/policy/tool_surfaces/placement_unified_v7/libero-definitions-v7.json",
+        "uri": "repo://ora/policy/tool_surfaces/explicit_motion_v1/libero-definitions.json",
+        "local_path": "ora/policy/tool_surfaces/explicit_motion_v1/libero-definitions.json",
         "supports": [
           "geometry.workspace_limits",
           "dynamic.workspace_bounds"
@@ -386,8 +386,8 @@
       {
         "source_id": "public_robot_measurements",
         "kind": "policy_runtime_adapter",
-        "uri": "repo://ora/agent/context/public_facts.py",
-        "local_path": "ora/agent/context/public_facts.py",
+        "uri": "repo://ora/agent/context/observation/public_facts.py",
+        "local_path": "ora/agent/context/observation/public_facts.py",
         "supports": [
           "sensing.state.aperture_mm"
         ]

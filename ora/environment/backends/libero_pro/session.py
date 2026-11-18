@@ -28,9 +28,9 @@ from ora.contracts import (
     POSE_POSITION_TOLERANCE_M,
     compile_absolute_pose,
 )
-from ora.environment.controllers.curobo_motion import (
-    CuroboPlannerClient, _curobo_failure_reason, _curobo_valid_query,
-)
+from ora.environment.controllers import motion_timing
+from ora.environment.controllers.kept_plans import KeptPlans
+from ora.environment.controllers.motion_planner import planner_client
 from ora.environment.backends.libero_pro.motion_settle import (
     GRIPPER_STALL_REASON, gripper_outcome, gripper_stalled,
     merge_settled_receipt, precontact_pose, precontact_refusal,
@@ -123,6 +123,8 @@ from .pinned_imports import (  # noqa: F401  re-exported for construction, previ
     _benchmark_data_binding, _path_is_within, _prepare_pinned_libero_imports,
 )
 from .construction import build_environment as _build_environment
+from .direct import DRIVERS as _DRIVERS, PLAY_DRIVER, PRACTICE_DRIVER
+from .planner_port import NeutralPlannerPort
 
 from .source_binding import LiberoSourceBindingMixin
 from .observation import LiberoObservationMixin
@@ -133,7 +135,9 @@ from .planned_motion import LiberoPlannedMotionMixin
 from .motion_probe import LiberoMotionProbeMixin
 from .probe_feedback import LiberoProbeFeedbackMixin
 from .reach_check import LiberoReachCheckMixin
+from .action_plan import LiberoActionPlanMixin
 from .sparse_motion import LiberoSparseMotionMixin
+from .world_inputs import LiberoWorldInputMixin
 
 
 @dataclass
@@ -148,6 +152,8 @@ class LiberoProSession(
     LiberoProbeFeedbackMixin,
     LiberoMotionProbeMixin,
     LiberoSparseMotionMixin,
+    LiberoActionPlanMixin,
+    LiberoWorldInputMixin,
     LiberoExecutionCaptureMixin,
 ):
     """One trusted, isolated LIBERO-Pro episode writer."""
@@ -194,7 +200,8 @@ class LiberoProSession(
         init=False, default_factory=dict
     )
     robustness_episode: Any = field(init=False, default=None, repr=False)
-    motion_planner: CuroboPlannerClient | None = field(
+    #: The planner client behind ``planner_port.NeutralPlannerPort``.
+    motion_planner: Any = field(
         init=False, default=None, repr=False
     )
     home_joint_state: list[float] | None = field(init=False, default=None)
@@ -210,13 +217,14 @@ class LiberoProSession(
     world_mutation_actions: list[str] = field(init=False, default_factory=list)
     motion_probe_sequence: int = field(init=False, default=0)
     curobo_probe_sequence: int = field(init=False, default=0)
+    world_input_sequence: int = field(init=False, default=0)
     plan_references: dict[str, dict[str, Any]] = field(
         init=False, default_factory=dict, repr=False,
     )
 
     def __post_init__(self) -> None:
         self.execution_capture = resolve_execution_capture(self.execution_capture)
-        if self.environment_driver != "direct_libero_v1":
+        if self.environment_driver not in _DRIVERS:
             raise LiberoProError("unsupported LIBERO environment driver")
         self.libero_pro_root = self.libero_pro_root.expanduser().resolve()
         self.data_root = self.data_root.expanduser().resolve()
@@ -235,6 +243,8 @@ class LiberoProSession(
             })
         except LiberoProBenchmarkError as exc:
             raise LiberoProError(str(exc)) from exc
+        if self.play_scene and self.robustness_case is not None:
+            raise LiberoProError("a LIBERO play scene loads no robustness case")
         if self.robustness_case is not None:
             from .robustness import ROBUSTNESS_CASES, ROBUSTNESS_CODE_REVISION
 
@@ -336,14 +346,11 @@ class LiberoProSession(
                     raise LiberoProError("motion profile transport is unavailable")
                 setter("harness_motion_profile", self.motion_profile)
                 config = dict(self.motion_planner_config or {})
-                self.motion_planner = CuroboPlannerClient(
-                    python_executable=Path(str(config["python_executable"])),
-                    curobo_root=Path(str(config["curobo_root"])),
-                    required_revision=str(config["required_revision"]),
-                    output_root=self.output_root / "curobo",
-                    device=str(config.get("device", "cuda:0")),
-                    request_timeout_s=float(config.get("request_timeout_s", 180.0)),
+                client = planner_client(
+                    config, python_executable=Path(str(config["python_executable"])),
+                    root=Path(str(config["curobo_root"])), output_root=self.output_root / "curobo",
                 )
+                self.motion_planner = NeutralPlannerPort(KeptPlans(client))
                 planner_binding = self.motion_planner.start()
                 motion_state = self._motion_state()
                 self.home_joint_state = list(motion_state["joint_positions"])
@@ -355,6 +362,7 @@ class LiberoProSession(
                     "controller": "CUROBO_JOINT_POSITION+OSC_POSE",
                 }
                 self.metadata["motion_planner_binding"] = planner_binding
+                self._configure_motion_timing(config.get("timing"))
                 self.metadata["motion_profile_binding"] = {
                     "path": str(self.motion_profile_config["path"]),
                     "sha256": str(self.motion_profile_config["sha256"]),
@@ -399,6 +407,7 @@ class LiberoProSession(
             "task_id": self.task_id,
             "seed": self.seed,
             "reset_state_id": self.metadata.get("reset_id"),
+            "initial_state": self._initial_state_record(),
             "task_language": self.expected_task_language,
             "official_predicate_at_reset": None,
             "source_manifest": self.source_manifest,
@@ -409,6 +418,7 @@ class LiberoProSession(
             ),
             "controller_action_contract": self.controller_action_contract,
             "motion_planner_binding": self.metadata.get("motion_planner_binding"),
+            "motion_timing_binding": self.metadata.get("motion_timing_binding"),
             "motion_profile_binding": self.metadata.get("motion_profile_binding"),
             "qualified_controller_binding": (
                 None if self.qualified_controller_binding is None
@@ -418,9 +428,16 @@ class LiberoProSession(
                 self.metadata["public_environment_context"]
             ),
             "robustness": self.metadata.get("robustness_state"),
+            "egl_device": self.metadata.get("egl_device"),
         }
         _atomic_json(self.output_root / "reset.json", reset)
         return reset
+
+    def _initial_state_record(self) -> dict[str, Any] | None:
+        """Which kind of initial state the last reset produced (official index or practice sample)."""
+
+        record = getattr(self.environment, "initial_state_record", None)
+        return dict(record) if isinstance(record, Mapping) else None
 
     def _reset_with_seed(self, seed: int) -> None:
         """Rebind one fixed-task LIBERO reset without replacing the Session."""
@@ -430,6 +447,16 @@ class LiberoProSession(
         environment = self._require_environment()
         if seed == self.seed:
             environment.reset()
+            return
+        if self.environment_driver == PRACTICE_DRIVER:
+            # A practice round samples a fresh scene from its own seed; there is
+            # no official reset id to rebind.
+            from ora.environment.benchmarks.libero_pro import PRACTICE_SEED_FLOOR
+            if seed < PRACTICE_SEED_FLOOR:
+                raise LiberoProError(f"a practice round needs a seed of at least {PRACTICE_SEED_FLOOR}")
+            environment.seed = seed
+            environment.reset()
+            self.seed = seed
             return
         if self.robustness_case is not None:
             raise LiberoProError(
@@ -516,6 +543,7 @@ class LiberoProSession(
             "task_id": self.task_id,
             "seed": self.seed,
             "reset_state_id": self.metadata.get("reset_id"),
+            "initial_state": self._initial_state_record(),
             "round_index": round_index,
             "task_language": self.expected_task_language,
             "official_predicate_at_reset": None,
@@ -533,6 +561,7 @@ class LiberoProSession(
             "public_environment_context": dict(
                 self.metadata["public_environment_context"]
             ),
+            "egl_device": self.metadata.get("egl_device"),
         }
         _atomic_json(
             self.output_root / "round-resets" / f"round-{round_index:04d}.json",
@@ -544,6 +573,12 @@ class LiberoProSession(
         if self.environment is None:
             raise LiberoProError("LIBERO-Pro episode is not started")
         return self.environment
+
+    @property
+    def play_scene(self) -> bool:
+        """The play driver: the scene loads and its official predicate is withheld."""
+
+        return self.environment_driver == PLAY_DRIVER
 
     def _latch_environment_outcome(
         self, *, terminated: Any, truncated: Any, steps: int,
@@ -557,6 +592,8 @@ class LiberoProSession(
             raise LiberoProError("executed step count is malformed")
         term = bool(np.asarray(terminated).any())
         trunc = bool(np.asarray(truncated).any())
+        if term and self.play_scene:
+            raise LiberoProError("a play scene reported the official predicate it withholds")
         self.sim_steps += steps
         self.terminated = self.terminated or term
         self.truncated = self.truncated or trunc
@@ -622,7 +659,8 @@ class LiberoProSession(
             self._capture_command("terminal")
         verdict = {
             "schema": VERDICT_SCHEMA,
-            "official_success": bool(self.terminated),
+            # A play scene has no official boundary: its verdict is null.
+            "official_success": None if self.play_scene else bool(self.terminated),
             "suite": self.suite,
             "task_id": self.task_id,
             "seed": self.seed,
@@ -637,11 +675,40 @@ class LiberoProSession(
                 0 if self.robustness_episode is None
                 else self.robustness_episode.event_sequence
             ),
-            "source": "LIBERO environment termination",
+            "source": (
+                "LIBERO play scene (official predicate withheld)" if self.play_scene
+                else "LIBERO environment termination"
+            ),
             "created_unix_s": time.time(),
         }
         _atomic_json(self.output_root / "official-verdict.json", verdict)
         return verdict
+
+    def _configure_motion_timing(self, timing: Any) -> None:
+        """Time global routes as ``runtime.motion_planner.timing`` says, whatever this process's environment holds.
+
+        Without it (a frozen baseline) ``motion_pace``'s own timing runs. With it, the interpreter is the one the
+        passing preflight started (``qualified_controller_binding.motion_timing``): the isolated worker's
+        environment is allowlisted and holds no ``ORA_TIMING_PYTHON``. A direct session without a preflight
+        binding reads the variable ``python_env`` names."""
+
+        if timing is None:
+            motion_timing.configure(None)
+            self.metadata["motion_timing_binding"] = motion_timing.binding()
+            return
+        if not isinstance(timing, Mapping) or timing.get("implementation") != "toppra_ruckig" \
+                or not isinstance(timing.get("python_env"), str):
+            raise LiberoProError("runtime.motion_planner.timing is malformed")
+        bound = (self.qualified_controller_binding or {}).get("motion_timing")
+        python = bound.get("python") if isinstance(bound, Mapping) else os.environ.get(timing["python_env"])
+        if not python:
+            raise LiberoProError(f"the motion timing interpreter is unbound ({timing['python_env']})")
+        motion_timing.configure(os.path.abspath(os.path.expanduser(python)),
+                                stderr_path=self.output_root / "timing/worker.stderr.log")
+        binding = motion_timing.binding()
+        if isinstance(bound, Mapping) and binding.get("python_sha256") != bound.get("python_sha256"):
+            raise LiberoProError("the motion timing interpreter changed after preflight")
+        self.metadata["motion_timing_binding"] = binding
 
     def close(self) -> None:
         self._capture_command("close")
@@ -649,6 +716,7 @@ class LiberoProSession(
         self.motion_planner = None
         if planner is not None:
             planner.close()
+        motion_timing.close()
         environment = self.environment
         self.environment = None
         if environment is None:

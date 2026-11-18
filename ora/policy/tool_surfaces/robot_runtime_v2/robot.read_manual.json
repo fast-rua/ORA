@@ -1,0 +1,18 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "robot.read_manual",
+  "description": "Read one named section from the embodiment manual. The advertised section enum is the complete current directory; section matching is exact and case-sensitive. Read only the sections needed for the present uncertainty.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "section": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "section"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

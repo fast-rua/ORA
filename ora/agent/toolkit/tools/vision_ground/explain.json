@@ -1,0 +1,79 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "vision_ground",
+  "events": {
+    "query_cache": ["hit"]
+  },
+  "call": [
+    "{args.camera}",
+    "\"{args.text}\""
+  ],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"eq": ["result.status", "no_candidate"]}, "text": "no candidate", "failed": true},
+    {"text": "{result.candidates|count|n:candidate}"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "the text and camera the regions were requested for",
+      "line": "find regions matching \"{args.text}\" in the {args.camera} camera, at most {args.max_candidates|or:3}"
+    },
+    {
+      "name": "service",
+      "doc": "whether the grounding service was asked or a kept result of the same query was reused (stage event query_cache), how many regions came back and their scores",
+      "when": {"has": "result.diagnostics"},
+      "line": [
+        {"if": {"eq": ["events.query_cache[0].hit", true]},
+         "text": "reused the kept result of this query on this observation (no new request)"},
+        {"if": {"eq": ["events.query_cache[0].hit", false]}, "text": "asked the grounding service"},
+        {"if": {"has": "result.diagnostics.returned_candidate_count"},
+         "text": "{result.diagnostics.returned_candidate_count|n:region} returned"},
+        {"if": {"not": {"empty": "result.candidates"}}, "text": "scores {result.candidates[].backend_score|f2|join}"}
+      ],
+      "verdict": [
+        {"if": {"eq": ["result.diagnostics.returned_candidate_count", 0]}, "text": "no region"}
+      ]
+    },
+    {
+      "name": "measurement",
+      "doc": "each region's mask size, its depth coverage and, where the depth suffices, its world position, extent and height above the support surface",
+      "when": {"not": {"empty": "result.candidates"}},
+      "line": "{result.candidates|count|n:region} measured on the aligned depth",
+      "verdict": [
+        {"if": {"not": {"empty": "result.candidates[?localization.status=insufficient_depth]"}},
+         "text": "{result.candidates[?localization.status=insufficient_depth]|count} without enough depth to localize"},
+        {"text": "all localized"}
+      ],
+      "each": {
+        "over": "result.candidates",
+        "line": [
+          "{item.candidate_id}: score {item.backend_score|f2}",
+          "{item.mask_summary.pixel_count} px ({item.mask_summary.area_fraction|pct1} of the image) around {item.mask_summary.centroid_uv|uv}",
+          "valid depth on {item.mask_summary.depth_valid_fraction|pct} of the mask",
+          {"if": {"eq": ["item.localization.status", "localized"]},
+           "text": "centre {item.localization.center_xyz_m|xyz} m (world), extent {item.localization.extent_xyz_m|xyz} m"},
+          {"if": {"all": [{"eq": ["item.localization.status", "localized"]}, {"has": "item.localization.height_above_support_m"}]},
+           "text": "{item.localization.height_above_support_m|cm} above its support"},
+          {"if": {"eq": ["item.localization.status", "insufficient_depth"]},
+           "text": "insufficient depth: no position or size"}
+        ]
+      }
+    }
+  ],
+  "conclusion": [
+    {"if": {"eq": ["result.status", "no_candidate"]},
+     "text": "no region matched \"{args.text}\" in the {args.camera} view"},
+    {"text": "{result.candidates|count|n:candidate} ranked by score within this call; rank and score do not identify the object, so compare each overlay with the task before choosing one"}
+  ],
+  "next": [
+    {"if": {"eq": ["result.status", "no_candidate"]},
+     "text": "rephrase it as a short visible description, ground it in another camera, or use vision_segment with a point you can place inside the object"},
+    {"if": {"eq": ["error.code", "invalid_arguments"]},
+     "text": "correct {error.field|or:the arguments}: {error.message}"},
+    {"if": {"eq": ["error.code", "grounding_unavailable"]},
+     "text": "the grounding service is not available: retry once, and hand back if it stays unavailable"},
+    {"if": {"eq": ["error.code", "grounding_failed"]},
+     "text": "the service did not answer for this request ({error.message}): retry once with a shorter description"}
+  ]
+}

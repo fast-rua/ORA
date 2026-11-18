@@ -26,7 +26,7 @@ from ora.environment.benchmarks.robodojo import RoboDojoBenchmarkError
 LAYOUT_SCHEDULE_SCHEMA = "ora.robodojo-layout-schedule.v1"
 #: A round's upstream per-environment seed is its layout ordinal.
 ENV_SEED_POLICY = "layout_id"
-LAYOUT_CATALOG_PATH = "ora/environment/benchmarks/robodojo-layout-pools-v1.json"
+LAYOUT_CATALOG_PATH = "ora/environment/benchmarks/robodojo-layout-pools-v2.json"
 #: A builder selection that keeps the round-0 layout in every round: the
 #: deliberate historical treatment of the g003-g007 cells, which carries no
 #: ``layout_schedule`` field.
@@ -38,10 +38,11 @@ SCHEDULE_FIELDS = frozenset({"schema", "eval_seed", "env_seed_policy", "rounds",
 ROUND_FIELDS = frozenset({"layout_id", "layout_file", "layout_sha256"})
 SELECTION_FIELDS = frozenset({"catalog", "catalog_sha256"})
 MAXIMUM_SCHEDULED_ROUNDS = 32
-#: Tasks whose scene setup is not relaunch-safe: fold_clothes prepares CUDA
-#: garments by wrapping scene-manager and garment methods once per setup, so a
-#: relaunch would wrap them again. They keep the unscheduled treatment.
-RELAUNCH_UNSAFE_TASKS = frozenset({"fold_clothes"})
+#: Tasks whose scene setup is not relaunch-safe: fold_clothes and
+#: fold_clothes_random prepare CUDA garments by wrapping scene-manager and
+#: garment methods once per setup, so a relaunch would wrap them again. They
+#: keep the unscheduled treatment.
+RELAUNCH_UNSAFE_TASKS = frozenset({"fold_clothes", "fold_clothes_random"})
 #: Layout sections whose instances upstream registers as scene objects on
 #: CUDA, mapped to the scene-manager collection that holds them. Fluid is
 #: disabled upstream on CUDA and never registered.

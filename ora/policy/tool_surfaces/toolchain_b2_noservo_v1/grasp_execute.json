@@ -1,0 +1,108 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "grasp_execute",
+  "description": "Execute your selected grasp through open, pregrasp, approach, close, lift and verify.\nUse when: grasp_plan returned candidates on the current observation and you selected one, the gripper may open at its current position, and a short upward probe is appropriate. Use manual motion for articulation or a grasp that must not lift.\nEffect: opens the gripper first, which releases anything currently held; a nearly closed gripper is not proof it is empty. Moves to the candidate's pregrasp pose, follows its approach to the contact pose, closes, then requests 3 cm world-up at the same orientation. The Supervisor drives five stage actions as one robot decision with no intermediate Agent turn. Pose stages use the same semantic motion route as manual move_pose: free-space pregrasp, contact approach, and precision lift. Opening uses the embodiment's open directive, not the candidate's predicted aperture. Targets are committed once.\nReturns: the submitted sequence and cost immediately; on the next turn, stage statuses, the post-close baseline images and current post-lift images, measured TCP lift and jaw openings, plus rigid-versus-stationary depth support for the selected visible surface. Occluded, unavailable or ambiguous surface evidence is unknown.\nDoes not: change candidate, retry, stop for a decision halfway, infer an empty gripper before opening, or certify attachment, stable transport or task success. Depth support does not re-identify an object; a completed sequence only records execution.\nOn error: Refused: a candidate from an earlier observation (stale_candidate_observation) or not published by grasp_plan (candidate_unavailable); a pregrasp or contact pose that is missing, non-finite or more than 0.001 from a unit quaternion, a pregrasp whose orientation differs from the contact orientation or that does not stand off from it, or a pregrasp, contact or 3 cm lift pose outside the action workspace (candidate_geometry_unavailable); either probed pose unreachable, or the two reachable only under different equivalents (grasp_pregrasp_unreachable); another committed sequence in flight (skill_sequence_active); a placement waiting at its pre-release stop (skill_sequence_paused); the episode's terminal boundary (episode_terminal). Stale candidates require grasp_plan on the current observation. A stage that does not arrive ends the sequence before later stages, with a fresh observation; inspect it and re-plan. If lift did not complete, the final scene may differ from the post-close baseline. Before opening or committing, runs one read-only backend probe of the selected pregrasp and contact poses, each from the current measured joints, over their parallel-jaw equivalents: rolls of 0 and +/-10 degrees about the approach axis, and the same about the 180-degree jaw flip. When the compiled poses are not both admitted but one equivalent admits both, that equivalent is committed and reported as pose_selection adopted_equivalent. A refusal submits no action and reports grasp_pregrasp_unreachable with a bounded planning summary; select another candidate or reposition. Passing covers only these current-state poses under the backend's published collision coverage. The Supervisor revalidates execution after opening; contact, lift and retention remain unchecked by the probe. The acknowledgement and final receipt include precommit_motion_check (one query, zero robot decisions). ik_outcome_counts names no_valid_endpoint, or no_admitted_trajectory when valid endpoints exist but no planned trajectory to them passed admission, and constraint_rejection_counts gives the three filters this backend measures, the others null. They describe one bounded IK solve and its trajectory admission, not proof that the pregrasp is unreachable. Fixed texts stated once here and left out of results and effects: the result's claim_boundary is \"one committed sequence of trusted executions and the public measurements taken after it; motion arrival and jaw separation beside visible extents are evidence, not grasp, placement, retention or official task success\"; precommit_motion_check.claim_boundary (also in a grasp_pregrasp_unreachable refusal) is \"Current-state planning/admission for the probed stages, with the selected backend's collision coverage. Does not certify contact, lift, retention or task success; execution revalidates after opening.\"; last_action_effect.detail.verification.claim_boundary is \"jaw separation beside visible extents is evidence, not a holding verdict; no value of this pair establishes contact or retention\"; last_action_effect.detail.verification.lift_probe.claim_boundary is \"short_lift_evidence_only;not_attachment_or_stable_transport_or_task_success\".",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "candidate_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "The candidate_id of one candidate from a grasp_plan call on the current observation. A candidate produced from an earlier observation is refused as stale rather than executed against geometry the robot has moved through."
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "One short sentence saying why this candidate was chosen over the others, at most 200 characters. It is echoed into the receipt and is the only record of the reason: the trajectory keeps the call and its result, never the reasoning behind them."
+      }
+    },
+    "required": [
+      "candidate_id",
+      "rationale"
+    ]
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "submitted",
+          "aborted"
+        ]
+      },
+      "skill": {
+        "type": "string",
+        "enum": [
+          "grasp_execute",
+          "place_execute"
+        ]
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "committed_sequence": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "driving_stages": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "cost": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "robot_decisions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1
+          },
+          "dispatched_stage_actions": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          }
+        },
+        "required": [
+          "robot_decisions",
+          "dispatched_stage_actions"
+        ]
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "transition": {
+        "type": "string"
+      },
+      "released": {
+        "type": "boolean"
+      },
+      "claim_boundary": {
+        "type": "string"
+      },
+      "precommit_motion_check": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Observation-bound exact selected-pregrasp planning summary; no physical success certificate."
+      }
+    },
+    "required": [
+      "success",
+      "status",
+      "skill",
+      "candidate_id",
+      "claim_boundary"
+    ]
+  }
+}

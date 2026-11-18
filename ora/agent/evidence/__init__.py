@@ -1,3 +1,1 @@
-"""Canonical policy evidence APIs."""
-
-from .trajectory import *  # noqa: F401,F403
+"""Canonical policy evidence: the agent trace, its artifacts, verification and export."""

@@ -1,0 +1,52 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "report_issue",
+  "description": "Record a concise tool or context defect for later inspection. Use when: public evidence or an interface result is inconsistent or lacks an admissible next step; ordinary task difficulty alone is not an interface defect. Effect: writes a local issue record without changing the world or ending the episode. Returns: success after recording the message. Does not: deliver a human answer, repair a tool or change the official verdict. On error: supply one nonempty message describing the concrete evidence or interface defect.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Nonempty issue description from current public evidence; does not request human steering or change the task."
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success",
+          "reason"
+        ],
+        "type": "object"
+      }
+    ]
+  }
+}

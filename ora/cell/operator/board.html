@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="zh" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YAM Cell</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Ctext x='6' y='25' font-family='Georgia,serif' font-size='24' fill='%23F0F0F0'%3EY%3C/text%3E%3Ccircle cx='26' cy='24' r='3' fill='%23C6011F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #FFFFFF; --bg-card: #FFFFFF; --bg-sunk: #F7F7F7;
+  --text: #000000; --text-2: #333333; --text-3: #666666;
+  --accent: #C6011F; --border: #E0E0E0; --border-2: #F0F0F0;
+  --display: 'EB Garamond', 'Noto Serif SC', Georgia, serif;
+  --body: 'Inter', system-ui, -apple-system, 'PingFang SC', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"] {
+  --bg: #0A0A0A; --bg-card: #111111; --bg-sunk: #0D0D0D;
+  --text: #F0F0F0; --text-2: #B0B0B0; --text-3: #777777;
+  --accent: #E53935; --border: #222222; --border-2: #1A1A1A;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { font: 13px/1.5 var(--body); color: var(--text); background: var(--bg); }
+::selection { background: rgba(198, 1, 31, .18); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono, td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.t2 { color: var(--text-2); } .t3 { color: var(--text-3); }
+
+/* ---------- bar ---------- */
+.bar { position: sticky; top: 0; z-index: 10; height: 52px; display: flex; align-items: center; gap: 18px;
+       padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+.mark { position: relative; font: 600 26px/1 var(--display); width: 22px; }
+.mark::after { content: ""; position: absolute; right: -4px; bottom: 3px; width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
+.brand h1 { font: 500 19px/1 var(--display); letter-spacing: .01em; }
+.brand .sub { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+.chips { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border: 1px solid var(--border);
+        border-radius: 3px; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
+.chip.ok i { background: var(--text); } .chip.warn { border-color: var(--text-3); color: var(--text); } .chip.warn i { background: transparent; border: 1px solid var(--text); }
+.chip.bad { border-color: var(--accent); color: var(--text); } .chip.bad i { background: var(--accent); }
+.spacer { flex: 1; }
+.btn { height: 30px; padding: 0 14px; border: 1px solid var(--border); border-radius: 3px; background: transparent; color: var(--text);
+       font: 500 12.5px var(--body); cursor: pointer; letter-spacing: .02em; transition: border-color .15s; white-space: nowrap; }
+.btn:hover { border-color: var(--text); } .btn:disabled { opacity: .45; cursor: progress; }
+.btn.live { display: inline-flex; align-items: center; gap: 8px; }
+.btn.live i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--text-3); }
+.btn.live.on { border-color: var(--accent); } .btn.live.on i { background: var(--accent); border-color: var(--accent); animation: pulse 1.6s infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.icon { width: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+
+/* ---------- layout ---------- */
+main { padding: 16px 20px 48px; display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.panel { grid-column: span 12; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; min-width: 0; }
+.s8 { grid-column: span 8; } .s4 { grid-column: span 4; } .s6 { grid-column: span 6; }
+@media (max-width: 1280px) { .s8, .s4 { grid-column: span 12; } }
+@media (max-width: 900px) { .s6 { grid-column: span 12; } }
+.head { display: flex; align-items: center; gap: 12px; padding: 12px 14px 10px; }
+.head h2 { position: relative; font: 500 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-2);
+           padding-left: 32px; white-space: nowrap; }
+.head h2::before { content: ""; position: absolute; left: 0; top: 50%; width: 24px; height: 2px; background: var(--accent); }
+.head .meta { font-size: 12px; color: var(--text-3); }
+.head .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.body { padding: 0 14px 14px; }
+
+/* ---------- viewer ---------- */
+.viewer { position: relative; height: min(70vh, 720px); min-height: 420px; border-top: 1px solid var(--border); background: var(--bg-sunk); overflow: hidden; }
+.viewer canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; pointer-events: none; }
+.tools { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; pointer-events: auto; align-items: flex-end; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); overflow: hidden; }
+.seg button { height: 26px; padding: 0 10px; border: 0; border-left: 1px solid var(--border); background: transparent; color: var(--text-3);
+              font: 500 11.5px var(--body); cursor: pointer; }
+.seg button:first-child { border-left: 0; } .seg button:hover { color: var(--text); }
+.seg button.on { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+.legend { position: absolute; left: 12px; bottom: 10px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--text-2); pointer-events: auto; }
+.legend label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+.legend input { accent-color: var(--accent); }
+.legend .sw { width: 8px; height: 8px; border-radius: 1px; }
+.stats { position: absolute; left: 12px; top: 10px; font: 11.5px var(--mono); color: var(--text-3); line-height: 1.7; }
+.empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-3); pointer-events: auto; }
+.empty .big { font: 500 22px var(--display); color: var(--text-2); }
+.range { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); font-size: 11.5px; color: var(--text-3); }
+.range input { width: 90px; accent-color: var(--accent); }
+
+/* ---------- cameras ---------- */
+.cams { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+@media (max-width: 1280px) { .cams { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 900px) { .cams { grid-template-columns: 1fr 1fr; } }
+.cam { background: var(--bg-card); padding: 8px 10px 10px; min-width: 0; }
+.cam .top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.cam .role { font: 500 12.5px var(--body); }
+.cam .top .seg button { height: 20px; padding: 0 7px; font-size: 10.5px; }
+.frame { position: relative; aspect-ratio: 848 / 480; background: var(--bg-sunk); border: 1px solid var(--border-2); border-radius: 2px; overflow: hidden; }
+.frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.frame .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 11.5px; }
+.cam .foot { display: flex; gap: 10px; margin-top: 6px; font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; }
+.tag { display: inline-block; padding: 0 5px; border: 1px solid var(--border); border-radius: 2px; font-size: 10.5px; color: var(--text-2); }
+.tag.red { border-color: var(--accent); color: var(--text); }
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; }
+th { font: 500 10.5px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+td { padding: 5px 8px; border-bottom: 1px solid var(--border-2); vertical-align: middle; }
+td.n, th.n { text-align: right; font-size: 12px; }
+tr:last-child td { border-bottom: 0; }
+.gauge { position: relative; height: 14px; min-width: 110px; }
+.gauge::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 1px; background: var(--border); }
+.gauge .rest { position: absolute; top: 3px; width: 1px; height: 9px; background: var(--text-3); }
+.gauge .now { position: absolute; top: 1px; width: 2px; height: 13px; background: var(--accent); }
+.arms { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+@media (max-width: 1100px) { .arms { grid-template-columns: 1fr; } }
+.arm { background: var(--bg-card); padding: 12px 14px; min-width: 0; }
+.arm h3 { display: flex; align-items: baseline; gap: 10px; font: 500 17px var(--display); margin-bottom: 8px; }
+.arm h3 .mono { font-size: 11.5px; color: var(--text-3); font-weight: 400; }
+.motors { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-2); border: 1px solid var(--border-2); margin-top: 10px; }
+.motor { background: var(--bg-card); padding: 6px 6px; font-size: 11px; min-width: 0; }
+.motor b { display: block; font: 500 11px var(--mono); }
+.motor .st { display: block; margin: 2px 0; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.motor.fault { box-shadow: inset 2px 0 0 var(--accent); } .motor.fault .st { color: var(--text); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; }
+.kv dt { color: var(--text-3); white-space: nowrap; } .kv dd { color: var(--text-2); min-width: 0; }
+.list { list-style: none; } .list li { padding: 7px 0 7px 12px; border-left: 2px solid var(--border); margin: 2px 0; color: var(--text-2); }
+.list li.todo { border-left-color: var(--accent); color: var(--text); }
+.list li .t3 { font-size: 11.5px; }
+.err { border-left: 2px solid var(--accent); padding: 6px 10px; margin: 0 14px 12px; color: var(--text); background: var(--bg-sunk); white-space: pre-wrap; font-size: 12px; }
+.note { padding: 0 14px 10px; color: var(--text-3); font-size: 12px; }
+.resets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+@media (max-width: 1000px) { .resets { grid-template-columns: 1fr; } }
+.group { background: var(--bg-card); padding: 12px 14px; }
+.group h3 { font: 500 11px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+.act { display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-2); }
+.act:last-child { border-bottom: 0; }
+.act .btn { width: 100%; }
+.btn.danger { border-color: var(--accent); }
+.overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+@media (max-width: 1100px) { .overview { grid-template-columns: 1fr 1fr; } }
+.ov { background: var(--bg-card); padding: 12px 14px 14px; min-width: 0; }
+.ov .k { font: 500 10.5px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+.ov .v { font: 500 21px/1.25 var(--display); margin: 4px 0 4px; }
+.ov .v.alert { box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
+.ov .d { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.armview { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .armview { grid-template-columns: 1fr; } }
+.sketch { border: 1px solid var(--border-2); border-radius: 3px; background: var(--bg-sunk); }
+.sketch svg { display: block; width: 100%; height: auto; }
+.sketch .cap { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 11px; color: var(--text-3); border-top: 1px solid var(--border-2); }
+.facts2 { display: grid; grid-template-columns: max-content 1fr; gap: 7px 14px; font-size: 13px; }
+.facts2 dt { color: var(--text-3); white-space: nowrap; } .facts2 dd { color: var(--text); }
+.facts2 dd .t3 { font-size: 11.5px; }
+.joints { margin-top: 12px; }
+.joint { display: grid; grid-template-columns: 84px 1fr 92px; gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border-2); font-size: 12.5px; }
+.joint:last-child { border-bottom: 0; }
+.joint .nm { color: var(--text-2); } .joint .st { text-align: right; color: var(--text-3); font-size: 11.5px; }
+.joint .st.warn { color: var(--text); box-shadow: inset -2px 0 0 var(--accent); padding-right: 6px; }
+details.eng { margin-top: 12px; border-top: 1px solid var(--border-2); padding-top: 8px; }
+details.eng summary { cursor: pointer; color: var(--text-3); font-size: 11.5px; letter-spacing: .06em; }
+details.eng[open] summary { margin-bottom: 8px; }
+.act p { font-size: 12px; color: var(--text-3); line-height: 1.45; }
+.result { margin: 0 14px 14px; padding: 8px 10px; border-left: 2px solid var(--border); background: var(--bg-sunk); font-size: 12px; white-space: pre-wrap; color: var(--text-2); }
+.result.on { border-left-color: var(--accent); color: var(--text); }
+.btn.reset { border-color: var(--accent); }
+dialog { margin: auto; max-width: 460px; width: calc(100% - 32px); padding: 0; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); }
+dialog::backdrop { background: rgba(0, 0, 0, .55); }
+dialog .in { padding: 18px 18px 14px; }
+dialog h3 { position: relative; font: 500 19px var(--display); padding-left: 32px; margin-bottom: 10px; }
+dialog h3::before { content: ""; position: absolute; left: 0; top: 50%; width: 24px; height: 2px; background: var(--accent); }
+dialog p { color: var(--text-2); font-size: 13px; line-height: 1.6; }
+dialog .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.approval { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.alerts { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.alerts[hidden] { display: none; }
+.alerts .alert { padding: 6px 0; border-top: 1px solid var(--border); }
+.alerts .alert:first-child { border-top: 0; }
+.alerts .critical .tag { background: var(--accent); color: #fff; }
+.approval[hidden] { display: none; }
+#mode-seg button[data-v="auto"].on { color: var(--accent); font-weight: 600; }
+#mode-seg button:disabled { opacity: .45; cursor: not-allowed; }
+.mode-detail { padding: 0 14px 12px; font-size: 12px; line-height: 1.6; color: var(--text-2); white-space: pre-wrap; }
+.mode-detail:empty { display: none; }
+.ask { display: grid; gap: 10px; padding: 0 14px 14px 17px; }
+.ask .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ask .title { font: 500 22px/1.25 var(--display); }
+.ask .text { white-space: pre-wrap; font-size: 14px; line-height: 1.65; color: var(--text); }
+.ask pre { font: 11.5px/1.5 var(--mono); color: var(--text-2); white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow: auto; }
+.ask .reason { flex: 1; min-width: 200px; height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: 3px;
+               background: var(--bg); color: var(--text); font: 13px var(--body); }
+.ask .reason:focus { border-color: var(--text); outline: none; }
+.btn.approve { background: var(--accent); color: #fff; border-color: var(--accent); min-width: 96px; }
+.btn.decline { min-width: 96px; }
+.ask .value { flex: 0 0 160px; min-width: 0; font-family: var(--mono); }
+.field { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+.field input { width: 110px; height: 30px; padding: 0 8px; border: 1px solid var(--border); border-radius: 3px;
+               background: var(--bg); color: var(--text); font: 13px var(--mono); }
+.field input:focus { border-color: var(--text); outline: none; }
+#handeye .result { max-height: 220px; overflow: auto; }
+#handeye-outcome { padding: 0 14px 14px; font-size: 13px; line-height: 1.6; }
+#handeye-outcome:empty { display: none; }
+.floating { display: none; }
+.floating.on { display: flex; align-items: center; gap: 10px; margin: 0 14px 12px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 3px; }
+</style>
+<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><span class="mark">Y</span><h1>YAM Cell</h1><span class="sub">真机看板</span></div>
+  <div class="chips">
+    <span class="chip ok" title="本页从不使能电机，只发 DISABLE 帧读状态"><i></i>只读 · 0xFD</span>
+    <span id="c-lock" class="chip"><i></i>锁</span>
+    <span id="c-left" class="chip"><i></i>can_left</span>
+    <span id="c-right" class="chip"><i></i>can_right</span>
+    <span id="c-procs" class="chip"><i></i>其他控制器</span>
+  </div>
+  <div class="spacer"></div>
+  <span id="clock" class="t3 mono" style="font-size:11.5px"></span>
+  <button class="btn" data-reset="go-home" title="不管现在什么状态，慢慢回到静止位再释放；手臂不会掉" style="background:var(--accent);color:#fff;border-color:var(--accent)">回到起始位</button>
+  <button id="go-reset" class="btn reset" title="跳到复位面板">复位</button>
+  <button id="live" class="btn live"><i></i><span>开始实时</span></button>
+  <button id="theme" class="btn icon" title="明暗切换" aria-label="明暗切换">◐</button>
+</header>
+
+<main>
+  <section class="panel alerts" id="alerts" hidden>
+    <div class="head"><h2>报警</h2><span class="meta" id="alerts-meta"></span></div>
+    <div id="alerts-body"></div>
+  </section>
+
+  <section class="panel" id="auto">
+    <div class="head"><h2>动作批准</h2><span class="meta" id="auto-meta"></span>
+      <span class="spacer"></span>
+      <div class="seg" id="mode-seg" role="radiogroup" aria-label="批准模式"><button data-v="ask" class="on" title="每个动作都先在这里等你批准">每个动作都问</button><button data-v="safe" title="在安全限制内的小动作直接执行，其他动作仍等你批准">小动作自动</button><button data-v="auto" title="智能体的每个动作都直接执行（只对正在驱动手臂的进程有效）">全部自动</button></div></div>
+    <div class="mode-detail" id="mode-detail"></div>
+  </section>
+
+  <section class="panel approval" id="approval" hidden>
+    <div class="head"><h2>等你批准</h2><span class="meta" id="approval-meta"></span></div>
+    <div class="ask" id="approval-body"></div>
+  </section>
+
+  <section class="panel" id="handeye">
+    <div class="head"><h2>手眼标定</h2><span class="meta" id="handeye-meta"></span>
+      <span class="spacer"></span><button class="btn" id="handeye-toggle">开始手眼标定</button></div>
+    <div class="ask" id="handeye-form" hidden>
+      <div class="text">准备一块平整、不反光的棋盘格标定板和一把尺子。下面三项可以不填，开始后会在「等你批准」里问。</div>
+      <div class="row">
+        <label class="field">格子边长（mm）<input id="he-square" inputmode="decimal" placeholder="如 20"></label>
+        <label class="field">内角点（列x行）<input id="he-pattern" placeholder="如 11x8"></label>
+        <label class="field">摆位数<input id="he-placements" inputmode="numeric" placeholder="默认 5"></label>
+        <span class="spacer"></span><button class="btn approve" id="he-start">开始</button>
+      </div>
+    </div>
+    <div class="result" id="handeye-log" style="display:none"></div>
+    <div id="handeye-outcome"></div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><h2>现在的状态</h2><span class="meta">一句话看懂；细节在下面</span></div>
+    <div class="overview" id="overview"></div>
+  </section>
+
+  <section class="panel s8">
+    <div class="head"><h2>场景点云</h2><span class="meta">yam_station_world · 四相机合成</span>
+      <div class="right"><span class="range">密度<input id="stride" type="range" min="2" max="10" step="1" value="4"></span>
+        <span class="range">点径<input id="psize" type="range" min="1" max="8" step="0.5" value="2.5"></span></div></div>
+    <div class="viewer" id="viewer">
+      <div class="overlay">
+        <div class="stats" id="stats"></div>
+        <div class="tools">
+          <div class="seg" id="depth-mode" title="深度来源"><button data-v="raw" class="on">原始深度</button><button data-v="completed">补全</button></div>
+          <div class="seg" id="color-mode"><button data-v="rgb" class="on">颜色</button><button data-v="height">高度</button><button data-v="camera">相机</button></div>
+          <div class="seg" id="views"><button data-v="persp">透视</button><button data-v="top">俯视</button><button data-v="front">正视</button><button data-v="side">侧视</button></div>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="empty" id="empty"><span class="big">实时未开启</span>
+          <span>开启后四台相机常开、关节 10 Hz 只读；期间 ORA episode 无法启动，30 秒无人查看自动关闭</span>
+          <button class="btn" id="empty-start">开始实时</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel s4">
+    <div class="head"><h2>相机</h2><span class="meta" id="cam-meta"></span></div>
+    <div class="cams" id="cams"></div>
+  </section>
+
+  <section class="panel" id="reset-panel">
+    <div class="head"><h2>复位</h2><span class="meta">出问题时从这里恢复 · 会动或会掉的操作都先确认</span>
+      <div class="right"><button class="btn" data-reset="diagnose">诊断</button></div></div>
+    <div class="floating" id="floating"><span id="holder-what"></span><span class="t3" id="floating-since"></span>
+      <span class="spacer"></span><button class="btn" data-reset="go-home">回到起始位</button>
+      <button class="btn" data-reset="hold">保持不动</button><button class="btn" data-reset="float">切换浮动</button>
+      <button class="btn danger" data-reset="release-held">释放（会软掉）</button></div>
+    <div class="resets">
+      <div class="group"><h3>回位</h3>
+        <div class="act"><button class="btn" data-reset="go-home" style="border-color:var(--accent)">回到起始位</button><p>任何状态下都可以点：在动的程序会自己回位；卡住 20 秒不响应就由看板接管开回去；被挡住就停在原地保持，不会掉。</p></div>
+        <div class="act"><button class="btn danger" data-reset="kill">结束占用进程</button><p>结束卡死的程序。之后请立刻点“回到起始位”，让看板在电机超时前接管。</p></div>
+      </div>
+      <div class="group"><h3>手扶</h3>
+        <div class="act"><button class="btn danger" data-reset="float">浮动（手扶）</button><p>重力补偿，扶到哪停到哪；扶好后点“保持不动”或“回到起始位”。</p></div>
+        <div class="act"><button class="btn" data-reset="hold">保持不动</button><p>通电锁住当前姿态，手可以离开。</p></div>
+      </div>
+      <div class="group"><h3>设备与最后手段</h3>
+        <div class="act"><button class="btn" data-reset="cameras">相机复位</button><p>四台 RealSense 硬件复位，约 5 秒。</p></div>
+        <div class="act"><button class="btn" data-reset="can">CAN 重置</button><p>重建两条 CAN 接口，需要 sudo；没有免密时给出命令。</p></div>
+        <div class="act"><button class="btn danger" data-reset="estop">紧急失能</button><p>最后手段：立刻给所有电机发失能，手臂当场软掉落下，可能磕碰。</p></div>
+      </div>
+    </div>
+    <div class="result" id="reset-result" style="display:none"></div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><h2>手臂</h2><span class="meta" id="arms-meta">未读取</span>
+      <div class="right"><button class="btn" id="read-arms">读一次</button></div></div>
+    <div id="arms-err"></div>
+    <div class="arms" id="arms"></div>
+  </section>
+
+  <section class="panel s4">
+    <div class="head"><h2>总线与占用</h2></div>
+    <div class="body" id="buses"></div>
+  </section>
+
+  <section class="panel s4">
+    <div class="head"><h2>标定</h2><span class="meta mono" id="cal-path"></span></div>
+    <div class="body"><ul class="list" id="cal"></ul></div>
+  </section>
+
+  <section class="panel s4">
+    <div class="head"><h2>腕部桌面检查</h2><span class="meta" id="wrist-meta"></span>
+      <div class="right"><button class="btn" id="wrist-run">运行</button></div></div>
+    <div class="note">腕部 D405 位姿来自编码器 + CAD。看到的桌面应水平（≤ 3°）且在标定高度（± 15 mm）。静止位时腕部掠射看桌面，结论不作数。</div>
+    <div class="body" id="wrist"></div>
+  </section>
+
+  <section class="panel s6">
+    <div class="head"><h2>关键事实</h2></div>
+    <div class="body"><dl class="kv" id="facts"></dl></div>
+  </section>
+
+  <section class="panel s6">
+    <div class="head"><h2>本 Cell 记录</h2></div>
+    <div class="body"><ul class="list" id="notes"></ul></div>
+  </section>
+</main>
+
+<dialog id="confirm"><div class="in"><h3 id="confirm-title"></h3><p id="confirm-text"></p>
+  <div class="row"><button class="btn" id="confirm-no">取消</button><button class="btn danger" id="confirm-yes" style="border-color:var(--accent)">确认执行</button></div></div></dialog>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+let ROLES = ["front", "overhead", "wrist_left", "wrist_right"];   // replaced by the cell config's cameras
+const ROLE_CN = { front: "front · 后上方", overhead: "overhead · 俯视", wrist_left: "wrist_left · 左腕", wrist_right: "wrist_right · 右腕" };
+const ARM_CN = { left: "左臂", right: "右臂" };
+const CAM_COLOR = [[0.94, 0.94, 0.94], [0.90, 0.22, 0.21], [0.50, 0.65, 0.85], [0.88, 0.70, 0.32]];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const f = (v, d = 3) => (v === null || v === undefined || Number.isNaN(v)) ? "—" : Number(v).toFixed(d);
+const ago = (t) => { if (!t) return "—"; const s = Date.now() / 1000 - t; return s < 60 ? `${s.toFixed(0)} 秒前` : s < 3600 ? `${(s / 60).toFixed(0)} 分钟前` : new Date(t * 1000).toLocaleString(); };
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+/* ---------------- theme ---------------- */
+document.documentElement.dataset.theme = store.get("yam-theme", "dark");
+$("theme").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("yam-theme", t); applySceneTheme(); };
+
+/* ---------------- three.js scene ---------------- */
+const host = $("viewer");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+host.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 50);
+camera.up.set(0, 0, 1);
+camera.position.set(-1.1, -1.2, 1.0);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0.3, 0, 0.05);
+controls.enableDamping = true;
+controls.update();
+
+const grid = new THREE.GridHelper(2, 20);
+grid.rotation.x = Math.PI / 2; grid.position.set(0.4, 0, 0);
+scene.add(grid);
+const axes = new THREE.Group();
+const axis = (dir, color) => { const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), dir.clone().multiplyScalar(0.15)]); const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color })); axes.add(l); return l; };
+const ax = axis(new THREE.Vector3(1, 0, 0), 0xc6011f), ay = axis(new THREE.Vector3(0, 1, 0), 0xffffff), az = axis(new THREE.Vector3(0, 0, 1), 0x777777);
+scene.add(axes);
+
+const MAX_POINTS = 400000;
+const cloudGeo = new THREE.BufferGeometry();
+const cPos = new Float32Array(MAX_POINTS * 3), cCol = new Float32Array(MAX_POINTS * 3);
+cloudGeo.setAttribute("position", new THREE.BufferAttribute(cPos, 3));
+cloudGeo.setAttribute("color", new THREE.BufferAttribute(cCol, 3));
+cloudGeo.setDrawRange(0, 0);
+const cloudMat = new THREE.PointsMaterial({ size: 2.5, sizeAttenuation: false, vertexColors: true });
+const cloud = new THREE.Points(cloudGeo, cloudMat);
+cloud.frustumCulled = false;
+scene.add(cloud);
+
+const modelGeo = new THREE.BufferGeometry();
+const modelMat = new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, color: 0x8a8a8a, transparent: true, opacity: 0.55 });
+const model = new THREE.Points(modelGeo, modelMat);
+model.frustumCulled = false;
+scene.add(model);
+
+const frusta = new THREE.Group(); scene.add(frusta);
+const tcps = new THREE.Group(); scene.add(tcps);
+
+function applySceneTheme() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  scene.background = new THREE.Color(css("--bg-sunk"));
+  grid.material.color = new THREE.Color(dark ? 0x262626 : 0xe6e6e6);
+  grid.material.vertexColors = false;
+  ay.material.color = new THREE.Color(dark ? 0xf0f0f0 : 0x000000);
+  modelMat.color = new THREE.Color(dark ? 0x9a9a9a : 0x555555);
+  frustumColor = dark ? 0xb0b0b0 : 0x333333;
+  lastLive && drawFrusta(lastLive);
+}
+let frustumColor = 0xb0b0b0;
+
+function resize() { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(host);
+resize();
+(function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+
+const VIEWS = { persp: [[-1.1, -1.2, 1.0], [0.3, 0, 0.05]], top: [[0.35, 0, 2.2], [0.35, 0, 0]], front: [[-1.6, 0, 0.35], [0.35, 0, 0.1]], side: [[0.35, -1.8, 0.35], [0.35, 0, 0.1]] };
+$("views").onclick = (e) => { const v = e.target.dataset.v; if (!v) return; const [p, t] = VIEWS[v]; camera.position.set(...p); controls.target.set(...t); if (v === "top") camera.up.set(1, 0, 0); else camera.up.set(0, 0, 1); controls.update(); };
+
+let colorMode = store.get("yam-color", "rgb");
+const segPick = (el, v) => el.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+segPick($("color-mode"), colorMode);
+$("color-mode").onclick = (e) => { const v = e.target.dataset.v; if (!v) return; colorMode = v; store.set("yam-color", v); segPick($("color-mode"), v); recolor(); };
+$("psize").value = store.get("yam-psize", "2.5");
+cloudMat.size = Number($("psize").value);
+$("psize").oninput = () => { cloudMat.size = Number($("psize").value); store.set("yam-psize", $("psize").value); };
+$("stride").value = store.get("yam-stride", "4");
+$("stride").oninput = () => store.set("yam-stride", $("stride").value);
+
+const hidden = new Set();
+let lastCloud = null;
+function heightColor(z) { const t = Math.min(1, Math.max(0, (z + 0.05) / 0.45)); return [0.15 + 0.85 * t, 0.15 + 0.85 * t * t, 0.18 + 0.82 * (1 - t) * 0.4 + 0.6 * t * t]; }
+function recolor() {
+  if (!lastCloud) return;
+  const { n, xyz, rgb, cam } = lastCloud;
+  let k = 0;
+  for (let i = 0; i < n && k < MAX_POINTS; i++) {
+    if (hidden.has(cam[i])) continue;
+    cPos[3 * k] = xyz[3 * i] / 1000; cPos[3 * k + 1] = xyz[3 * i + 1] / 1000; cPos[3 * k + 2] = xyz[3 * i + 2] / 1000;
+    let c;
+    if (colorMode === "rgb") c = [rgb[3 * i] / 255, rgb[3 * i + 1] / 255, rgb[3 * i + 2] / 255];
+    else if (colorMode === "height") c = heightColor(xyz[3 * i + 2] / 1000);
+    else c = CAM_COLOR[cam[i]];
+    cCol[3 * k] = c[0]; cCol[3 * k + 1] = c[1]; cCol[3 * k + 2] = c[2];
+    k++;
+  }
+  cloudGeo.setDrawRange(0, k);
+  cloudGeo.attributes.position.needsUpdate = true;
+  cloudGeo.attributes.color.needsUpdate = true;
+  lastCloud.shown = k;
+}
+
+function drawFrusta(live) {
+  frusta.clear(); tcps.clear();
+  ROLES.forEach((role, i) => {
+    const c = live.cameras[role];
+    if (!c || !c.cam2world || !c.intrinsic || hidden.has(i)) return;
+    const [w, h] = c.size, K = c.intrinsic, d = role.startsWith("wrist") ? 0.06 : 0.15;
+    const corner = (u, v) => new THREE.Vector3((u - K[0][2]) / K[0][0] * d, (v - K[1][2]) / K[1][1] * d, d);
+    const o = new THREE.Vector3(), a = corner(0, 0), b = corner(w, 0), cc = corner(w, h), e = corner(0, h);
+    const pts = [o, a, o, b, o, cc, o, e, a, b, b, cc, cc, e, e, a];
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    const m = new THREE.Matrix4(); m.set(...c.cam2world.flat());
+    const lines = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: frustumColor }));
+    lines.applyMatrix4(m);
+    frusta.add(lines);
+  });
+  if (live.arms) for (const arm of ["left", "right"]) {
+    const T = live.arms.arms[arm].tcp, p = new THREE.Vector3(T[0][3], T[1][3], T[2][3]);
+    const s = 0.025, g = new THREE.BufferGeometry().setFromPoints([p.clone().add(new THREE.Vector3(-s, 0, 0)), p.clone().add(new THREE.Vector3(s, 0, 0)),
+      p.clone().add(new THREE.Vector3(0, -s, 0)), p.clone().add(new THREE.Vector3(0, s, 0)), p.clone().add(new THREE.Vector3(0, 0, -s)), p.clone().add(new THREE.Vector3(0, 0, s))]);
+    tcps.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xc6011f })));
+  }
+}
+
+function renderLegend(live) {
+  const items = ROLES.map((role, i) => {
+    const c = live?.cameras?.[role], col = CAM_COLOR[i].map((x) => Math.round(x * 255)).join(",");
+    const note = !c ? "" : c.in_cloud ? "" : `<span class="t3">（未标定，不入点云）</span>`;
+    return `<label><input type="checkbox" data-i="${i}" ${hidden.has(i) ? "" : "checked"}><span class="sw" style="background:rgb(${col})"></span>${role}${note}</label>`;
+  });
+  items.push(`<label><input type="checkbox" id="show-model" ${model.visible ? "checked" : ""}>手臂模型</label>`);
+  items.push(`<label><input type="checkbox" id="show-frusta" ${frusta.visible ? "checked" : ""}>视锥</label>`);
+  $("legend").innerHTML = items.join("");
+  $("legend").querySelectorAll("input[data-i]").forEach((el) => el.onchange = () => { const i = Number(el.dataset.i); el.checked ? hidden.delete(i) : hidden.add(i); recolor(); lastLive && drawFrusta(lastLive); });
+  $("show-model").onchange = (e) => model.visible = e.target.checked;
+  $("show-frusta").onchange = (e) => { frusta.visible = e.target.checked; tcps.visible = e.target.checked; };
+}
+
+/* ---------------- live loop ---------------- */
+let lastLive = null, modelVersion = -1, cloudBusy = false, frames = [];
+async function pullCloud() {
+  if (!lastLive?.running || cloudBusy) return;
+  cloudBusy = true;
+  try {
+    const buf = await (await fetch(`/api/cloud?stride=${$("stride").value}`)).arrayBuffer();
+    const n = new DataView(buf).getUint32(0, true);
+    lastCloud = { n, xyz: new Int16Array(buf, 4, n * 3), rgb: new Uint8Array(buf, 4 + n * 6, n * 3), cam: new Uint8Array(buf, 4 + n * 9, n) };
+    recolor();
+    const now = performance.now(); frames = frames.filter((t) => now - t < 2000); frames.push(now);
+  } catch {} finally { cloudBusy = false; }
+}
+async function pullModel() {
+  const r = await fetch("/api/model"); const v = Number(r.headers.get("X-Model-Version"));
+  if (v === modelVersion) return;
+  const buf = await r.arrayBuffer(), mm = new Int16Array(buf), pos = new Float32Array(mm.length);
+  for (let i = 0; i < mm.length; i++) pos[i] = mm[i] / 1000;
+  modelGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  modelVersion = v;
+}
+setInterval(pullCloud, 120);
+
+async function pullLive() {
+  try {
+    const live = await (await fetch("/api/live")).json();
+    lastLive = live;
+    $("empty").style.display = live.running ? "none" : "flex";
+    $("live").classList.toggle("on", live.running);
+    $("live").querySelector("span").textContent = live.running ? "实时中 · 停止" : "开始实时";
+    if (live.running) {
+      if (live.model_version !== modelVersion) pullModel();
+      drawFrusta(live);
+      const fps = frames.length > 1 ? (frames.length - 1) / ((frames.at(-1) - frames[0]) / 1000) : 0;
+      $("stats").innerHTML = `${(lastCloud?.shown ?? 0).toLocaleString()} 点 · ${f(fps, 1)} Hz<br>`
+        + ROLES.map((r) => { const c = live.cameras[r]; return c ? `${r.padEnd(11, " ").replace(/ /g, "&nbsp;")} ${f(c.fps, 0)} fps${c.error ? " · 错误" : ""}` : ""; }).join("<br>");
+      if (live.arms) renderArms(live.arms, "实时");
+      $("arms-err").innerHTML = live.arms_error ? `<div class="err">关节读取已停止：${esc(live.arms_error)}</div>` : "";
+    } else { $("stats").innerHTML = ""; }
+    renderLegend(live);
+    renderCams(live);
+    renderCompletion(live);
+    renderOverview();
+  } catch (e) { $("clock").textContent = "看板服务无响应"; }
+}
+setInterval(pullLive, 500);
+
+async function post(path, button) {
+  if (button) button.disabled = true;
+  try { const r = await fetch(path, { method: "POST" }); const b = await r.json(); if (!r.ok) throw new Error(b.error || r.statusText); return b.result; }
+  finally { if (button) button.disabled = false; }
+}
+async function toggleLive(btn) {
+  try { await post(lastLive?.running ? "/api/live/stop" : "/api/live/start", btn); } catch (e) { alert(e.message); }
+  pullLive(); pullStatus();
+}
+$("live").onclick = () => toggleLive($("live"));
+$("empty-start").onclick = () => toggleLive($("empty-start"));
+
+/* ---------------- cameras ---------------- */
+let camKind = {};
+let camKey = "";
+function renderCams(live) {
+  const serials = lastStatus?.calibration?.serials || {}, fixed = lastStatus?.calibration?.fixed_cameras || {};
+  const key = JSON.stringify([live.running, live.since, camKind, Object.keys(serials), !!live.completion?.on]);
+  if (key !== camKey) {
+    camKey = key;
+    $("cams").innerHTML = ROLES.map((role) => {
+      const kind = camKind[role] || "rgb";
+      const img = live.running ? `<img data-role="${role}" data-kind="${kind}" alt="${role}">` : `<div class="ph">实时未开启</div>`;
+      return `<div class="cam"><div class="top"><span class="role">${ROLE_CN[role] || role}</span><span class="spacer"></span>
+        <div class="seg" data-role="${role}"><button data-v="rgb" class="${kind === "rgb" ? "on" : ""}">RGB</button><button data-v="depth" class="${kind === "depth" ? "on" : ""}">深度</button>${live.completion?.on ? `<button data-v="completed" class="${kind === "completed" ? "on" : ""}">补全</button>` : ""}</div></div>
+        <div class="frame">${img}</div><div class="foot" id="foot-${role}"></div></div>`;
+    }).join("");
+    $("cams").querySelectorAll("img[data-role]").forEach(pump);
+    $("cams").querySelectorAll(".seg").forEach((s) => s.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; camKind[s.dataset.role] = v; renderCams(lastLive); });
+  }
+  for (const role of ROLES) {
+    const c = live.cameras?.[role], el = $(`foot-${role}`);
+    if (!el) continue;
+    const calibrated = role.startsWith("wrist") ? `<span class="tag">CAD + 编码器</span>` : fixed[role] ? (fixed[role].provisional ? `<span class="tag red">临时标定 · 对腕部 ${f(fixed[role].median_residual_mm, 0)} mm</span>` : `<span class="tag">已标定 ${f(fixed[role].median_residual_mm, 1)} mm</span>`) : `<span class="tag red">外参未标定</span>`;
+    const parts = [`<span class="mono">${esc(serials[role] || "未登记")}</span>`, calibrated];
+    if (c) { parts.push(`<span class="mono">${f(c.fps, 0)} fps</span>`); if (c.depth_valid_fraction !== null) parts.push(`<span class="mono">有效深度 ${f(c.depth_valid_fraction * 100, 0)}%</span>`); }
+    const cc = live.completion?.cameras?.[role];
+    if (cc) parts.push(cc.error ? `<span class="tag red" title="${esc(cc.error)}">补全失败</span>` : `<span class="mono">补全 ${f(cc.ms, 0)} ms</span>`);
+    if (c?.error) parts.push(`<span style="color:var(--text)">${esc(c.error)}</span>`);
+    el.innerHTML = parts.join("");
+  }
+  $("cam-meta").textContent = live.running ? `实时 · ${ago(live.since)}开始` : "";
+}
+
+// One request per camera at a time: the next frame is asked for when this one has loaded.
+// (Four open MJPEG streams would take four of the browser's six connections to the board.)
+function pump(img) {
+  const next = () => { if (!img.isConnected || !lastLive?.running) return; setTimeout(() => { img.src = `/frame/${img.dataset.role}/${img.dataset.kind}.jpg?${performance.now()}`; }, 60); };
+  img.onload = next; img.onerror = () => setTimeout(next, 500);
+  img.src = `/frame/${img.dataset.role}/${img.dataset.kind}.jpg?${performance.now()}`;
+}
+
+/* ---------------- depth completion ---------------- */
+function renderCompletion(live) {
+  const c = live.completion || {}, seg = $("depth-mode");
+  segPick(seg, c.on ? "completed" : "raw");
+  seg.querySelector('[data-v="completed"]').disabled = !c.available || !live.running;
+  seg.title = !c.available ? "未配置深度补全服务（看板启动参数 --depth-service）" : c.info ? `${c.info.model} · ${c.info.checkpoint || ""} · ${c.info.device}` : "深度来源";
+}
+$("depth-mode").onclick = async (e) => {
+  const v = e.target.dataset.v; if (!v || e.target.disabled) return;
+  try { await post(`/api/completion/${v === "completed" ? "on" : "off"}`); } catch (err) { alert(err.message); }
+  pullLive();
+};
+
+/* ---------------- reset ---------------- */
+const RESET_CONFIRM = {
+  kill: ["结束占用进程", "结束当前占用 cell 的程序。如果它正使能着手臂，手臂会在电机超时后掉落。请先托住两臂。"],
+  float: ["浮动（手扶）", "接管两臂电机进入重力补偿。补偿不完美，手臂可能缓慢下沉：先把手放在手臂上。夹爪电机不动。"],
+  "release-held": ["释放", "释放力矩后两臂立刻软掉。只在手臂已经在静止位或被托住时点。想回位请点“回到起始位”。"],
+  estop: ["紧急失能", "立刻给所有电机发失能帧，正在动或悬空的手臂会当场落下、可能磕碰。想安全停下请用“回到起始位”。"],
+};
+function ask(action) {
+  const spec = RESET_CONFIRM[action];
+  return spec ? confirmDialog(spec[0], spec[1]) : Promise.resolve(true);
+}
+function confirmDialog(title, text) {
+  $("confirm-title").textContent = title; $("confirm-text").textContent = text;
+  return new Promise((resolve) => {
+    const done = (v) => { $("confirm").close(); resolve(v); };
+    $("confirm-yes").onclick = () => done(true); $("confirm-no").onclick = () => done(false);
+    $("confirm").oncancel = () => resolve(false);
+    $("confirm").showModal();
+  });
+}
+function showResult(text, on) { const el = $("reset-result"); el.style.display = "block"; el.className = "result" + (on ? " on" : ""); el.textContent = text; }
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-reset]"); if (!b) return;
+  const action = b.dataset.reset;
+  if (!(await ask(action))) return;
+  showResult(`${b.textContent} · 执行中…`, false);
+  try {
+    const r = await post(`/api/reset/${action}`, b);
+    if (action === "diagnose") showResult(["诊断：", ...(r.advice || []).map((a) => "· " + a)].join("\n"), false);
+    else showResult(`${b.textContent}：${typeof r === "string" ? r : JSON.stringify(r)}`, false);
+  } catch (err) { showResult(`${b.textContent} 失败：${err.message}`, true); }
+  pullStatus(); pullLive();
+});
+$("go-reset").onclick = () => $("reset-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+function renderFloating(s) {
+  const h = s.holder || {};
+  $("floating").classList.toggle("on", !!h.active);
+  $("holder-what").textContent = !h.active ? "" : h.mode === "float" ? "看板正握着两臂：浮动中（重力补偿），手扶引导" : `看板正握着两臂：保持当前姿态${h.note && h.note !== "at rest" ? ` · ${h.note}` : ""}`;
+  $("floating-since").textContent = h.active ? ` · ${ago(h.since)}开始` : "";
+}
+
+/* ---------------- alerts ---------------- */
+// What the program holding the arms sees wrong right now (ora/cell/alerts.py): a stopped
+// control loop, a hot motor, a gripper that keeps pushing. A new one beeps once.
+let alertKeys = new Set();
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.4);
+  } catch {}
+}
+async function pullAlerts() {
+  let a;
+  try { a = await (await fetch("/api/alerts")).json(); } catch { return; }
+  const list = a.alerts || [], panel = $("alerts");
+  panel.hidden = !list.length;
+  document.title = list.some((x) => x.level === "critical") ? "⚠ YAM Cell" : "YAM Cell";
+  const keys = new Set(list.map((x) => `${x.code}|${x.arm}|${x.motor}|${x.level}`));
+  if ([...keys].some((k) => !alertKeys.has(k))) beep();
+  alertKeys = keys;
+  if (!list.length) return;
+  $("alerts-meta").textContent = a.stale ? "发出报警的程序已经结束" : "";
+  $("alerts-body").innerHTML = list.map((x) => `<div class="alert ${x.level === "critical" ? "critical" : ""}">
+    <span class="tag">${x.level === "critical" ? "严重" : "注意"}</span> ${esc(x.text)}</div>`).join("");
+}
+setInterval(pullAlerts, 1000);
+
+/* ---------------- approvals ---------------- */
+// The robot's own questions (ora/cell/operator/approval.py): enabling the arms, each motion, releasing
+// arms that could not get home; and a guided setup's steps: something to do by hand (task), a value to
+// type (value), whether to save what was measured (write). A button answers the id it was drawn with,
+// never a newer question.
+const KIND_CN = { enable: "通电", motion: "动作", release: "释放", task: "操作", value: "输入", write: "写入" };
+const APPROVE_CN = { task: "做好了", value: "确定", write: "写入" };
+const DECLINE_CN = { task: "结束拍摄", value: "放弃", write: "不写入" };
+let approvals = [], shownApproval = null, lastAnswer = null;
+function renderApproval(pending, now) {
+  approvals = pending || [];
+  const r = approvals[0], panel = $("approval");
+  const recent = lastAnswer && Date.now() - lastAnswer.at < 8000;
+  panel.hidden = !r && !recent;
+  if (!r) {
+    shownApproval = null;
+    if (recent) { $("approval-meta").textContent = ""; $("approval-body").innerHTML = `<div class="text">${esc(lastAnswer.text)}</div>`; }
+    return;
+  }
+  if (shownApproval !== r.id) {                   // redrawn only for a new question: a reason being typed stays
+    shownApproval = r.id;
+    const lines = String(r.text || "").split("\n");
+    const words = lines.filter((l) => !l.startsWith("计划：")).join("\n");
+    const hint = [r.details?.example && `如 ${r.details.example}`, r.details?.unit].filter(Boolean).join("，");
+    const input = r.kind === "value"
+      ? `<input class="reason value" id="approval-value" maxlength="200" placeholder="${esc(hint || "填一个值")}">`
+      : `<input class="reason" id="approval-reason" maxlength="500" placeholder="${["task", "write"].includes(r.kind) ? "原因（可不填）" : "拒绝原因（可不填；动作被拒时会转告智能体）"}">`;
+    $("approval-body").innerHTML = `<div class="row"><span class="tag red">${esc(KIND_CN[r.kind] || r.kind)}</span><span class="title">${esc(r.title)}</span></div>
+      <div class="text">${esc(words)}</div>
+      <details class="eng"><summary>原始数据 · 编号 ${esc(r.id)}</summary><pre>${esc(JSON.stringify(r.details, null, 2))}</pre></details>
+      <div class="row"><button class="btn approve" data-answer="approve" data-id="${esc(r.id)}">${APPROVE_CN[r.kind] || "批准"}</button>
+        ${input}
+        <button class="btn decline" data-answer="decline" data-id="${esc(r.id)}">${DECLINE_CN[r.kind] || "拒绝"}</button></div>`;
+  }
+  const left = Math.max(0, (r.expires_unix_s || 0) - (now || Date.now() / 1000));
+  $("approval-meta").textContent = `剩余 ${left.toFixed(0)} 秒，到时未答复按拒绝处理${approvals.length > 1 ? ` · 之后还有 ${approvals.length - 1} 个` : ""}`;
+}
+// The permission mode (approval.py mode_state): ask (每个动作都问), safe (小动作自动: a motion inside the
+// safe limits runs without asking) or auto (全部自动: every motion of the worker driving the arms). ask and
+// safe belong to the cell; auto to the running worker, and falls back when it ends. A board process
+// started before the mode existed has no `mode`: then only ask and auto, through the older switch.
+const MODE_CN = { ask: "每个动作都问", safe: "小动作自动", auto: "全部自动" };
+const limitsCN = (l) => `最长 ${l.max_duration_s} 秒、每个关节最多 ${l.max_joint_travel_rad} rad、离桌面至少 ${Math.round(l.min_table_distance_m * 1000) / 10} cm、两臂相距至少 ${Math.round(l.min_inter_arm_distance_m * 1000) / 10} cm`;
+let modeNow = "ask", modeKnown = false;
+function renderMode(state, auto, selfAnswered) {
+  modeKnown = !!state;
+  const s = state || { mode: auto?.on ? "auto" : "ask", by: auto?.on ? auto.by : null, pid: auto?.pid };
+  modeNow = s.mode;
+  segPick($("mode-seg"), modeNow);
+  const safe = $("mode-seg").querySelector('[data-v="safe"]');
+  safe.disabled = !modeKnown;
+  if (!modeKnown) safe.title = "重启看板（ora cell board）后可用";
+  const by = s.by ? `（${s.by} 设置）` : "";
+  $("auto-meta").textContent = (s.mode === "auto"
+    ? `全部自动${by}：智能体的每个动作直接执行，不再问你；这个进程（pid ${s.pid ?? "?"}）结束后回到「${MODE_CN[s.falls_back_to] || MODE_CN.ask}」`
+    : s.mode === "safe" ? `小动作自动${by}：符合限制的动作直接执行，其他动作仍在这里等你批准`
+      : `每个动作都问${by}：每个动作都会先在这里等你批准`) + "；通电和释放总会问";
+  const lines = [];
+  if (s.mode === "safe" && s.safe_limits) lines.push(`小动作的限制：${limitsCN(s.safe_limits)}；计划里缺任何一项都会问你`);
+  if (s.stale) lines.push(s.stale);
+  const last = (selfAnswered || []).at(-1);
+  if (last) lines.push(`上一个未询问直接执行的动作（${ago(last.answered_unix_s)}）：${last.title} · ${last.by}`);
+  $("mode-detail").textContent = lines.join("\n");
+  $("auto").classList.toggle("approval", s.mode === "auto");
+}
+$("mode-seg").onclick = async (e) => {
+  const b = e.target.closest("button"); const v = b?.dataset.v;
+  if (!v || b.disabled || v === modeNow) return;
+  if (v === "auto" && !(await confirmDialog("全部自动", "之后智能体的每个动作都会直接执行，不再等你批准，直到切回「每个动作都问」或「小动作自动」，或这次运行结束。通电和释放仍会问。随时可以点「回到起始位」。确定切换？"))) return;
+  try {
+    const url = modeKnown ? `/api/mode/${v}` : `/api/auto-approve/${v === "auto" ? "on" : "off"}`;
+    const res = await fetch(url, { method: "POST" });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || res.statusText);
+  } catch (err) { alert(`没有切换成功：${err.message}`); }
+  pullApproval();
+};
+async function pullApproval() {
+  try { const a = await (await fetch("/api/approval")).json(); renderApproval(a.pending, a.now); renderMode(a.mode, a.auto_approve, a.self_answered); } catch {}
+}
+setInterval(pullApproval, 700);
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-answer]"); if (!b) return;
+  const id = b.dataset.id, verdict = b.dataset.answer, r = approvals.find((x) => x.id === id);
+  if (verdict === "approve" && r?.kind === "release"
+      && !(await confirmDialog("就地释放", "批准后两臂立刻软掉落下。请先用手扶住两臂，再确认。"))) return;
+  const reason = verdict === "decline" ? ($("approval-reason")?.value || "").trim() : "";
+  const value = verdict === "approve" && r?.kind === "value" ? ($("approval-value")?.value || "").trim() : null;
+  if (value === "") { alert("先填一个值，再点确定"); $("approval-value")?.focus(); return; }
+  b.disabled = true;
+  try {
+    const res = await fetch(`/api/approval/${encodeURIComponent(id)}/${verdict}`, { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(value === null ? { reason } : { reason, value }) });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || res.statusText);
+    lastAnswer = { at: Date.now(), text: `${verdict === "approve" ? "已批准" : "已拒绝"}：${r?.title ?? id}${value ? `（${value}）` : reason ? `（${reason}）` : ""}` };
+  } catch (err) {
+    alert(`没有答复成功：${err.message}`);
+  } finally { b.disabled = false; shownApproval = null; pullApproval(); }
+});
+
+/* ---------------- hand-eye calibration ---------------- */
+// The board starts `ora cell calibrate --method hand-eye --ask broker` (board.py Calibration); each of its
+// steps is a question in the card above. Here: start it, follow its progress, read its result.
+let handeyeForm = false, handeyeRunning = false;
+function handeyeResult(o) {
+  if (!o.ok) return `<div><span class="tag red">没有完成</span> ${esc(o.error || "")}</div>`;
+  const r = o.result || {}, out = [];
+  out.push(r.saved ? `<div><span class="tag">已写入</span> 新的标定已保存${r.backup ? `，旧文件备份在 <span class="mono">${esc(r.backup)}</span>` : ""}</div>`
+    : `<div><span class="tag">没有写入</span> ${esc(r.not_saved || "这次只报告，没有写入")}</div>`);
+  for (const c of r.concerns || []) out.push(`<div class="t3">注意：${esc(c)}</div>`);
+  if (r.session) out.push(`<div class="t3">拍摄记录：<span class="mono">${esc(r.session)}</span></div>`);
+  return out.join("");
+}
+function renderHandeye(c) {
+  handeyeRunning = !!c?.running;
+  $("handeye-toggle").textContent = handeyeRunning ? "中止标定" : handeyeForm ? "收起" : "开始手眼标定";
+  $("handeye-toggle").classList.toggle("danger", handeyeRunning);
+  $("handeye-form").hidden = handeyeRunning || !handeyeForm;
+  $("handeye-meta").textContent = handeyeRunning ? `进行中（pid ${c.pid}）· 每一步都在上面「等你批准」里问你；动作中点「回到起始位」会停下`
+    : c?.started_unix_s ? `上一次 ${new Date(c.started_unix_s * 1000).toLocaleTimeString()} 开始` : "摆几次标定板，手臂一条一条去拍，最后由你决定是否写入";
+  const lines = (c?.progress || []).slice(-40).map((p) => `${new Date(p.at * 1000).toLocaleTimeString()}  ${p.text}`);
+  $("handeye-log").style.display = lines.length ? "" : "none";
+  $("handeye-log").textContent = lines.join("\n");
+  $("handeye-log").scrollTop = $("handeye-log").scrollHeight;
+  $("handeye-outcome").innerHTML = !handeyeRunning && c?.outcome ? handeyeResult(c.outcome) : "";
+}
+async function postHandeye(path, body) {
+  try {
+    const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+    const reply = await res.json();
+    if (!res.ok) throw new Error(reply.error || res.statusText);
+    return true;
+  } catch (err) { alert(`没有成功：${err.message}`); return false; } finally { pullStatus(); }
+}
+$("handeye-toggle").onclick = async () => {
+  if (!handeyeRunning) { handeyeForm = !handeyeForm; renderHandeye(lastStatus?.calibrate); return; }
+  if (await confirmDialog("中止标定", "如果手臂正在动：它会停下并回到出发的位置，然后再问你摆板，点「结束拍摄」就用已拍的结果求解。没在动时：标定直接结束，什么都不写入。")) {
+    await postHandeye("/api/calibrate/stop");
+  }
+};
+$("he-start").onclick = async () => {
+  if (!(await confirmDialog("开始手眼标定", "看板会先关掉实时画面。标定程序会占住整台机器，直到最后一次拍摄结束。手臂一次只动一条，每个动作都会先在这里问你；摆板时手臂在静止位放松。"))) return;
+  const body = { square_mm: $("he-square").value.trim(), pattern: $("he-pattern").value.trim(), placements: $("he-placements").value.trim() };
+  if (await postHandeye("/api/calibrate/start", body)) { handeyeForm = false; }
+};
+
+/* ---------------- arms ---------------- */
+let JOINT_CN = ["J1", "J2", "J3", "J4", "J5", "J6"];             // replaced by the robot adapter's names
+const deg = (r) => r * 180 / Math.PI;
+const tableZ = () => lastStatus?.calibration?.table?.top_z_m ?? -0.018;
+
+// A play session's worker names itself "ORA worker <environment> rig_mode <mode>" in the cell lock
+// (ora/cell/lock.py marks: [homing], [at rest, holding]).
+function workerWords(holder) {
+  if (!/ORA (YAM )?worker/i.test(holder)) return null;
+  if (/rig_mode read/.test(holder)) return "ORA 在只读运行（电机不通电）";
+  if (holder.includes("[homing]")) return "ORA 正在控制：正在回到起始位";
+  if (holder.includes("[at rest, holding]")) return "ORA 正在控制：在起始位，保持中";
+  return "ORA 正在控制（真动模式，两臂通电）";
+}
+function motorWords(r) {
+  const states = Object.values(r.status || {}), faults = Object.entries(r.faults || {});
+  const motors = r.motors ? r.motors.map((m) => m.status) : [];
+  if (faults.length) return [`有故障：${faults.map(([id, e]) => `${id} ${e}`).join("，")}`, true];
+  if (motors.includes("normal") || states.includes("normal")) return ["通电，正在保持姿态（程序控制中）", false];
+  return ["全部断电（未使能），可以用手推动", false];
+}
+function heatWords(t) { return t >= 70 ? [`过热 ${f(t, 0)} °C`, true] : t >= 50 ? [`偏高 ${f(t, 0)} °C`, true] : [`正常 · 最高 ${f(t, 0)} °C`, false]; }
+
+function sketch(arm, r) {
+  // Side view: forward (world x) to the right, up (z) up, both measured from this arm's base.
+  // Framed on the arm (now and at rest) and the table, one scale on both axes so nothing is distorted.
+  const W = 360, H = 210, base = r.chain[0], pts = [...r.chain, ...(r.rest_chain || [])];
+  const x0 = Math.min(-0.12, ...pts.map((p) => p[0] - base[0] - 0.05)), x1 = Math.max(0.5, ...pts.map((p) => p[0] - base[0] + 0.05));
+  const z0 = Math.min(tableZ() - base[2] - 0.04, ...pts.map((p) => p[2] - base[2] - 0.03)), z1 = Math.max(0.3, ...pts.map((p) => p[2] - base[2] + 0.05));
+  const scale = Math.min((W - 30) / (x1 - x0), (H - 34) / (z1 - z0));
+  const X = (x) => 15 + (x - base[0] - x0) * scale, Z = (z) => H - 26 - (z - base[2] - z0) * scale;
+  const line = (pts, cls) => `<polyline points="${pts.map((p) => `${X(p[0]).toFixed(1)},${Z(p[2]).toFixed(1)}`).join(" ")}" ${cls}/>`;
+  const tz = Z(tableZ()), tcp = r.chain.at(-1);
+  const restLine = r.rest_chain ? line(r.rest_chain, `fill="none" stroke="var(--text-3)" stroke-width="2" stroke-dasharray="4 4" opacity=".7"`) : "";
+  const joints = r.chain.slice(1, -1).map((p) => `<circle cx="${X(p[0]).toFixed(1)}" cy="${Z(p[2]).toFixed(1)}" r="3.2" fill="var(--bg-sunk)" stroke="var(--text)" stroke-width="1.4"/>`).join("");
+  const ticks = [0, 0.2, 0.4, 0.6].filter((m) => m <= x1).map((m) => `<line x1="${X(base[0] + m)}" x2="${X(base[0] + m)}" y1="${tz}" y2="${tz + 5}" stroke="var(--text-3)"/><text x="${X(base[0] + m)}" y="${tz + 16}" text-anchor="middle" font-size="9.5" fill="var(--text-3)">${m * 100} cm</text>`).join("");
+  return `<div class="sketch"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${ARM_CN[arm]}侧视示意">
+      <line x1="10" x2="${W - 10}" y1="${tz}" y2="${tz}" stroke="var(--border)" stroke-width="2"/>
+      <text x="${W - 12}" y="${tz - 6}" text-anchor="end" font-size="10" fill="var(--text-3)">桌面</text>${ticks}
+      <rect x="${X(base[0]) - 14}" y="${Z(base[2])}" width="28" height="${Math.max(4, tz - Z(base[2]))}" fill="var(--border)"/>
+      ${restLine}
+      ${line(r.chain, `fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"`)}
+      ${joints}
+      <circle cx="${X(tcp[0]).toFixed(1)}" cy="${Z(tcp[2]).toFixed(1)}" r="5" fill="var(--accent)"/>
+      <line x1="${X(tcp[0])}" x2="${X(tcp[0])}" y1="${Z(tcp[2]) + 6}" y2="${tz}" stroke="var(--accent)" stroke-dasharray="2 3" opacity=".7"/>
+      <text x="${X(tcp[0]) + 8}" y="${(Z(tcp[2]) + tz) / 2}" font-size="10.5" fill="var(--text-2)">${f((tcp[2] - tableZ()) * 100, 0)} cm</text>
+    </svg><div class="cap"><span>侧视 · 实线 = 现在，虚线 = 静止位，红点 = 夹爪中心</span><span>${ARM_CN[arm]}</span></div></div>`;
+}
+
+function engineering(arm, r, lim, rest) {
+  const rows = r.q.map((v, i) => {
+    const L = lim[i], pos = (x) => L ? `${Math.max(0, Math.min(100, (x - L[0]) / (L[1] - L[0]) * 100))}%` : "0";
+    const d = rest ? v - rest[arm][i] : null;
+    return `<tr><td class="t3">J${i + 1}</td><td class="n">${f(v)}</td><td class="n t2">${f(deg(v), 1)}°</td>
+      <td><div class="gauge">${rest ? `<span class="rest" style="left:${pos(rest[arm][i])}"></span>` : ""}<span class="now" style="left:${pos(v)}"></span></div></td>
+      <td class="n t3">${L ? `${f(L[0], 2)} … ${f(L[1], 2)}` : ""}</td><td class="n t3">${d === null ? "—" : f(d)}</td></tr>`;
+  }).join("");
+  const motors = (r.motors || (r.torque_nm || []).map((t, i) => ({ id: `0x0${i + 1}`, torque_nm: t }))).map((m) => {
+    const fault = r.faults?.[m.id], st = fault || r.status?.[m.id] || m.status || "disabled";
+    const label = st === "disabled" ? "失能" : st === "unknown_3" ? "状态 3" : st === "normal" ? "使能" : st;
+    return `<div class="motor ${fault ? "fault" : ""}"><b>${m.id}</b><span class="st">${esc(label)}</span><span class="mono t2">${f(m.torque_nm, 2)} N·m</span></div>`;
+  }).join("");
+  const tcp = r.tcp ? [r.tcp[0][3], r.tcp[1][3], r.tcp[2][3]] : r.tcp_xyz_m;
+  return `<details class="eng"><summary>工程细节 · 关节弧度、限位、电机</summary>
+    <div class="t3 mono" style="font-size:11.5px;margin-bottom:6px">TCP ${tcp ? tcp.map((x) => f(x)).join(" ") : "—"} m（yam_station_world）· 夹爪原始 ${f(r.gripper_raw_rad)} rad</div>
+    <table><thead><tr><th></th><th class="n">rad</th><th class="n">deg</th><th>限位内位置</th><th class="n">限位</th><th class="n">Δ 静止位</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="motors">${motors}</div></details>`;
+}
+
+function renderArms(a, source) {
+  $("arms-meta").textContent = `${source} · ${ago(a.at)}`;
+  lastArms = a;
+  const rest = lastStatus?.calibration?.rest_reference, limits = lastStatus?.limits || {};
+  $("arms").innerHTML = ["left", "right"].map((arm) => {
+    const r = a.arms[arm], lim = r.limits_rad || limits[arm] || [];
+    const tcp = r.chain ? r.chain.at(-1) : (r.tcp ? [r.tcp[0][3], r.tcp[1][3], r.tcp[2][3]] : r.tcp_xyz_m);
+    const base = r.chain ? r.chain[0] : [0, arm === "left" ? 0.305 : -0.305, 0];
+    const away = rest ? Math.max(...r.q.map((v, i) => Math.abs(v - rest[arm][i]))) : null;
+    const posture = away === null ? "未记录静止位" : away < 0.1 ? "收起 · 在静止位" : `伸出 · 离静止位最多 ${f(deg(away), 0)}°`;
+    const [motor, motorBad] = motorWords(r), [heat, heatBad] = heatWords(r.max_temperature_c);
+    const grip = r.gripper_opening === null ? `开合程度暂不知道 <span class="t3">（夹爪限位未标定，首次通电时自动测）</span>`
+      : `${r.gripper_opening > 0.9 ? "张开" : r.gripper_opening < 0.1 ? "闭合" : "半开"} · 约 ${f(r.gripper_opening * 94, 0)} mm`;
+    const side = (tcp[1] - base[1]) * 100;
+    const where = `基座前方 ${f((tcp[0] - base[0]) * 100, 0)} cm · ${Math.abs(side) < 2 ? "正前方" : `偏${side > 0 ? "左" : "右"} ${f(Math.abs(side), 0)} cm`} · 离桌面 ${f((tcp[2] - tableZ()) * 100, 0)} cm`;
+    const joints = r.q.map((v, i) => {
+      const L = lim[i], d = rest ? deg(v - rest[arm][i]) : null;
+      const near = L && Math.min(v - L[0], L[1] - v) < 0.08 * (L[1] - L[0]) && !(rest && Math.abs(v - rest[arm][i]) < 0.05);
+      const pos = (x) => L ? `${Math.max(0, Math.min(100, (x - L[0]) / (L[1] - L[0]) * 100))}%` : "0";
+      const st = near ? "接近极限" : d === null ? `${f(deg(v), 0)}°` : Math.abs(d) < 3 ? "在静止位" : `${d > 0 ? "+" : ""}${f(d, 0)}° 离静止位`;
+      return `<div class="joint"><span class="nm">${JOINT_CN[i]}</span>
+        <div class="gauge">${rest ? `<span class="rest" style="left:${pos(rest[arm][i])}"></span>` : ""}<span class="now" style="left:${pos(v)}"></span></div>
+        <span class="st ${near ? "warn" : ""}">${st}</span></div>`;
+    }).join("");
+    return `<div class="arm"><h3>${ARM_CN[arm]}<span class="t3" style="font:400 12.5px var(--body)">${posture}</span></h3>
+      <div class="armview">${r.chain ? sketch(arm, r) : `<div class="sketch"><div class="cap">点"读一次"或开启实时后显示示意图</div></div>`}
+        <div><dl class="facts2">
+          <dt>姿态</dt><dd>${posture}</dd>
+          <dt>夹爪在哪</dt><dd>${where}</dd>
+          <dt>夹爪</dt><dd>${grip}</dd>
+          <dt>电机</dt><dd>${motorBad ? `<span class="tag red">${esc(motor)}</span>` : esc(motor)}</dd>
+          <dt>温度</dt><dd>${heatBad ? `<span class="tag red">${heat}</span>` : heat}</dd>
+        </dl>
+        <div class="joints"><div class="t3" style="font-size:11px;margin-bottom:2px">每个关节在它能转的范围里处于哪 · 红 = 现在，灰 = 静止位</div>${joints}</div></div>
+      </div>${engineering(arm, r, lim, rest)}</div>`;
+  }).join("");
+  renderOverview();
+}
+
+/* ---------------- overview ---------------- */
+let lastArms = null;
+function renderOverview() {
+  const s = lastStatus, live = lastLive;
+  if (!s) return;
+  const card = (k, v, d, alert) => `<div class="ov"><div class="k">${k}</div><div class="v ${alert ? "alert" : ""}">${v}</div><div class="d">${d}</div></div>`;
+  // Arms
+  let armV = "还没读到", armD = "点右上角“开始实时”，或手臂面板的“读一次”", armAlert = false;
+  if (s.holder?.active) { armV = s.holder.mode === "float" ? "浮动中 · 手扶引导" : "通电保持中"; armD = "看板正握着两臂；点顶部“回到起始位”会慢慢回静止位后释放"; armAlert = true; }
+  else if (lastArms) {
+    const words = ["left", "right"].map((arm) => motorWords(lastArms.arms[arm]));
+    const powered = words.some(([w]) => w.startsWith("通电")), fault = words.some(([, bad]) => bad);
+    const rest = s.calibration?.rest_reference;
+    const atRest = rest && ["left", "right"].every((arm) => Math.max(...lastArms.arms[arm].q.map((v, i) => Math.abs(v - rest[arm][i]))) < 0.1);
+    armV = fault ? "电机有故障" : powered ? "通电 · 程序控制中" : "断电 · 安全，可手推";
+    armD = `${atRest ? "两臂都收在静止位" : "有手臂不在静止位（看下面的示意图）"} · 温度正常与否见手臂面板`;
+    armAlert = fault;
+  }
+  // Cameras
+  const cams = live?.cameras || {}, online = Object.values(cams).filter((c) => c.fps > 5).length;
+  const placed = ["front", "overhead", "wrist_left", "wrist_right"].filter((r) => cams[r]?.in_cloud);
+  const camV = live?.running ? `${online}/4 在线` : "实时未开启";
+  const missing = ["front", "overhead"].filter((r) => !placed.includes(r) && live?.running);
+  const camD = live?.running ? `进入三维点云的：${placed.join("、") || "无"}${missing.length ? `；${missing.join("、")} 还没标定好位置，只出画面` : ""}` : "开启后四台相机常开";
+  // Control
+  const holder = s.lock_holder || "", procs = s.motion_processes || [];
+  const ctlV = !holder ? "没有程序在控制手臂" : holder.includes("live view") ? "本看板在看（只读）" : workerWords(holder) || `被占用：${holder.replace(/ \(pid.*/, "")}`;
+  const ctlD = procs.length ? `另有 ${procs.length} 个程序有权限动手臂（${procs.map((p) => p.command.includes("aspire") ? "ASPIRE" : `pid ${p.pid}`).join("、")}），真机动作模式会拒绝启动` : "没有别的程序有权限动手臂";
+  // Calibration
+  const fixed = s.calibration?.fixed_cameras || {}, firm = Object.entries(fixed).filter(([, c]) => !c.provisional).length;
+  const calV = firm === 2 ? "相机位置已标定" : "相机位置未完全标定";
+  const calD = `${["front", "overhead"].map((r) => `${r}：${fixed[r] ? (fixed[r].provisional ? "临时" : "已标定") : "未标定"}`).join("，")}。临时标定可能有几厘米误差，点云里会有重影`;
+  $("overview").innerHTML = card("手臂", armV, armD, armAlert) + card("相机", camV, camD, false) + card("谁在控制", ctlV, ctlD, procs.length > 0)
+    + card("标定", calV, calD, firm < 2);
+}
+
+$("read-arms").onclick = async () => {
+  $("arms-err").innerHTML = "";
+  try { const a = await post("/api/arms", $("read-arms")); renderArms({ at: a.at, arms: a.arms }, "单次读取"); }
+  catch (e) { $("arms-err").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+};
+
+/* ---------------- status ---------------- */
+let lastStatus = null;
+const chip = (el, cls, text) => { el.className = "chip " + cls; el.innerHTML = `<i></i>${esc(text)}`; };
+async function pullStatus() {
+  try {
+    const s = await (await fetch("/api/status")).json();
+    lastStatus = s;
+    if (s.camera_roles?.length) ROLES = s.camera_roles;
+    if (s.joint_names?.length) JOINT_CN = s.joint_names;
+    $("clock").textContent = new Date(s.now * 1000).toLocaleTimeString();
+    chip($("c-lock"), s.lock_holder ? "warn" : "ok", s.lock_holder ? `占用：${s.lock_holder.replace(/ \(pid.*/, "")}` : "Cell 空闲");
+    for (const arm of ["left", "right"]) {
+      const b = s.buses[arm], el = $(arm === "left" ? "c-left" : "c-right");
+      if (!b.present || !b.up) { chip(el, "bad", `${b.channel} 不可用`); continue; }
+      const busy = (b.receivers || 0) > 0 || (b.rx_per_s || 0) > 1, ours = busy && s.live?.running;
+      const what = ours ? `本看板只读 ${f(b.rx_per_s, 0)} 帧/秒` : busy ? `${f(b.rx_per_s, 0)} 帧/秒` : "静默";
+      chip(el, b.state !== "ERROR-ACTIVE" ? "bad" : busy && !ours ? "warn" : "ok", `${b.channel} ${b.state === "ERROR-ACTIVE" ? "" : b.state + " "}${what}`);
+    }
+    chip($("c-procs"), s.motion_processes.length ? "bad" : "ok", s.motion_processes.length ? `${s.motion_processes.length} 个可驱动手臂的进程` : "无其他控制器");
+    if (!s.live?.running && s.arms) renderArms(s.arms, "单次读取");
+    renderBuses(s); renderCal(s); renderWrist(s.wrist_check); renderFacts(s); renderFloating(s); renderHandeye(s.calibrate); renderOverview();
+  } catch {}
+}
+setInterval(pullStatus, 2000);
+
+function renderBuses(s) {
+  const rows = ["left", "right"].map((arm) => { const b = s.buses[arm]; return `<tr><td>${ARM_CN[arm]}</td><td class="mono">${esc(b.channel)}</td><td class="mono">${b.present ? (b.up ? esc(b.state) : "DOWN") : "—"}</td><td class="n">${b.receivers ?? "—"}</td><td class="n">${f(b.rx_per_s, 0)}</td><td class="n">${f(b.tx_per_s, 0)}</td><td class="n">${b.tx_errors ?? "—"}/${b.rx_errors ?? "—"}</td></tr>`; }).join("");
+  const procs = s.motion_processes.map((p) => `<li class="todo"><span class="mono">pid ${p.pid}</span> · ${esc(p.markers.join(", "))}<br><span class="t3 mono" style="word-break:break-all">${esc(p.command)}</span></li>`).join("");
+  $("buses").innerHTML = `<table><thead><tr><th></th><th>接口</th><th>状态</th><th class="n">读者</th><th class="n">收/s</th><th class="n">发/s</th><th class="n">错误</th></tr></thead><tbody>${rows}</tbody></table>`
+    + `<ul class="list" style="margin-top:12px">${procs || `<li>没有会驱动手臂的进程</li>`}</ul>`
+    + (s.motion_processes.length ? `<div class="t3" style="margin-top:6px;font-size:11.5px">on 模式会因这些进程拒绝启动</div>` : "");
+}
+function renderCal(s) {
+  const c = s.calibration; $("cal-path").textContent = c.path;
+  const fixedDone = ["front", "overhead"].filter((r) => c.fixed_cameras[r]), grip = Object.keys(c.gripper_limits), n = Object.keys(c.serials).length;
+  const item = (ok, text, hint) => `<li class="${ok ? "" : "todo"}">${text}${hint ? `<br><span class="t3">${hint}</span>` : ""}</li>`;
+  $("cal").innerHTML = (c.error ? item(false, esc(c.error)) : "")
+    + item(n === 4, `相机序列号 ${n}/4`)
+    + item(!!c.rest_reference, c.rest_reference ? `静止位已记录 · ${ago(c.rest_reference_unix_s)}` : "静止位未记录", c.rest_reference ? "" : "ora cell record-rest")
+    + (() => { const firm = fixedDone.filter((r) => !c.fixed_cameras[r].provisional), temp = fixedDone.filter((r) => c.fixed_cameras[r].provisional);
+        return item(firm.length === 2, `固定相机外参 ${firm.length}/2 正式${temp.length ? ` · ${temp.length} 台临时（${temp.join("、")}，对齐腕部点云）` : ""}`,
+          firm.length < 2 ? "正式标定：ora cell calibrate --method arm-poses（或 --method charuco）" : ""); })()
+    + item(!!c.table, c.table ? `桌面高度 ${f(c.table.top_z_m)} m` : "桌面高度未标定", c.table ? esc(c.table.source || "") : "固定相机配准时写入")
+    + item(grip.length === 2, grip.length === 2 ? "夹爪限位已标定" : "夹爪限位未标定", grip.length === 2 ? "" : "首次 on 启动时 i2rt 开合夹爪一次测限位");
+}
+function renderWrist(w) {
+  if (!w) { $("wrist").innerHTML = ""; $("wrist-meta").textContent = "未运行"; return; }
+  $("wrist-meta").textContent = ago(w.at);
+  $("wrist").innerHTML = `<table><thead><tr><th></th><th>结论</th><th class="n">倾斜</th><th class="n">高度</th><th class="n">点数</th></tr></thead><tbody>${["left", "right"].map((arm) => {
+    const c = w.arms[arm], v = c.passed === null ? `<span class="t3">${esc(c.why)}</span>` : c.passed ? "通过" : `<span class="tag red">${esc((c.problems || []).join("；"))}</span>`;
+    return `<tr><td>${ARM_CN[arm]}</td><td>${v}</td><td class="n">${f(c.tilt_deg, 1)}°</td><td class="n">${f(c.height_m)}</td><td class="n">${c.points ?? "—"}</td></tr>`; }).join("")}</tbody></table>`;
+}
+$("wrist-run").onclick = async () => { try { await post("/api/wrist-check", $("wrist-run")); } catch (e) { $("wrist").innerHTML = `<div class="err" style="margin:0">${esc(e.message)}</div>`; } pullStatus(); };
+function renderFacts(s) {
+  $("facts").innerHTML = s.facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+  $("notes").innerHTML = (s.calibration.notes || []).map((n) => `<li>${esc(n.text || n)} <span class="t3 mono">${esc(n.date || "")}</span></li>`).join("") || `<li class="t3">暂无</li>`;
+}
+
+applySceneTheme();
+pullStatus(); pullLive(); pullApproval();
+</script>
+</body>
+</html>

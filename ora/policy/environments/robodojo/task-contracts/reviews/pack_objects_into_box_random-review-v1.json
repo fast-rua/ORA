@@ -1,0 +1,939 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "pack_objects_into_box_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/pack_objects_into_box_random.py",
+    "file_sha256": "4db259a1b97cdcc39ebc9794244fadc79d31c4ae64069c9b11a233356fcb655c",
+    "run_reward_lines": [
+      21,
+      35
+    ],
+    "run_reward_sha256": "49d6503eb9e2045a79dd8c2a1b5703ffbeb8f2c026257d4ce90f90e7367d963c",
+    "gen_instruction_lines": [
+      232,
+      234
+    ],
+    "gen_instruction_sha256": "77872a9277d6375c3074daed3853d27c9fbcb73bc1373c5d6340454d387cbc37",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          8,
+          11
+        ],
+        "sha256": "06aac7c0beb88fc2311b7bbeb992bb2dea9d571a2b5d7f0f8d18e087af6320d3"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          13,
+          15
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          17,
+          19
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      },
+      "_car_checks": {
+        "lines": [
+          37,
+          73
+        ],
+        "sha256": "962c1fc8498a5f0151bbec6e905b0db43f4ce742c803d7b8ab74a8fe596c7ccc"
+      },
+      "_electric_toothbrush_checks": {
+        "lines": [
+          75,
+          113
+        ],
+        "sha256": "d26055b1568dc8b153237939094e2f7dba7e1aee06f13e776f1578e2fd0454fa"
+      },
+      "_hammer_checks": {
+        "lines": [
+          115,
+          151
+        ],
+        "sha256": "bc65b6e22ccffabfa47684652b26d75ccad4ece7a197497686adc71a5a47692f"
+      },
+      "_shoe_checks": {
+        "lines": [
+          153,
+          179
+        ],
+        "sha256": "addf476eeb845191511378fce9a17626a969d4c83ee2060867e138e6a58228d5"
+      },
+      "_single_item_score_options": {
+        "lines": [
+          181,
+          182
+        ],
+        "sha256": "550a8dd2478caf9749da25ef79e700bc9540403073ceb1695ce3000f942e973d"
+      },
+      "_combined_item_score_options": {
+        "lines": [
+          184,
+          189
+        ],
+        "sha256": "7508e996485ccd958c88ba2a794a1eb15ce1be298a8b9665f4bac91271f018ee"
+      },
+      "get_score": {
+        "lines": [
+          191,
+          230
+        ],
+        "sha256": "33b77b74ab38d8d8d8fce2288bcc8f6b36a398adf07fbaa133a561565ff6bde5"
+      }
+    },
+    "step_lim_line": 11,
+    "config_path": "task/RoboDojo/config/pack_objects_into_box_random.yml",
+    "config_sha256": "7ac7f034fcb169e33a7f0a03b2b77e54d0206ed715409359b579055a701196ef",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "pack_objects_into_box",
+      "source_path": "task/RoboDojo/tasks/pack_objects_into_box.py",
+      "file_sha256": "84a1cf1dd5e166f36291130f9d8cb5dfe4b3f4732a46674bef6374a7ea2d66be",
+      "run_reward_sha256": "49d6503eb9e2045a79dd8c2a1b5703ffbeb8f2c026257d4ce90f90e7367d963c",
+      "gen_instruction_sha256": "77872a9277d6375c3074daed3853d27c9fbcb73bc1373c5d6340454d387cbc37",
+      "config_path": "task/RoboDojo/config/pack_objects_into_box.yml",
+      "config_sha256": "e232962b8394d08c04c5da14deb88d7b233afa00ab99af8001c084218951d7ca",
+      "methods_byte_identical": [
+        "__init__",
+        "_car_checks",
+        "_combined_item_score_options",
+        "_electric_toothbrush_checks",
+        "_hammer_checks",
+        "_post_setup_scene",
+        "_shoe_checks",
+        "_single_item_score_options",
+        "gen_instruction",
+        "get_score",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/pack_objects_into_box_random_0.json",
+    "layout_sha256": "f51946657574f10da34a6760128dd5701ec948a3ce638b6168f5ceb6478166c4",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 1300,
+  "instruction": {
+    "text": "Place all the objects into the box with their front sides facing left.",
+    "origin": "task/RoboDojo/tasks/pack_objects_into_box_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "pack_objects_into_box",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/pack_objects_into_box-review-v4.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/pack_objects_into_box-completion-v4.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in the source: every method span hashes equal to the base module's.",
+      "Inputs differ: every one of the four objects is drawn from models the base config never selects, each with its own authored checkpoint frame. A read-only mesh probe shows each frame's checked axis points at the same physical end (rear, handle bottom, handle free end, heel) as on the base models, so the evaluated requirement is the base's."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/pack_objects_into_box_random.yml:13 car index [1, 2, 3, 4, 5]; base [0, 6, 7].",
+      "task/RoboDojo/config/pack_objects_into_box_random.yml:31 electric_toothbrush [4, 5, 6]; base [0, 1, 2, 3].",
+      "task/RoboDojo/config/pack_objects_into_box_random.yml:49 hammer [6, 7, 8]; base [0, 1, 2, 3, 4].",
+      "task/RoboDojo/config/pack_objects_into_box_random.yml:67 shoe [8..17]; base [0..7].",
+      "No Clutter and no ProhibitedArea in either config; the box (no index, box/0) and every placement range are unchanged.",
+      "Saved layouts: 30 (pack_objects_into_box_random_0..29.json; base 55). Room colour, Table material and Ground material vary per saved layout; Table size and pose unchanged."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/pack_objects_into_box_random_0.json",
+      "objects": [
+        "Rigid/car model 3 (label car), Rigid/electric_toothbrush model 6, Rigid/hammer model 8, Rigid/shoe model 15, Rigid/box model 0 (yaw about 107 degrees, long direction along world X)",
+        "Geometry/camera_stand model 0",
+        "no clutter"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Four objects and the same box/0 with its box_bottom region; the inside and length-along checks are identical."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "Read-only pxr mesh probe: car/00003's checked axis (object +X) points at its rear (fastback), electric_toothbrush/00006's (object -Z) at the bottom of its handle, hammer/00008's (object +X) at the free end of its handle (mallet head at the other end) and shoe/00015's root +X at its heel; the same probe reproduced the base review's ends on every base-config model."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "Read-only pxr mesh probe: car/00003's checked axis (object +X) points at its rear (fastback), electric_toothbrush/00006's (object -Z) at the bottom of its handle, hammer/00008's (object +X) at the free end of its handle (mallet head at the other end) and shoe/00015's root +X at its heel; the same probe reproduced the base review's ends on every base-config model."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "Same box/0 and identical box checks; it spawns upright with its long direction along world X."
+      },
+      {
+        "index": 5,
+        "holds_on_variant_layout0": true,
+        "why": "all_robot_back_to_origin is the last conjunct (line 33)."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "Task module byte-identical to the base except the concrete class name.",
+        "where": "task/RoboDojo/tasks/pack_objects_into_box_random.py:237 vs task/RoboDojo/tasks/pack_objects_into_box.py:237"
+      },
+      {
+        "claim": "Instruction: one constant template, identical to the base.",
+        "where": "task/RoboDojo/tasks/pack_objects_into_box_random.py:232-234"
+      },
+      {
+        "claim": "run_reward: all four item groups (_combined_item_score_options(4)[0]), box long axis along world X (OR of box local +Y/-Y within 40 degrees of world +X), all_robot_back_to_origin.",
+        "where": "task/RoboDojo/tasks/pack_objects_into_box_random.py:21-35"
+      },
+      {
+        "claim": "Item groups: root point in the box's box_bottom region; item heading along either sign of box local Y (xy, 45 degrees); item checkpoint -X (shoe: root +X) within 60 degrees of world +X in xy; box local Z up.",
+        "where": "task/RoboDojo/tasks/pack_objects_into_box_random.py:37-179"
+      },
+      {
+        "claim": "is_axis_aligned reads the first functional frame of the named tag and compares in the projected plane.",
+        "where": "env/reward_manager/func_parser.py:2066-2217"
+      },
+      {
+        "claim": "is_pointA_in_B_functional_bbox tests the item root against the four box_bottom frame points.",
+        "where": "env/reward_manager/func_parser.py:2219-2301"
+      },
+      {
+        "claim": "step_lim = 1300, same as base.",
+        "where": "task/RoboDojo/tasks/pack_objects_into_box_random.py:11"
+      },
+      {
+        "claim": "Random config selects car 1-5, electric_toothbrush 4-6, hammer 6-8, shoe 8-17, all disjoint from the base config's car 0/6/7, toothbrush 0-3, hammer 0-4, shoe 0-7; the box is unchanged; no Clutter.",
+        "where": "task/RoboDojo/config/pack_objects_into_box_random.yml:13,31,49,67 vs task/RoboDojo/config/pack_objects_into_box.yml:13,31,49,67"
+      },
+      {
+        "claim": "Checkpoint frames of the variant models: car 2-4 and hammer 8 checked axis object +X; car 1 and 5 object +Y (their length axis); toothbrush 4-6 and hammer 6-7 object -Z (their length axis).",
+        "where": "Object/RoboDojo/Rigid/{car,electric_toothbrush,hammer}/000NN/metadata.json (active.functional.checkpoint.frame)"
+      },
+      {
+        "claim": "Mesh probe: every variant model's checked axis points at its back end; base controls reproduce the base functional_axis_review.",
+        "where": "Object/RoboDojo/Rigid/{car/0000[1-5],electric_toothbrush/0000[4-6],hammer/0000[6-8],shoe/000{08..17}}/object.usdz"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "containment",
+      "summary": "Each of the four objects' root point lies inside the box's bottom region.",
+      "numeric": "is_pointA_in_B_functional_bbox(label_A=car|electric_toothbrush|hammer|shoe, label_B='box', B_functional_tag='box_bottom') at lines 40, 78-80, 118, 156; func_parser.py:2219-2301; box/00000 passive box_bottom frames at local x +-0.085, y +-0.1, z near 0. All four groups are required (_combined_item_score_options(4)[0], line 24).",
+      "source_lines": [
+        24,
+        156
+      ],
+      "classification": "stated",
+      "note": "'Place all the objects into the box' states it.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "orientation",
+      "summary": "Each object's length lies along the box's long direction (either sign of box local Y), in the horizontal plane.",
+      "numeric": "OR of is_axis_aligned(box local +Y or -Y, item checkpoint frame +X; shoe: root +X), align_threshold=45, project_plane='xy' at lines 41-62, 81-102, 119-140, 157-174; func_parser.py:2066-2217.",
+      "source_lines": [
+        41,
+        174
+      ],
+      "classification": "derivable",
+      "note": "With the box's long direction running left-right, a front facing left implies the length lies along the box.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "orientation",
+      "summary": "Each object's front end points toward world -X: its checked axis, which points at its back end, lies within the horizontal tolerance of world +X.",
+      "numeric": "is_axis_aligned(label_A=item, axis_A=[-1,0,0], functional_point_A='checkpoint', world_axis=[1,0,0], align_threshold=60, project_plane='xy') for car, toothbrush and hammer (lines 63-71, 103-111, 141-149); shoe: root axis_A=[1,0,0] (lines 175-177). Layout 0 models: car/00003 checked axis = object +X; electric_toothbrush/00006 object -Z; hammer/00008 object +X; shoe/00015 root +X.",
+      "source_lines": [
+        63,
+        177
+      ],
+      "classification": "stated",
+      "note": "'front sides facing left' states the direction. A read-only pxr mesh probe of every variant model (car 1-5, electric_toothbrush 4-6, hammer 6-8, shoe 8-17) shows the checked axis points at the rear, the bottom of the handle, the handle's free end and the heel, as in the base models, so the base text's end definitions hold.",
+      "public_clauses": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "pose",
+      "summary": "The box stays upright.",
+      "numeric": "is_axis_up(label='box', axis=[0,0,1]) in each item group (lines 72, 112, 150, 178), wrapper default threshold 15 degrees (reward_manager.py:792-794).",
+      "source_lines": [
+        72,
+        178
+      ],
+      "classification": "hidden",
+      "bite": "latent",
+      "note": "The box spawns upright.",
+      "public_clauses": [
+        4
+      ]
+    },
+    {
+      "id": "c5",
+      "kind": "pose",
+      "summary": "The box's long direction runs along world X.",
+      "numeric": "OR of is_axis_aligned(label_A='box', axis_A=[0,+-1,0], world_axis=[1,0,0], align_threshold=40) at lines 25-32 (unprojected). Layout 0 box yaw about 107 degrees; its long local Y axis is about 17 degrees from world X.",
+      "source_lines": [
+        25,
+        32
+      ],
+      "classification": "hidden",
+      "bite": "latent",
+      "note": "The box spawns within 25 degrees of that heading (config line 79).",
+      "public_clauses": [
+        4
+      ]
+    },
+    {
+      "id": "c6",
+      "kind": "protocol",
+      "summary": "Both arms back at their reset end poses at the same boundary.",
+      "numeric": "all_robot_back_to_origin() at line 33. all_robot_back_to_origin() called with no arguments, so pos_threshold=0.15 m and rot_threshold=20 degrees come from the RewardManager wrapper defaults (reward_manager.py:829-831). func_parser.py:1631-1644: for each robot of type 'target' (both ARX X5 arms) the check fails if any component of the end-pose position delta exceeds 0.15 m or the geodesic angle exceeds 20 degrees; the origin end poses are captured by Func_Parser.init_state (func_parser.py:32-59) at reset.",
+      "source_lines": [
+        33,
+        33
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction never mentions returning.",
+      "public_clauses": [
+        5
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [
+      "c1",
+      "c3"
+    ],
+    "derivable": [
+      "c2"
+    ],
+    "hidden": [
+      "c4",
+      "c5",
+      "c6"
+    ],
+    "clause_count": 6,
+    "hidden_count": 3,
+    "hidden_active": [
+      "c6"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "As for the base task: containment and facing are stated, length alignment derivable, the box clauses hidden but latent, and the arm return hidden and active, so the record is instruction_incomplete. The mesh probe confirms the base's end definitions for every variant model.",
+  "semantic_contract": [
+    "All four objects must be inside the box, down on its bottom, each lying with its length along the box's long direction.",
+    "Each object's front end must point toward world -X, the robot's own left and the side of the table where the left arm is mounted, with its back end toward world +X. This is what the instruction means by front sides facing left; the direction is fixed in the world and does not change with the camera view.",
+    "The front end is the car's nose, the electric toothbrush's brush-head end, the hammer's head end and the shoe's toe. The back end is the car's rear, the bottom end of the toothbrush handle, the free end of the hammer's handle and the shoe's heel.",
+    "The box must stay upright with its long direction running along world X.",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/pack_objects_into_box-completion-v4.md",
+    "sha256": "3295eacb36ab17fa9a8325d57b6c5718ab9c1dadcf6a9b54c5a5aea9f8a52c00"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "All four objects must be inside the box, down on its bottom, each lying with its length along the box's long direction.",
+      "Each object's front end must point toward world -X, the robot's own left and the side of the table where the left arm is mounted, with its back end toward world +X. This is what the instruction means by front sides facing left; the direction is fixed in the world and does not change with the camera view.",
+      "The front end is the car's nose, the electric toothbrush's brush-head end, the hammer's head end and the shoe's toe. The back end is the car's rear, the bottom end of the toothbrush handle, the free end of the hammer's handle and the shoe's heel.",
+      "The box must stay upright with its long direction running along world X.",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        1
+      ],
+      "c3": [
+        2,
+        3
+      ],
+      "c4": [
+        4
+      ],
+      "c5": [
+        4
+      ],
+      "c6": [
+        5
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/pack_objects_into_box_random.yml",
+      "sha256": "7ac7f034fcb169e33a7f0a03b2b77e54d0206ed715409359b579055a701196ef"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/car/00003/metadata.json",
+      "sha256": "6286d96a3a9f617b73c0d4fdfc5edf9c91b0799e5108902a1cee336d61ea60c2"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/electric_toothbrush/00006/metadata.json",
+      "sha256": "2a80064dff2b0612cc11d3c95af2266666b1471c2fdc79ef08d881070c8b8e3c"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/hammer/00008/metadata.json",
+      "sha256": "a9b45733a81bfdcfd1ad3a7dd68b5432d14d66f1483cb6bf0529b2f58a899df1"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/shoe/00015/metadata.json",
+      "sha256": "4e67c242b888b41f59ac445f27db738f4539b7176312932a0ae7cb6df87408e2"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/box/00000/metadata.json",
+      "sha256": "4b3bfc8207d2cbcc88f2034cfd85c12e85b5d0cde2d40a0fc5af86ead2ac7e57"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/car/00003/object.usdz",
+      "sha256": "4bc56363d33e058724086e1e8e53606a6c1d45f787f0a2d27f1e443fb0807759"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/electric_toothbrush/00006/object.usdz",
+      "sha256": "071cb8d7966e1b26f3869d837acd147f3f5d0ac413a70cfa24ad466521373558"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/hammer/00008/object.usdz",
+      "sha256": "541d8648ac1a79409fee3d0ce7e0cb9a8de0497f40b80f27f6a51169ef96eb1b"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/shoe/00015/object.usdz",
+      "sha256": "069182183723d49ca1f9cedfb596f4ca1fde1e6654488bb3c10b7461ea40807b"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; read-only pxr reads of the pinned usdz files (no Kit, simulation or GPU); no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_car_checks",
+      "_combined_item_score_options",
+      "_electric_toothbrush_checks",
+      "_hammer_checks",
+      "_post_setup_scene",
+      "_shoe_checks",
+      "_single_item_score_options",
+      "gen_instruction",
+      "get_score",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "All four objects in the box but one turned end for end: c3 fails; clause 2.",
+      "An object lying across the box: c2 fails; clause 1.",
+      "Box knocked onto its side: c4 fails; clause 4.",
+      "A hammer (or mallet) in the box with its head toward world +X: c3 fails; clauses 2 and 3."
+    ],
+    "open_questions": [
+      "hammer/00007 has a mesh and the probe confirms its handle end, but it appears in no audited layout (0-9); its missing place metadata does not affect the evaluator."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "Source: pack_objects_into_box_random.py is the base module with only the concrete class renamed (line 237); every method span hashes equal to the base's.",
+    "END IDENTIFICATION (2026-11-14 read-only mesh probe with pxr from the RoboDojo runtime's USD libraries, no Kit, simulation or GPU; no Kit, simulation or GPU): each object.usdz opened with Usd.Stage.Open, every Mesh's points read into the default prim's frame (extents equal the metadata aligned_bbox for every model), then the cross-section extent at each end of the evaluator's checked axis, a 12-bin extent profile and side/top silhouettes. Controls: the base config's car 0/6/7, electric_toothbrush 0-3, hammer 0-4 and shoe 0-7 reproduce the base functional_axis_review (checked end = rear, handle bottom, handle free end, heel).",
+    "Variant models: car 1-5 (side silhouette: low hood at the other end, then cabin, and trunk, tall SUV rear, fastback or rear wing at the checked end; car 1 and 5 along local Y); electric_toothbrush 4-6 (narrow brush head and neck at the other end, wide cylindrical handle at the checked end); hammer 6 and 7 (claw hammers) and 8 (a mallet): wide head at the other end, handle at the checked end; shoe 8-17 (low toe box at the other end, heel counter at the checked end). Every checked axis points at the back end, so the base bullets are reused verbatim; functional_axis_review lists each model.",
+    "hammer/00008 is a mallet (rectangular head) rather than a claw hammer; 'the hammer's head end' and 'the free end of the hammer's handle' still name its ends.",
+    "evaluator_dependencies add the layout-0 models' object.usdz (car, toothbrush, hammer, shoe), as sort_nesting_dolls_by_size binds its dolls' meshes: the public end definitions rest on mesh geometry, so a model change fails preflight.",
+    "No clutter in this variant; its generalization is object models and scene materials only.",
+    "EVALUATION CADENCE (unchanged from the base record): run_reward is registered once at reset and reward_manager.step is called once per native action after its physics steps drain; a check stage latches when all its conjuncts hold at one native-action boundary (reward_manager.py:357-494), and get_reward returns 1.0 only when every check list is empty (reward_manager.py:527-587).",
+    "BUDGET. step_lim = 1300 native actions (line 11), equal to the base."
+  ],
+  "notes": [
+    "Variant source task/RoboDojo/tasks/pack_objects_into_box_random.py sha256 4db259a1b97cdcc39ebc9794244fadc79d31c4ae64069c9b11a233356fcb655c; base sha256 84a1cf1dd5e166f36291130f9d8cb5dfe4b3f4732a46674bef6374a7ea2d66be; run_reward span 21-35 hashes equal in both.",
+    "Layout Eval_Layout/RoboDojo/arx_x5/0/pack_objects_into_box_random_0.json sha256 f51946657574f10da34a6760128dd5701ec948a3ce638b6168f5ceb6478166c4."
+  ],
+  "forbidden_public_claims": [],
+  "universal_return_to_origin": true,
+  "supersedes": null,
+  "functional_axis_review": [
+    {
+      "model": "Rigid/car/00000",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.011, 0.012, 0.014, 0.022, 0.027, 0.027, 0.027, 0.027, 0.012, 0.012, 0.012, 0.012 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00006",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.007, 0.007, 0.007, 0.007, 0.006, 0.019, 0.019, 0.019, 0.017, 0.015, 0.013, 0.013 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00007",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.004, 0.004, 0.006, 0.009, 0.015, 0.018, 0.018, 0.018, 0.017, 0.013, 0.009, 0.009 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00001",
+      "role": "variant",
+      "checked_axis_object_frame": "+Y",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.007, 0.010, 0.011, 0.012, 0.022, 0.024, 0.024, 0.023, 0.022, 0.018, 0.011, 0.009 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00002",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.006, 0.009, 0.011, 0.018, 0.025, 0.028, 0.028, 0.028, 0.028, 0.028, 0.027, 0.026 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00003",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.006, 0.008, 0.009, 0.010, 0.015, 0.019, 0.020, 0.020, 0.019, 0.017, 0.013, 0.010 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00004",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: 0.007, 0.008, 0.008, 0.009, 0.016, 0.019, 0.023, 0.019, 0.019, 0.017, 0.011, 0.009 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/car/00005",
+      "role": "variant",
+      "checked_axis_object_frame": "+Y",
+      "checked_end": "rear",
+      "front_end": "nose",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "roof-line heights along the length, other end to checked end: -0.003, 0.003, 0.006, 0.010, 0.013, 0.019, 0.020, 0.019, 0.018, 0.015, 0.014, 0.018 m; low hood at the other end, cabin, then trunk, bed, fastback or rear wing at the checked end (side silhouette)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00000",
+      "role": "base control",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.018 m at the other end (brush head and neck, narrowest 0.006 m), 0.020 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00001",
+      "role": "base control",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.009 m at the other end (brush head and neck, narrowest 0.001 m), 0.023 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00002",
+      "role": "base control",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.018 m at the other end (brush head and neck, narrowest 0.006 m), 0.022 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00003",
+      "role": "base control",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.015 m at the other end (brush head and neck, narrowest 0.007 m), 0.020 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00004",
+      "role": "variant",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.012 m at the other end (brush head and neck, narrowest 0.005 m), 0.022 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00005",
+      "role": "variant",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.016 m at the other end (brush head and neck, narrowest 0.006 m), 0.020 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/electric_toothbrush/00006",
+      "role": "variant",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "bottom end of the handle",
+      "front_end": "brush-head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "cross-section 0.016 m at the other end (brush head and neck, narrowest 0.006 m), 0.025 m at the checked end (cylindrical handle)"
+    },
+    {
+      "model": "Rigid/hammer/00000",
+      "role": "base control",
+      "checked_axis_object_frame": "-Y",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.052 m at the other end (head), 0.016 m at the checked end (handle), narrowest 0.009 m"
+    },
+    {
+      "model": "Rigid/hammer/00001",
+      "role": "base control",
+      "checked_axis_object_frame": "-Y",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.071 m at the other end (head), 0.024 m at the checked end (handle), narrowest 0.013 m"
+    },
+    {
+      "model": "Rigid/hammer/00002",
+      "role": "base control",
+      "checked_axis_object_frame": "+Y",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.057 m at the other end (head), 0.022 m at the checked end (handle), narrowest 0.011 m"
+    },
+    {
+      "model": "Rigid/hammer/00003",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.058 m at the other end (head), 0.015 m at the checked end (handle), narrowest 0.009 m"
+    },
+    {
+      "model": "Rigid/hammer/00004",
+      "role": "base control",
+      "checked_axis_object_frame": "-Y",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.052 m at the other end (head), 0.020 m at the checked end (handle), narrowest 0.012 m"
+    },
+    {
+      "model": "Rigid/hammer/00006",
+      "role": "variant",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.053 m at the other end (head), 0.018 m at the checked end (handle), narrowest 0.009 m"
+    },
+    {
+      "model": "Rigid/hammer/00007",
+      "role": "variant",
+      "checked_axis_object_frame": "-Z",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.059 m at the other end (head), 0.016 m at the checked end (handle), narrowest 0.011 m"
+    },
+    {
+      "model": "Rigid/hammer/00008",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "free end of the handle",
+      "front_end": "head end",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "widest cross-section 0.055 m at the other end (head), 0.016 m at the checked end (handle), narrowest 0.014 m"
+    },
+    {
+      "model": "Rigid/shoe/00000",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.010 m at the other end (low toe box) rising to +0.046 m mid-length, +0.030 m at the checked end (heel counter); end cross-section height 0.074 m checked vs 0.035 m other"
+    },
+    {
+      "model": "Rigid/shoe/00001",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.010 m at the other end (low toe box) rising to +0.046 m mid-length, +0.030 m at the checked end (heel counter); end cross-section height 0.074 m checked vs 0.035 m other"
+    },
+    {
+      "model": "Rigid/shoe/00002",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.004 m at the other end (low toe box) rising to +0.036 m mid-length, +0.027 m at the checked end (heel counter); end cross-section height 0.061 m checked vs 0.028 m other"
+    },
+    {
+      "model": "Rigid/shoe/00003",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.004 m at the other end (low toe box) rising to +0.036 m mid-length, +0.027 m at the checked end (heel counter); end cross-section height 0.061 m checked vs 0.028 m other"
+    },
+    {
+      "model": "Rigid/shoe/00004",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.003 m at the other end (low toe box) rising to +0.038 m mid-length, +0.028 m at the checked end (heel counter); end cross-section height 0.067 m checked vs 0.032 m other"
+    },
+    {
+      "model": "Rigid/shoe/00005",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.003 m at the other end (low toe box) rising to +0.038 m mid-length, +0.028 m at the checked end (heel counter); end cross-section height 0.067 m checked vs 0.032 m other"
+    },
+    {
+      "model": "Rigid/shoe/00006",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.005 m at the other end (low toe box) rising to +0.037 m mid-length, +0.021 m at the checked end (heel counter); end cross-section height 0.062 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00007",
+      "role": "base control",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.005 m at the other end (low toe box) rising to +0.037 m mid-length, +0.021 m at the checked end (heel counter); end cross-section height 0.062 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00008",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.002 m at the other end (low toe box) rising to +0.036 m mid-length, +0.026 m at the checked end (heel counter); end cross-section height 0.062 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00009",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.002 m at the other end (low toe box) rising to +0.035 m mid-length, +0.025 m at the checked end (heel counter); end cross-section height 0.060 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00010",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.006 m at the other end (low toe box) rising to +0.037 m mid-length, +0.029 m at the checked end (heel counter); end cross-section height 0.064 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00011",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.006 m at the other end (low toe box) rising to +0.037 m mid-length, +0.029 m at the checked end (heel counter); end cross-section height 0.064 m checked vs 0.029 m other"
+    },
+    {
+      "model": "Rigid/shoe/00012",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height +0.005 m at the other end (low toe box) rising to +0.035 m mid-length, +0.026 m at the checked end (heel counter); end cross-section height 0.058 m checked vs 0.034 m other"
+    },
+    {
+      "model": "Rigid/shoe/00013",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height +0.005 m at the other end (low toe box) rising to +0.035 m mid-length, +0.026 m at the checked end (heel counter); end cross-section height 0.058 m checked vs 0.034 m other"
+    },
+    {
+      "model": "Rigid/shoe/00014",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.006 m at the other end (low toe box) rising to +0.038 m mid-length, +0.028 m at the checked end (heel counter); end cross-section height 0.066 m checked vs 0.030 m other"
+    },
+    {
+      "model": "Rigid/shoe/00015",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.006 m at the other end (low toe box) rising to +0.038 m mid-length, +0.028 m at the checked end (heel counter); end cross-section height 0.066 m checked vs 0.030 m other"
+    },
+    {
+      "model": "Rigid/shoe/00016",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.001 m at the other end (low toe box) rising to +0.038 m mid-length, +0.024 m at the checked end (heel counter); end cross-section height 0.063 m checked vs 0.032 m other"
+    },
+    {
+      "model": "Rigid/shoe/00017",
+      "role": "variant",
+      "checked_axis_object_frame": "+X",
+      "checked_end": "heel",
+      "front_end": "toe",
+      "front_end_required_world": "-X",
+      "mesh_extents_match_metadata": true,
+      "basis": "top height -0.001 m at the other end (low toe box) rising to +0.038 m mid-length, +0.024 m at the checked end (heel counter); end cross-section height 0.063 m checked vs 0.032 m other"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "check_task",
+  "description": "Read the faithful LIBERO task result. This is read-only and is the only policy-visible task checker on this experimental surface.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

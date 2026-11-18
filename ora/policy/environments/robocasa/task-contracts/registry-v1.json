@@ -1,0 +1,46 @@
+{
+ "schema": "ora.robotwin-task-contract-registry.v1",
+ "note": "Generation v1 for the admitted robocasa roster (2026-10-18). Public clauses state the official predicate's end conditions qualitatively; numeric limits, private targets and predicate weaknesses stay in the reviews.",
+ "verification_method": "Whole predicate, task and helper source read at the pinned revision; predicate span hashed by AST FunctionDef lineno..end_lineno; private witnesses evaluate the official predicate on seed 0 after direct state edits or scripted moves.",
+ "candidate_revisions": [
+  "a9e152e2eea16d342dac40e4577fb4c68b932854"
+ ],
+ "tasks": {
+  "OpenDrawer": {
+   "path": "ora/policy/environments/robocasa/task-contracts/OpenDrawer-completion-v1.md",
+   "sha256": "3a23d54a4bc5ddd486103b44cc949de0081eac66c3b5bfda0ebe5a258afe3d5e",
+   "clause_count": 1,
+   "check_success_sha256": "821e5bcaf83addd0c46be120cca062e072d850b70ed4653d88431ad48ce915b1",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robocasa/environments/kitchen/atomic/kitchen_drawer.py:ManipulateDrawer._check_success, preserving trailing newline.",
+   "verified_revisions": [
+    "a9e152e2eea16d342dac40e4577fb4c68b932854"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robocasa/task-contracts/reviews/OpenDrawer-review-v1.json"
+  },
+  "PickPlaceCounterToCabinet": {
+   "path": "ora/policy/environments/robocasa/task-contracts/PickPlaceCounterToCabinet-completion-v1.md",
+   "sha256": "c4cf559bd00fdb44a8fc3195fca8cd8d4d782bab1ed79c9800232c2165aca893",
+   "clause_count": 2,
+   "check_success_sha256": "1ddceb34ccc2ad08baadebf9a7d6fc21fa675d84019a19db7d15b9fbac8266c3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robocasa/environments/kitchen/atomic/kitchen_pick_place.py:PickPlaceCounterToCabinet._check_success, preserving trailing newline.",
+   "verified_revisions": [
+    "a9e152e2eea16d342dac40e4577fb4c68b932854"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robocasa/task-contracts/reviews/PickPlaceCounterToCabinet-review-v1.json"
+  },
+  "NavigateKitchen": {
+   "path": "ora/policy/environments/robocasa/task-contracts/NavigateKitchen-completion-v1.md",
+   "sha256": "f683b1b23a0ee415984969db1b7a068cbdeab396ea09a54ccab2841690378a38",
+   "clause_count": 1,
+   "check_success_sha256": "9fa2447802cbfee7d4f2a7a52603953373b20acb20e455769cc49ce584f1e5bb",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robocasa/environments/kitchen/atomic/kitchen_navigate.py:NavigateKitchen._check_success, preserving trailing newline.",
+   "verified_revisions": [
+    "a9e152e2eea16d342dac40e4577fb4c68b932854"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robocasa/task-contracts/reviews/NavigateKitchen-review-v1.json"
+  }
+ }
+}

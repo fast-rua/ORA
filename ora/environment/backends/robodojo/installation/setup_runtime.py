@@ -17,20 +17,19 @@ import sys
 import time
 import zipfile
 
-DOJO_REV = "ee67a1468510da7624a089164402359f2afc72c8"
-ASSET_REV = "a14409d7fae673c00499e01fd88b4457df6351b1"
+DOJO_REV = "f57e1633ffed59761bc8e568cfe7530c4b33381c"
+ASSET_REV = "1127bda94f172d757386945af3eb3a6754d1a4e6"
 PYTHON_VERSION = "3.11.15"
 SUBMODULES = {
     "third_party/IsaacLab": "afca7b09d60d8beb9c1cb28b43066499940b969b",
     "third_party/curobo": "d17b54ce32cba095c0b000c4c58777075d11de0e",
-    "XPolicyLab": "432f82b1758c5b1202e42a3dfe014546dbc50871",
+    "XPolicyLab": "5d0be1499634d3176258c8f2e31f5fe816497b0a",
 }
-#: Assets at ASSET_REV whose LFS objects Hugging Face no longer serves: since
-#: 2026-10-04 every ``swap_T`` evaluation layout (162 objects, eval seeds 0-2)
-#: returns 404; upstream regenerated them. They stay pointers and the receipt
-#: lists each one, so ``swap_T`` cannot run on an installation made after that
-#: date (its layout does not parse); every other task's assets are verified.
-UPSTREAM_PURGED_ASSETS = "Assets/Eval_Layout/RoboDojo/arx_x5/*/swap_T_*.json"
+#: Assets at ASSET_REV whose LFS objects Hugging Face no longer serves. None at
+#: 1127bda: the ``swap_T`` evaluation layouts purged from the previous pin
+#: (a14409d7, 404 since 2026-10-04) were regenerated upstream and are served.
+#: A pattern listed here stays a pointer and the receipt names each one.
+UPSTREAM_PURGED_ASSETS: tuple[str, ...] = ()
 
 
 #: The worker's verifier, run as the ``graphics-compat`` stage's final readback.
@@ -38,7 +37,7 @@ GRAPHICS_COMPAT_MODULE = Path(__file__).resolve().parents[1] / "graphics_compat.
 
 
 def upstream_purged(name: str) -> bool:
-    return fnmatch.fnmatchcase(name, UPSTREAM_PURGED_ASSETS)
+    return any(fnmatch.fnmatchcase(name, pattern) for pattern in UPSTREAM_PURGED_ASSETS)
 
 
 #: Process-local Vulkan allocation-limit repair for NVIDIA 595 drivers (INSTALL.md,
@@ -191,8 +190,8 @@ class Installer:
         self.run("git", "sparse-checkout", "set", "Assets", cwd=self.assets)
         self.run("git", "lfs", "install", "--local", cwd=self.assets)
         self.run("git", "config", "lfs.concurrenttransfers", "32", cwd=self.assets)
-        self.run("git", "lfs", "pull", "--include=Assets/**",
-                 "--exclude=" + UPSTREAM_PURGED_ASSETS, cwd=self.assets)
+        exclude = ["--exclude=" + ",".join(UPSTREAM_PURGED_ASSETS)] if UPSTREAM_PURGED_ASSETS else []
+        self.run("git", "lfs", "pull", "--include=Assets/**", *exclude, cwd=self.assets)
         self.verify_assets()
 
     def verify_assets(self):
@@ -203,7 +202,7 @@ class Installer:
         # fsck sees the full commit even with a sparse checkout. Exclude dataset
         # and checkpoint roots that this asset-only installation did not fetch.
         roots = self.run("git", "ls-tree", "--name-only", "HEAD", cwd=self.assets, capture=True).splitlines()
-        excluded = ",".join([name + "/**" for name in roots if name != "Assets"] + [UPSTREAM_PURGED_ASSETS])
+        excluded = ",".join([name + "/**" for name in roots if name != "Assets"] + list(UPSTREAM_PURGED_ASSETS))
         self.run("git", "-c", "lfs.fetchexclude=" + excluded, "lfs", "fsck", "--objects", cwd=self.assets)
         for name in ("Robots", "Object", "Material", "Eval_Layout", "Traj"):
             if not (self.assets / "Assets" / name).is_dir():
@@ -265,7 +264,7 @@ class Installer:
                    "whole_repository_fsck_claimed": False,
                    "excluded_top_level_paths": [name for name in roots if name != "Assets"],
                    "git_status": "clean",
-                   "working_tree_sha256": "all_passed_except_upstream_purged",
+                   "working_tree_sha256": "all_passed_except_upstream_purged" if purged else "all_passed",
                    "upstream_purged_unhydrated": {item["name"]: item["oid"] for item in
                                                   sorted(purged, key=lambda item: item["name"])},
                    "lfs_paths": len(files),

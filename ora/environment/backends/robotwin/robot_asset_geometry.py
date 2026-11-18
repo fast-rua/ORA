@@ -108,7 +108,3 @@ def main() -> None:
             raise FileExistsError(args.output)
         args.output.write_text(text)
     print(text)
-
-
-if __name__ == "__main__":
-    main()

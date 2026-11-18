@@ -1,14 +1,23 @@
-"""Pure RoboDojo motion/aperture qualification cases and evidence judgements."""
+"""Pure RoboDojo motion/aperture qualification cases and evidence judgements.
+
+Every case runs on the route every episode runs: one ``follow_joint_trajectory``
+per move, planned on the host exactly as the toolkit's move_pose, return_home and
+recover_pose plan theirs (``orchestrator/backends/robodojo/qualification.py``),
+or, for the executor's own admission, knots built here from the measured joints.
+Nothing here imports the agent: the host hands the runner each bound action, or
+the toolkit's refusal before any action.
+"""
 from __future__ import annotations
 import math
 from typing import Any, Mapping, Sequence
+from ora.contracts.joint_trajectory import MAX_KNOT_STEP_RAD, TRAJECTORY_ACTION
 from ora.environment.controllers.robodojo_arx import ARX_X5_CONTRACT
-from .sparse_motion import (
-    GLOBAL_EXECUTOR, GRIPPER_EXECUTOR, JAW_SYMMETRY_AXIS, LOCAL_EXECUTOR, RECOVERY_EXECUTOR,
-    ROUTE_REFUSAL_CODE, SPARSE_RECEIPT_SCHEMA, rotate_about_local_axis,
-)
+from .gripper_ramp import GRIPPER_RAMP_EXECUTOR
+from .sparse_motion import JAW_SYMMETRY_AXIS, SPARSE_RECEIPT_SCHEMA, rotate_about_local_axis
+from .trajectory import TRAJECTORY_EXECUTOR, TRAJECTORY_STRATEGY
 
-SCHEMA = "ora.robodojo-sparse-motion-qualification.v1"
+#: v2: the case table moved to follow_joint_trajectory (v1 drove the SDK executor's move_pose and recover_motion).
+SCHEMA = "ora.robodojo-sparse-motion-qualification.v2"
 MOTION_ACTION_V3_SCHEMA = "ora-motion-action.v3"
 ROTATION_ONLY_DRIFT_BOUND_M = 0.03
 REACH_POSITION_TOLERANCE_M = float(ARX_X5_CONTRACT["position_tolerance_m"])
@@ -17,6 +26,11 @@ INACTIVE_ARM_DRIFT_BOUND_M = 0.005
 GRIPPER_TOLERANCE = float(ARX_X5_CONTRACT["gripper_tolerance_normalized"])
 ARM = "left"
 OTHER_ARM = "right"
+#: A move the toolkit refused before any action: no action was bound, so nothing can have been written.
+REFUSED = "refused"
+#: The free route of a move (``lib.motion_plan.route``): the shared planner's path where the worker binds one
+#: (every episode on the default baseline does), else a joint line to one IK solution.
+FREE_ROUTES = ("global", "joint")
 
 # --- robodojo_x5_jaw_aperture_probe_v1 ---------------------------------------
 #
@@ -72,22 +86,20 @@ JAW_CONTACT_LEG_REASON = (
 # env_cfg/robot/dual_x5.yml bolts the two fixed bases to the table's -y edge.
 X5_LINK6_REACH_BOUND_M = 0.822
 X5_BASE_MOUNTS_M = ((-0.3, -0.45, 0.765), (0.3, -0.45, 0.765))
-# The two refusal cases have to reach the *planner*, so the target stays
-# inside the live robodojo_arx_x5_tabletop_v1 action envelope
-# (x [-0.75, 0.75], y [-0.65, 0.55], z [0.72, 1.40]) with a centimetre of
-# margin on every axis, and is still kinematically hopeless: the far top
-# corner diagonally opposite the left mount is 1.566 m from it and 1.251 m
-# from the right one, over 1.5x the reach bound above and beyond it even if
-# the whole 0.14 m jaw chain counted as reach.  The earlier [1.49, 1.49, 1.99]
-# only refused at the planner under the robodojo_compat +/-1.5 m
-# compatibility envelope; under the resolved profile the hard action envelope
-# refuses it first (plan_rejected / workspace_target_x), which proves a
-# different thing.
+# The refusal cases have to reach the *planner*, so the target stays inside the
+# live robodojo_arx_x5_tabletop_v1 action envelope (x [-0.75, 0.75],
+# y [-0.65, 0.55], z [0.72, 1.40]) with a centimetre of margin on every axis,
+# and is still kinematically hopeless: the far top corner diagonally opposite
+# the left mount is 1.566 m from it and 1.251 m from the right one, over 1.5x
+# the reach bound above and beyond it even if the whole 0.14 m jaw chain
+# counted as reach. A motion probe refuses a query outside that envelope, so a
+# target outside it would prove a different thing.
 UNREACHABLE_POSITION = [0.74, 0.54, 1.39]
-# A ``move_pose`` global route compiles a single ``move`` segment, so this is
-# the SDK IK's own refusal code; a hard-envelope refusal would instead answer
-# ``plan_rejected`` with ``workspace_target_<axis>``.
-PLANNER_IK_REFUSAL_CODE = "ik_failed:move"
+#: Why the toolkit refuses a move to it, by free route: the shared planner finds no IK in its world
+#: (``goal_unreachable``); the joint route finds no canonical-first IK solution (``paced_path_unreachable``).
+UNREACHABLE_REFUSAL_CODES = {"global": ("goal_unreachable",), "joint": ("paced_path_unreachable",)}
+#: Past every ARX X5 joint limit (X5A.urdf: +/-10 rad on joints 1-5, +/-3.14 on joint 6): 4 pi on joint 1.
+OUTSIDE_JOINT_LIMIT_RAD = 4.0 * math.pi
 
 
 def _rotate_approach(orientation: Sequence[float], degrees: float) -> list[float]:
@@ -95,84 +107,106 @@ def _rotate_approach(orientation: Sequence[float], degrees: float) -> list[float
 
 
 def _pose(position: Sequence[float], orientation: Sequence[float]) -> dict[str, list[float]]:
+    """A motion probe query's pose."""
     return {"position_m": [round(float(v), 6) for v in position],
             "orientation_xyzw": [round(float(v), 8) for v in orientation]}
 
 
-def _target(poses: Mapping[str, Sequence[float]], interaction: str) -> dict[str, Any]:
-    return {"targets": {arm: _pose(pose[:3], pose[3:]) for arm, pose in poses.items()},
+def _move(poses: Mapping[str, Sequence[float]], interaction: str) -> dict[str, Any]:
+    return {"kind": "move", "targets": {arm: [float(v) for v in pose] for arm, pose in poses.items()},
             "interactions": {arm: interaction for arm in poses}}
 
 
-def build_case_arguments(case_id: str, poses: Mapping[str, Sequence[float]]) -> dict[str, Any]:
-    """Compile one case's v3 arguments from the measured start poses."""
+def build_case_request(case_id: str, poses: Mapping[str, Sequence[float]]) -> dict[str, Any]:
+    """One planned case's move from the measured start poses: link6 targets and their interaction label.
+
+    The host plans it as move_pose plans a compiled request (the label picks the route); orientations are used
+    exactly, without move_pose's jaw-twin choice."""
     left = [float(v) for v in poses[ARM]]
     x, y, z = left[:3]
     quat = left[3:]
     if case_id == "free_space_translation_8cm":
-        return _target({ARM: [x - 0.08, y + 0.06, z + 0.04, *quat]}, "free_space")
-    if case_id == "free_space_lift_translate_descend":
-        return _target({ARM: [x + 0.06, y + 0.08, z - 0.03, *quat]}, "free_space")
+        return _move({ARM: [x - 0.08, y + 0.06, z + 0.04, *quat]}, "free_space")
     if case_id == "combined_translation_rotation_45deg":
-        return _target({ARM: [x, y - 0.06, z + 0.05, *_rotate_approach(quat, 45.0)]}, "free_space")
+        return _move({ARM: [x, y - 0.06, z + 0.05, *_rotate_approach(quat, 45.0)]}, "free_space")
     if case_id == "orientation_only_small_12deg":
         # Comfortably inside the 15-degree local envelope so passive drift
-        # between observation and execution cannot flip the route.
-        return _target({ARM: [x, y, z, *_rotate_approach(quat, 12.0)]}, "precision")
+        # between observation and planning cannot flip the route.
+        return _move({ARM: [x, y, z, *_rotate_approach(quat, 12.0)]}, "precision")
     if case_id == "orientation_only_90deg":
-        return _target({ARM: [x, y, z, *_rotate_approach(quat, 90.0)]}, "free_space")
+        return _move({ARM: [x, y, z, *_rotate_approach(quat, 90.0)]}, "free_space")
     if case_id == "orientation_only_near_180deg":
-        return _target({ARM: [x, y, z, *_rotate_approach(quat, 179.0)]}, "free_space")
+        return _move({ARM: [x, y, z, *_rotate_approach(quat, 179.0)]}, "free_space")
     if case_id == "precision_small_local_6mm":
-        return _target({ARM: [x, y, z + 0.006, *quat]}, "precision")
+        return _move({ARM: [x, y, z + 0.006, *quat]}, "precision")
     if case_id == "contact_approach_small_8mm":
-        return _target({ARM: [x, y, z - 0.008, *quat]}, "contact_approach")
-    if case_id == "contact_approach_large_refused":
-        return _target({ARM: [x, y, z - 0.20, *quat]}, "contact_approach")
+        return _move({ARM: [x, y, z - 0.008, *quat]}, "contact_approach")
+    if case_id == "contact_approach_staged_80mm":
+        # Past the 50 mm local envelope: the default surfaces stage it (a free path to 40 mm short, then the
+        # straight line), the route move_pose takes for a long contact approach.
+        return _move({ARM: [x, y, z - 0.08, *quat]}, "contact_approach")
     if case_id == "planner_refusal_unreachable":
-        return _target({ARM: [*UNREACHABLE_POSITION, *quat]}, "free_space")
+        return _move({ARM: [*UNREACHABLE_POSITION, *quat]}, "free_space")
     if case_id == "below_tolerance_noop":
-        return _target({ARM: [x, y, z, *quat]}, "precision")
+        return _move({ARM: [x, y, z, *quat]}, "precision")
     if case_id == "dual_arm_synchronized_lift":
         right = [float(v) for v in poses[OTHER_ARM]]
-        return _target({ARM: [x, y, z + 0.04, *quat], OTHER_ARM: [right[0], right[1], right[2] + 0.04, *right[3:]]},
-                       "free_space")
+        return _move({ARM: [x, y, z + 0.04, *quat], OTHER_ARM: [right[0], right[1], right[2] + 0.04, *right[3:]]},
+                     "free_space")
     raise ValueError(f"unknown qualification case: {case_id}")
 
 
+def build_case_knots(case_id: str, joints: Sequence[float]) -> list[list[float]]:
+    """One admission case's knots for ``ARM`` from its measured joints; the executor must refuse them unwritten."""
+    measured = [float(v) for v in joints]
+    if case_id == "trajectory_step_exceeds_limit":
+        # The first knot holds; the second steps joint 1 by 1.5x the step one native action can follow.
+        return [measured, [measured[0] + 1.5 * MAX_KNOT_STEP_RAD, *measured[1:]]]
+    if case_id == "trajectory_joint_limit":
+        return [[OUTSIDE_JOINT_LIMIT_RAD, *measured[1:]]]
+    raise ValueError(f"unknown qualification case: {case_id}")
+
+
+def knot_arguments(knots: Sequence[Sequence[float]]) -> dict[str, Any]:
+    """``follow_joint_trajectory`` arguments moving only ``ARM`` through ``knots``, with the default guards."""
+    return {"arms": {ARM: {"knots_rad": [[float(v) for v in row] for row in knots]}},
+            "interpolation": "knots_linear_ff"}
+
+
+def measured_joints(observation: Mapping[str, Any]) -> dict[str, list[float]]:
+    """Both arms' measured joints from a public observation."""
+    effectors = observation["proprioception"]["end_effectors"]
+    return {arm: [float(v) for v in effectors[arm]["arm_joint_qpos"]] for arm in (ARM, OTHER_ARM)}
+
+
+# ``expected_route`` ``free`` is the run's free route (``FREE_ROUTES``); the toolkit's route rule
+# (``lib.motion_plan.route.choose``) gives ``line`` for precision and contact moves inside the local envelope and
+# ``staged`` for a longer contact approach. ``knots`` cases bypass the planner to reach the executor's admission.
 MOTION_CASES: tuple[dict[str, Any], ...] = (
-    {"case_id": "free_space_translation_8cm", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": "global", "expected_executor": GLOBAL_EXECUTOR},
-    {"case_id": "free_space_lift_translate_descend", "action": "move_free_space",
-     "expected_status": {"reached"}, "expected_strategy": "global", "expected_executor": GLOBAL_EXECUTOR,
-     "expected_segments": ("lift", "translate", "descend")},
-    {"case_id": "combined_translation_rotation_45deg", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": "global", "expected_executor": GLOBAL_EXECUTOR},
-    {"case_id": "orientation_only_small_12deg", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": "local", "expected_executor": LOCAL_EXECUTOR,
+    {"case_id": "free_space_translation_8cm", "expected_status": {"reached"}, "expected_route": "free"},
+    {"case_id": "combined_translation_rotation_45deg", "expected_status": {"reached"}, "expected_route": "free"},
+    {"case_id": "orientation_only_small_12deg", "expected_status": {"reached"}, "expected_route": "line",
      "rotation_only": True},
-    {"case_id": "orientation_only_90deg", "action": "move_pose",
-     "expected_status": {"reached", "not_reached"}, "expected_strategy": "global",
-     "expected_executor": GLOBAL_EXECUTOR, "rotation_only": True},
-    {"case_id": "orientation_only_near_180deg", "action": "move_pose",
-     "expected_status": {"reached", "not_reached", "planner_failed", "plan_rejected"},
-     "expected_strategy": None, "expected_executor": None, "rotation_only": True},
-    {"case_id": "precision_small_local_6mm", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": "local", "expected_executor": LOCAL_EXECUTOR},
-    {"case_id": "contact_approach_small_8mm", "action": "move_pose",
-     "expected_status": {"reached", "not_reached"}, "expected_strategy": "local",
-     "expected_executor": LOCAL_EXECUTOR},
-    {"case_id": "contact_approach_large_refused", "action": "move_pose",
-     "expected_status": {"plan_rejected"}, "expected_strategy": None, "expected_executor": None,
-     "expected_failure_code": ROUTE_REFUSAL_CODE, "expect_no_write": True},
-    {"case_id": "planner_refusal_unreachable", "action": "move_pose",
-     "expected_status": {"planner_failed"}, "expected_strategy": None, "expected_executor": None,
-     "expected_failure_code": PLANNER_IK_REFUSAL_CODE, "expect_no_write": True},
-    {"case_id": "below_tolerance_noop", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": None, "expected_executor": None},
-    {"case_id": "dual_arm_synchronized_lift", "action": "move_pose",
-     "expected_status": {"reached"}, "expected_strategy": "global", "expected_executor": GLOBAL_EXECUTOR,
+    # Large turns may end not_reached (a guard stop) or be refused before any action (the planner, the wrist
+    # check, a branch change): either way a pure rotation must not carry link6 away.
+    {"case_id": "orientation_only_90deg", "expected_status": {"reached", "not_reached", REFUSED},
+     "expected_route": "free", "rotation_only": True},
+    {"case_id": "orientation_only_near_180deg", "expected_status": {"reached", "not_reached", REFUSED},
+     "expected_route": "free", "rotation_only": True},
+    {"case_id": "precision_small_local_6mm", "expected_status": {"reached"}, "expected_route": "line"},
+    {"case_id": "contact_approach_small_8mm", "expected_status": {"reached", "not_reached"},
+     "expected_route": "line"},
+    {"case_id": "contact_approach_staged_80mm", "expected_status": {"reached", "not_reached"},
+     "expected_route": "staged"},
+    {"case_id": "planner_refusal_unreachable", "expected_status": {REFUSED},
+     "expected_refusal_codes": UNREACHABLE_REFUSAL_CODES},
+    {"case_id": "below_tolerance_noop", "expected_status": {"reached"}, "expected_route": "line"},
+    {"case_id": "dual_arm_synchronized_lift", "expected_status": {"reached"}, "expected_route": "free",
      "dual_arm": True},
+    {"case_id": "trajectory_step_exceeds_limit", "knots": True, "expected_status": {"plan_rejected"},
+     "expected_failure_code": "trajectory_step_exceeds_limit"},
+    {"case_id": "trajectory_joint_limit", "knots": True, "expected_status": {"plan_rejected"},
+     "expected_failure_code": "trajectory_joint_limit"},
 )
 
 # ``JAW_APERTURE_CASE_ID`` is deliberately absent. Its probe, its judge and
@@ -187,10 +221,7 @@ SEQUENCE_CASES: tuple[str, ...] = (
     "recover_home_after_matrix",
     "gripper_close_holds_pose",
     "gripper_open_holds_pose",
-    "recover_backtrack_after_move",
-    "probe_then_plan_ref_execution",
-    "plan_ref_survives_gripper_only",
-    "plan_ref_expires_after_motion",
+    "recover_retrace_after_move",
     "jaw_flip_variants_probed",
     "probe_consistency_unreachable",
     "official_preterminal_boundary",
@@ -215,52 +246,72 @@ def _translation_drift(receipt: Mapping[str, Any], arm: str) -> float | None:
     return math.sqrt(sum((float(after[i]) - float(before[i])) ** 2 for i in range(3)))
 
 
-def judge_motion_case(case: Mapping[str, Any], receipt: Mapping[str, Any]) -> dict[str, Any]:
-    """Pass/fail one executed motion case using only public receipt fields."""
+def expected_route(case: Mapping[str, Any], free_route: str) -> str | None:
+    """The route a planned case must take in a run whose free route is ``free_route``."""
+    route = case.get("expected_route")
+    return free_route if route == "free" else route
+
+
+def _within(error: tuple[float, float]) -> bool:
+    return error[0] <= REACH_POSITION_TOLERANCE_M and error[1] <= REACH_ORIENTATION_TOLERANCE_RAD
+
+
+def judge_motion_case(case: Mapping[str, Any], receipt: Mapping[str, Any], *,
+                      targets: Mapping[str, Sequence[float]] | None = None, route: str | None = None,
+                      free_route: str = "global") -> dict[str, Any]:
+    """Pass/fail one executed motion case using only public receipt fields.
+
+    ``targets`` are the requested link6 poses and ``route`` the planned route (None for knots cases). A reached
+    arm must end within the arrival tolerance both of its plan's last knot (the receipt's ``pose_error``, against
+    the knots' forward kinematics) and of the requested target."""
     notes: list[str] = []
     if receipt.get("schema") != SPARSE_RECEIPT_SCHEMA:
         return {"passed": False, "notes": [f"unexpected receipt schema: {receipt.get('schema')}"]}
+    if receipt.get("action") != TRAJECTORY_ACTION:
+        notes.append(f"action {receipt.get('action')} is not {TRAJECTORY_ACTION}")
     status = str(receipt.get("execution_status"))
     if status not in case["expected_status"]:
         notes.append(f"status {status} not in {sorted(case['expected_status'])}")
-    strategy = case.get("expected_strategy")
-    if strategy is not None and status == "reached" and receipt.get("motion_strategy") != strategy:
-        notes.append(f"strategy {receipt.get('motion_strategy')} is not {strategy}")
-    executor = receipt.get("executor")
-    expected_executor = case.get("expected_executor")
-    if expected_executor is not None and status == "reached" and (
-        not isinstance(executor, list) or expected_executor not in executor
-    ):
-        notes.append(f"executor {executor} lacks {expected_executor}")
+    if status == "reached":
+        if receipt.get("motion_strategy") != TRAJECTORY_STRATEGY:
+            notes.append(f"strategy {receipt.get('motion_strategy')} is not {TRAJECTORY_STRATEGY}")
+        executor = receipt.get("executor")
+        if not isinstance(executor, list) or TRAJECTORY_EXECUTOR not in executor:
+            notes.append(f"executor {executor} lacks {TRAJECTORY_EXECUTOR}")
+    wanted = expected_route(case, free_route)
+    if not case.get("knots") and wanted is not None and route != wanted:
+        notes.append(f"route {route} is not {wanted}")
     if case.get("expected_failure_code") is not None and receipt.get("failure_code") != case["expected_failure_code"]:
         notes.append(f"failure_code {receipt.get('failure_code')}")
-    refused = status in {"plan_rejected", "planner_failed"}
-    if (case.get("expect_no_write") or refused) and (receipt.get("state_changed") or receipt.get("native_actions")):
+    if status == "plan_rejected" and (receipt.get("state_changed") or receipt.get("native_actions")):
         notes.append("refusal wrote the world")
     arms = receipt.get("arms") if isinstance(receipt.get("arms"), Mapping) else {}
+    after = receipt.get("after") if isinstance(receipt.get("after"), Mapping) else {}
     targeted = [ARM, OTHER_ARM] if case.get("dual_arm") else [ARM]
     for arm in targeted:
         effect = arms.get(arm) if isinstance(arms.get(arm), Mapping) else {}
         if effect.get("targeted") is not True:
             notes.append(f"{arm} is not marked targeted")
+        if status != "reached":
+            continue
         pose_error = effect.get("pose_error")
-        if status == "reached":
-            if not isinstance(pose_error, Mapping):
-                notes.append(f"{arm} reached without a pose error")
-            elif (float(pose_error.get("translation_m", math.inf)) > REACH_POSITION_TOLERANCE_M
-                  or float(pose_error.get("orientation_rad", math.inf)) > REACH_ORIENTATION_TOLERANCE_RAD):
-                notes.append(f"{arm} reached with residual {pose_error}")
+        if not isinstance(pose_error, Mapping):
+            notes.append(f"{arm} reached without a pose error")
+        elif not _within((float(pose_error.get("translation_m", math.inf)),
+                          float(pose_error.get("orientation_rad", math.inf)))):
+            notes.append(f"{arm} reached with residual {pose_error} from its last knot")
+        measured = (after.get(arm) or {}).get("pose_xyz_xyzw")
+        if targets is not None and arm in targets:
+            if not isinstance(measured, list) or len(measured) != 7:
+                notes.append(f"{arm} reached without an after pose")
+            elif not _within(error := _pose_error(targets[arm], measured)):
+                notes.append(f"{arm} reached {error[0]:.4f} m / {error[1]:.4f} rad from its requested target")
     for arm in (OTHER_ARM,) if not case.get("dual_arm") else ():
         drift = (arms.get(arm) or {}).get("inactive_arm_drift") if isinstance(arms.get(arm), Mapping) else None
         if not isinstance(drift, Mapping):
             notes.append(f"{arm} inactive drift is missing")
         elif float(drift.get("translation_m", math.inf)) > INACTIVE_ARM_DRIFT_BOUND_M:
             notes.append(f"{arm} moved {drift['translation_m']:.4f} m while not targeted")
-    expected_segments = case.get("expected_segments")
-    if expected_segments and status == "reached":
-        executed = [item.get("segment") for item in (arms.get(ARM) or {}).get("segments", [])]
-        if not set(executed).issubset(set(expected_segments)) or len(executed) < 2:
-            notes.append(f"free-space segments {executed}")
     invariant = receipt.get("command_invariant")
     if not isinstance(invariant, Mapping) or invariant.get("verified") is not True:
         notes.append("command invariant not verified")
@@ -269,17 +320,29 @@ def judge_motion_case(case: Mapping[str, Any], receipt: Mapping[str, Any]) -> di
         if drift is None:
             notes.append("rotation-only case lacks before/after poses")
         elif drift > ROTATION_ONLY_DRIFT_BOUND_M:
-            notes.append(f"2pi-alias monitor: pure rotation realized {drift:.3f} m translation drift")
+            notes.append(f"pure rotation realized {drift:.3f} m translation drift")
+    return {"passed": not notes, "notes": notes}
+
+
+def judge_refusal(case: Mapping[str, Any], refusal: Mapping[str, Any], *, free_route: str = "global") -> dict[str, Any]:
+    """Pass/fail one planned case the toolkit refused before binding any action."""
+    notes: list[str] = []
+    if REFUSED not in case["expected_status"]:
+        notes.append(f"refused before any action ({refusal.get('code')}): {refusal.get('message')}")
+    codes = (case.get("expected_refusal_codes") or {}).get(free_route)
+    if codes is not None and refusal.get("code") not in codes:
+        notes.append(f"refusal code {refusal.get('code')!r} is not one of {list(codes)}")
     return {"passed": not notes, "notes": notes}
 
 
 def judge_gripper_case(directive: str, receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Pass/fail one rate-limited ``set_gripper`` (the object form every surface sends) in free air."""
     notes: list[str] = []
     if receipt.get("schema") != SPARSE_RECEIPT_SCHEMA:
         return {"passed": False, "notes": [f"unexpected receipt schema: {receipt.get('schema')}"]}
     if receipt.get("execution_status") != "reached":
         notes.append(f"gripper {directive} ended {receipt.get('execution_status')}")
-    if receipt.get("executor") != [GRIPPER_EXECUTOR]:
+    if receipt.get("executor") != [GRIPPER_RAMP_EXECUTOR]:
         notes.append(f"executor {receipt.get('executor')}")
     effect = receipt.get("arms", {}).get(ARM, {}) if isinstance(receipt.get("arms"), Mapping) else {}
     error = effect.get("gripper_error")
@@ -293,14 +356,20 @@ def judge_gripper_case(directive: str, receipt: Mapping[str, Any]) -> dict[str, 
     return {"passed": not notes, "notes": notes}
 
 
-def judge_recovery_case(receipt: Mapping[str, Any], anchor: Sequence[float], *, arm: str = ARM) -> dict[str, Any]:
+def judge_recovery_case(receipt: Mapping[str, Any], anchor: Sequence[float], *, strategy: str,
+                        arm: str = ARM) -> dict[str, Any]:
+    """Pass/fail one arm of a recovery trajectory (``strategy`` ``home`` or ``retrace``) against its anchor pose."""
     notes: list[str] = []
     if receipt.get("schema") != SPARSE_RECEIPT_SCHEMA:
         return {"passed": False, "notes": [f"unexpected receipt schema: {receipt.get('schema')}"]}
     if receipt.get("execution_status") != "reached":
         notes.append(f"recovery ended {receipt.get('execution_status')}")
-    if receipt.get("executor") != [RECOVERY_EXECUTOR]:
-        notes.append(f"executor {receipt.get('executor')}")
+    executor = receipt.get("executor")
+    if not isinstance(executor, list) or TRAJECTORY_EXECUTOR not in executor:
+        notes.append(f"executor {executor}")
+    recovery = (receipt.get("trajectory") or {}).get("recovery") or {}
+    if (recovery.get("targets") or {}).get(arm) != strategy:
+        notes.append(f"{arm} is not a {strategy} recovery: {recovery.get('targets')}")
     after = receipt.get("after", {}).get(arm, {}).get("pose_xyz_xyzw")
     if not isinstance(after, list) or len(after) != 7:
         notes.append("recovery lacks an after pose")
@@ -529,6 +598,7 @@ def jaw_aperture_calibration(
 def summarize_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     """Public, prompt-safe summary persisted per case."""
     arms = receipt.get("arms") if isinstance(receipt.get("arms"), Mapping) else {}
+    trajectory = receipt.get("trajectory") if isinstance(receipt.get("trajectory"), Mapping) else None
     summary = {
         "schema": receipt.get("schema"), "action": receipt.get("action"),
         "execution_status": receipt.get("execution_status"), "motion_strategy": receipt.get("motion_strategy"),
@@ -538,6 +608,9 @@ def summarize_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
         "terminal_after_action": receipt.get("terminal_after_action"),
         "command_invariant_verified": (receipt.get("command_invariant") or {}).get("verified")
         if isinstance(receipt.get("command_invariant"), Mapping) else None,
+        "trajectory": None if trajectory is None else {
+            key: trajectory[key] for key in ("status", "knots_planned", "knots_executed", "stop", "settle",
+                                             "admission", "recovery", "undo") if key in trajectory},
         "arms": {},
     }
     for arm, effect in arms.items():
@@ -545,13 +618,8 @@ def summarize_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             continue
         summary["arms"][arm] = {
             "targeted": effect.get("targeted"), "pose_error": effect.get("pose_error"),
-            "gripper_error": effect.get("gripper_error"), "plan_ref": effect.get("plan_ref"),
-            "inactive_arm_drift": effect.get("inactive_arm_drift"),
-            "segments": [
-                {"segment": item.get("segment"), "reached": item.get("reached"),
-                 "native_actions": item.get("native_actions"), "ik_status": item.get("ik_status"),
-                 "joint_delta_rad": item.get("joint_delta_rad")}
-                for item in effect.get("segments", []) if isinstance(item, Mapping)
-            ],
+            "gripper_error": effect.get("gripper_error"), "inactive_arm_drift": effect.get("inactive_arm_drift"),
+            "motion_progress": effect.get("motion_progress"),
+            "max_tracking_error_rad": ((trajectory or {}).get("arms") or {}).get(arm, {}).get("max_tracking_error_rad"),
         }
     return summary

@@ -36,7 +36,6 @@ from ora.environment.controllers.reachability import (  # noqa: F401
     bounded_dls_joint_delta,
     cartesian_pose_error_twist,
     numerical_cartesian_jacobian,
-    solve_reachability,
 )
 
 
@@ -617,7 +616,7 @@ def planner_public_summary(
                 if isinstance(item, Mapping)
             ],
         }
-    diagnostics = ik_planning_diagnostics(result)
+    diagnostics = result.get("planning_diagnostics") or ik_planning_diagnostics(result)
     if diagnostics is not None:
         record["planning_diagnostics"] = diagnostics
     reference = result.get("ik_validation_artifact")

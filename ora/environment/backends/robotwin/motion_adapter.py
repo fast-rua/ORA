@@ -80,13 +80,31 @@ class RoboTwinMotionBackendAdapter:
         if not isinstance(planner_target, Mapping):
             raise RuntimeError("RoboTwin planner target is malformed")
         kind = planner_target.get("kind")
+        if kind not in ("pose", "joint"):
+            raise RuntimeError("RoboTwin planner target kind is invalid")
+        shared = self._shared_plan(arm, planner_target, action_start)
+        if shared is not None:
+            return shared
         if kind == "pose":
             planner = getattr(self._robot, f"{arm}_plan_path")
             return planner(planner_target["pose_wxyz"], last_qpos=qpos)
-        if kind == "joint":
-            planner = getattr(self._robot, f"{arm}_plan_joint_path")
-            return planner(planner_target["joints"], last_qpos=qpos)
-        raise RuntimeError("RoboTwin planner target kind is invalid")
+        planner = getattr(self._robot, f"{arm}_plan_joint_path")
+        return planner(planner_target["joints"], last_qpos=qpos)
+
+    def _shared_plan(
+        self, arm: str, planner_target: Mapping[str, Any], action_start: Mapping[str, Any],
+    ) -> Mapping[str, Any] | None:
+        """The shared planner's answer; None without one, or when it failed (``shared_motion``)."""
+
+        from . import shared_motion
+
+        motion = shared_motion.active(self._session)
+        if motion is None:
+            return None
+        return shared_motion.plan(
+            self._session, self._environment, motion, arm, planner_target, action_start["joints"],
+            self._session._arm_profile(arm)["planner_joint_names"],
+        )
 
     def plan_batch_global(
         self, arm: str, planner_targets: Sequence[Any],
@@ -106,7 +124,7 @@ class RoboTwinMotionBackendAdapter:
         return {
             "schema": "robotwin.curobo-topk-batch-result.v1",
             "results": [
-                planner(target["pose_wxyz"], last_qpos=qpos)
+                self._shared_plan(arm, target, action_start) or planner(target["pose_wxyz"], last_qpos=qpos)
                 for target in planner_targets
             ],
         }
@@ -146,139 +164,69 @@ class RoboTwinMotionBackendAdapter:
             ],
         )
 
+    def _reach(self, arm: str, queries: Sequence[Mapping[str, Any]], **tolerances: float) -> Mapping[str, Any]:
+        """The shared IK's rows for ``queries``; a session with no planner has no reach check."""
+
+        from ora.contracts.refusal import EnvironmentRefusal
+        from . import shared_motion
+
+        motion = shared_motion.active(self._session)
+        if motion is None:
+            raise EnvironmentRefusal(
+                "this run has no shared planner to answer a reach check", field="arm", received=arm,
+                allowed=["a run whose runtime names motion_planner"],
+            )
+        return shared_motion.reach(
+            self._session, self._environment, motion, self, arm, queries, self._measured(), **tolerances,
+        )
+
+    def _measured(self) -> dict[str, list[float]]:
+        return {arm: [float(value) for value in self.read_joint_positions(arm)] for arm in self.capabilities.arms}
+
     def solve_batch_reachability(
         self, arm: str, target_poses_xyzw: Sequence[Sequence[float]], *,
         position_tolerance_m: float, orientation_tolerance_rad: float,
     ) -> list[Mapping[str, Any]]:
-        """Decide reachability for many poses with inverse kinematics alone.
-
-        ``plan_batch_global`` is the only other batch entry and it always calls
-        CuRobo, so asking "can the arm reach these poses" used to cost one motion
-        plan per pose. This composes the forward kinematics, joint limits and
-        damped-least-squares step that were already here, and touches no planner.
+        """Decide reachability for many poses with the planner's IK, from the measured joints.
 
         Every candidate starts from the same measured seed, so the ranking
         compares poses rather than the order they happened to be solved in.
         """
 
-        from .planning import solve_reachability
-
+        answer = self._reach(
+            arm, [{"pose_xyzw": list(pose), "interaction": "free_space", "from_index": None}
+                  for pose in target_poses_xyzw],
+            position_tolerance_m=position_tolerance_m, orientation_tolerance_rad=orientation_tolerance_rad,
+        )
         seed = [float(value) for value in self.read_joint_positions(arm)]
-        limits = self.joint_limits(arm)
         results: list[Mapping[str, Any]] = []
-        for pose in target_poses_xyzw:
-            solved = solve_reachability(
-                target_pose_xyzw=pose, seed_joints=seed,
-                fk_public_pose=lambda joints: self.fk_public_tcp_pose(arm, joints),
-                joint_limits=limits,
-                position_tolerance_m=position_tolerance_m,
-                orientation_tolerance_rad=orientation_tolerance_rad,
-            )
-            results.append({**solved, "arm": arm, "seed_joints": list(seed)})
+        for row in answer["results"]:
+            results.append({
+                "reachable": row["reachable"], "iterations": 1,
+                "position_error_m": row["position_error_m"], "orientation_error_rad": row["orientation_error_rad"],
+                "claim_boundary": answer["claim_boundary"],
+                **({} if row["reachable"] else {"reason": row["reason"]}),
+                "arm": arm, "seed_joints": list(seed),
+            })
         return results
 
     def reach_check_batch(
         self, arm: str, queries: Sequence[Mapping[str, Any]], *,
         position_tolerance_m: float, orientation_tolerance_rad: float,
     ) -> Mapping[str, Any]:
-        """Answer exact poses with the same read-only IK ``align_plan`` uses.
+        """Answer exact poses with the IK of the planner a global ``move_pose`` route plans through.
 
-        Each query is solved by one damped-least-squares descent seeded from
-        the measured joints, or -- for a chained query -- from the solution the
-        earlier query reached. Rows carry the residual, joint-limit margin and
-        joint move at the configuration the descent ended on. This solver models
-        no move_pose route, so ``interaction`` does not change the answer and
-        ``route`` is null. It is not the 128-seed collision-checked CuRobo IK
-        ``move_pose`` plans through, and the result says so twice:
-        ``matches_move_pose_admission`` is false and the claim boundary names it.
-
-        When the session's surface asked for the other-arm screen
-        (``reach_inter_arm``), every solved row is then
-        screened -- the reached configuration alone -- against the other arm
-        held at its measured joints; a blocked row becomes unreachable with
-        the screen's reason, no chained query starts from it, and the batch
-        names the screened ``ik_model`` and claim boundary.
+        Each query is solved from the measured joints or -- for a chained query
+        -- from the solution the earlier query reached, in the world a plan to
+        that pose would see (``shared_motion``), the other arm included. This
+        models no ``move_pose`` route, so ``interaction`` does not change the
+        answer and ``route`` is null. ``matches_move_pose_admission`` is false:
+        admission also plans a trajectory and validates it.
         """
 
-        from ora.contracts.reach_check import START_UNREACHABLE
-        from ora.environment.controllers.reach_check import (
-            joint_delta_rad, joint_limit_margin_rad,
-        )
-        from .planning import solve_reachability
-        from .reach_inter_arm import batch_basis
-
-        measured = [float(value) for value in self.read_joint_positions(arm)]
-        limits = self.joint_limits(arm)
-        mode, screen = self._reach_check_screen(arm)
-        rows: list[dict[str, Any]] = []
-        ends: list[list[float] | None] = []
-        for query in queries:
-            seed = measured if query["from_index"] is None else ends[query["from_index"]]
-            if seed is None:
-                rows.append({
-                    "reachable": False, "reason": START_UNREACHABLE, "route": None,
-                    "position_error_m": None, "orientation_error_rad": None,
-                    "joint_limit_margin_rad": None, "joint_delta_rad": None,
-                })
-                ends.append(None)
-                continue
-            solved = solve_reachability(
-                target_pose_xyzw=query["pose_xyzw"], seed_joints=seed,
-                fk_public_pose=lambda joints: self.fk_public_tcp_pose(arm, joints),
-                joint_limits=limits,
-                position_tolerance_m=position_tolerance_m,
-                orientation_tolerance_rad=orientation_tolerance_rad,
-            )
-            joints = solved.get("joints")
-            reachable = bool(solved["reachable"])
-            reason = None if reachable else solved.get("reason", "not_converged")
-            end = [float(value) for value in joints] if reachable else None
-            blocked = None if end is None or screen is None else screen(end)
-            if blocked is not None:
-                reachable, reason, end = False, blocked["reason"], None
-            rows.append({
-                "reachable": reachable,
-                "reason": reason,
-                "route": None,
-                "position_error_m": float(solved["position_error_m"]),
-                "orientation_error_rad": float(solved["orientation_error_rad"]),
-                "joint_limit_margin_rad": joint_limit_margin_rad(joints, limits),
-                "joint_delta_rad": joint_delta_rad(joints, seed),
-            })
-            ends.append(end)
-        if mode is not None:
-            return {**batch_basis(mode), "results": rows}
-        return {
-            "ik_model": "robotwin_single_seed_damped_least_squares_v1",
-            "matches_move_pose_admission": False,
-            "claim_boundary": (
-                "One damped-least-squares IK descent from the measured joints (or a "
-                "chained query's earlier solution) with joint limits only: no collision "
-                "model, no route model, and not the 128-seed collision-checked CuRobo IK "
-                "move_pose plans through, so move_pose can still refuse a reachable pose "
-                "or reach one reported unreachable."
-            ),
-            "results": rows,
-        }
-
-    def _reach_check_screen(self, arm: str) -> tuple[str | None, Any]:
-        """The session's reach-check screen mode and the screen bound for ``arm``."""
-
-        from .reach_inter_arm import bind_screen, screen_mode
-
-        mode = screen_mode(screen=self._session.reach_check_inter_arm_screen)
-        if mode is None:
-            return None, None
-        return mode, bind_screen(
-            arm,
-            measured_joints={
-                name: [float(value) for value in self.read_joint_positions(name)]
-                for name in self.capabilities.arms
-            },
-            fk_chain_points=lambda selected, joints: (
-                self._session._pinocchio_chain_points(self._environment, selected, joints)
-            ),
-            profile=self._session.control_profile["profile"]["dual_arm_collision_check"],
+        return self._reach(
+            arm, queries, position_tolerance_m=position_tolerance_m,
+            orientation_tolerance_rad=orientation_tolerance_rad,
         )
 
     def compute_local_joint_target(

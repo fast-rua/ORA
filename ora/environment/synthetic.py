@@ -14,6 +14,18 @@ from typing import Any, Mapping
 from ora.contracts.action import validate_runtime_action
 from .base import ENVIRONMENT_STATUS_SCHEMA, validate_environment_status
 
+#: Wall seconds each Synthetic action takes (default 0: at once). Demos of the operator's
+#: screens set it so the robot is seen moving: its captured motion is then paced in real time.
+ACTION_WALL_ENV = "ORA_SYNTHETIC_ACTION_WALL_S"
+
+
+def action_wall_s(environ: Mapping[str, str] = os.environ) -> float:
+    try:
+        value = float(environ.get(ACTION_WALL_ENV, "0") or 0)
+    except ValueError:
+        return 0.0
+    return min(max(value, 0.0), 10.0)
+
 
 def synthetic_public_environment_context(
     *, camera_names: tuple[str, ...], action_codec: str = "target_state_v4",
@@ -93,6 +105,10 @@ class SyntheticSession:
     end_effectors: dict[str, dict[str, Any]] = field(
         default_factory=_initial_end_effectors
     )
+    #: Resolved ``runtime.execution_capture``; None or disabled records no world frames.
+    execution_capture: Mapping[str, Any] | None = None
+    workspace_bounds_m: Mapping[str, Any] | None = None
+    _capture: Any = field(default=None, init=False, repr=False)
 
     def start(self) -> dict[str, Any]:
         if self.max_actions <= 0:
@@ -100,6 +116,14 @@ class SyntheticSession:
         if self.main_camera not in self.camera_names:
             raise ValueError("main_camera must be included in camera_names")
         self.output_root.mkdir(parents=True, exist_ok=True)
+        if self.execution_capture and self.execution_capture.get("enabled") and self._capture is None:
+            from .synthetic_capture import SyntheticCapture
+
+            self._capture = SyntheticCapture(
+                self.output_root, task=self.task, cameras=list(self.camera_names),
+                config=self.execution_capture, bounds=self.workspace_bounds_m,
+            )
+            self._capture.reset(self.round_index, self.end_effectors)
         return {
             "schema": "ora.synthetic-reset.v1",
             "task": self.task,
@@ -126,6 +150,8 @@ class SyntheticSession:
         self.abort_reason = None
         self.last_receipt = None
         self.end_effectors = _initial_end_effectors()
+        if self._capture is not None:
+            self._capture.reset(round_index, self.end_effectors)
         reset = {
             "schema": "ora.synthetic-round-reset.v1",
             "task": self.task,
@@ -233,6 +259,15 @@ class SyntheticSession:
         self.action_sequence += 1
         self.round_action_sequence += 1
         self.terminal = self.round_action_sequence >= self.max_actions
+        wall = action_wall_s()
+        if self._capture is not None:
+            self._capture.action(action, self.action_sequence - 1, before, after, wall_s=wall)
+            if self.terminal:
+                self._capture.terminal(after)
+        elif wall:
+            import time
+
+            time.sleep(wall)
         receipt = {
             "schema": "ora.synthetic-motion-receipt.v1",
             "action": action,
@@ -310,11 +345,25 @@ class SyntheticSession:
         return verdict
 
     def abort(self, _reason: str) -> None:
+        if self._capture is not None and not self.terminal:
+            self._capture.terminal(self.end_effectors)
         self.abort_reason = _reason
         self.terminal = True
 
     def finalize_operator_video(self) -> dict[str, Any] | None:
         return None
 
+    def operator_view(self) -> dict[str, Any] | None:
+        """The operator's front view of the arms (drawn, like the world capture), or None without capture."""
+
+        if self._capture is None:
+            return None
+        from .synthetic_capture import OPERATOR_HEIGHT, OPERATOR_VIEW_CAMERA, OPERATOR_WIDTH, draw_operator_view
+
+        return {"png": draw_operator_view(self.end_effectors, bounds=self.workspace_bounds_m),
+                "camera": OPERATOR_VIEW_CAMERA, "width": OPERATOR_WIDTH, "height": OPERATOR_HEIGHT}
+
     def close(self) -> None:
-        return None
+        capture, self._capture = self._capture, None
+        if capture is not None:
+            capture.close(self.end_effectors)

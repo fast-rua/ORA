@@ -17,7 +17,7 @@ from typing import Any, Mapping
 
 from examples.official_suite import run
 from ora.orchestrator import paths
-from ora.orchestrator.cli import resource_lease_for_owner
+from ora.orchestrator.leases import resource_lease_for_owner
 from ora.orchestrator.spec import load_run_spec, resolve_run_spec
 
 POLL_SECONDS = 5.0

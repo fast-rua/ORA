@@ -1,0 +1,46 @@
+# ORA free-play scene isaac-tabletop-v1/blocks: nine blocks of nine colours in a loose 3 x 3 grid,
+# seven 35 mm blocks and two small ones (about 20 mm).
+#
+# RoboDojo task-config format, read only by ORA's layout generator (benchmarks/robodojo_play_layouts.py);
+# see toys.yml for the format. Each block has its own cell (+-8 mm, yaw +-30 deg) so seeds move the
+# blocks a little but keep the grid; the colours are shuffled so no row or column is in rainbow order.
+# Colours are the assets' own materials (base colour factor), chosen to tell apart in the head camera:
+# 35 mm `cube` 00003 red, 00008 orange, 00007 yellow, 00002 green, 00009 cyan, 00001 blue and 00000
+# magenta (its material is violet, 0.77 0 1, and renders magenta); small `small_cube` 00009 white and
+# 00004 dark olive (0.13 0.27 0). `small_cube` metadata says 35 mm but the blocks are about 20 mm.
+# Only RoboDojo assets. No reward, no instruction, no task: free play.
+
+gripper_keep_out:
+  clearance_m: 0.08
+  zones:
+    - {xlim: [-0.387, -0.212], ylim: [-0.48, -0.194]}
+    - {xlim: [0.212, 0.388], ylim: [-0.48, -0.194]}
+
+Rigid:
+  - common: {xlim: [-0.128, -0.112], ylim: [-0.028, -0.012], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [2]}]
+    select_mode: {nums: 1, mode: unique, label: [green_block]}
+  - common: {xlim: [-0.008, 0.008], ylim: [-0.028, -0.012], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [3]}]
+    select_mode: {nums: 1, mode: unique, label: [red_block]}
+  - common: {xlim: [0.112, 0.128], ylim: [-0.028, -0.012], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: small_cube, index: [9]}]
+    select_mode: {nums: 1, mode: unique, label: [white_block]}
+  - common: {xlim: [-0.128, -0.112], ylim: [-0.108, -0.092], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [blue_block]}
+  - common: {xlim: [-0.008, 0.008], ylim: [-0.108, -0.092], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [7]}]
+    select_mode: {nums: 1, mode: unique, label: [yellow_block]}
+  - common: {xlim: [0.112, 0.128], ylim: [-0.108, -0.092], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: small_cube, index: [4]}]
+    select_mode: {nums: 1, mode: unique, label: [olive_block]}
+  - common: {xlim: [-0.128, -0.112], ylim: [-0.188, -0.172], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [8]}]
+    select_mode: {nums: 1, mode: unique, label: [orange_block]}
+  - common: {xlim: [-0.008, 0.008], ylim: [-0.188, -0.172], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [magenta_block]}
+  - common: {xlim: [0.112, 0.128], ylim: [-0.188, -0.172], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: cube, index: [9]}]
+    select_mode: {nums: 1, mode: unique, label: [cyan_block]}

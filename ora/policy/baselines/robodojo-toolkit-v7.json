@@ -1,0 +1,73 @@
+{
+  "schema": "ora.native-baseline.v1",
+  "id": "robodojo_toolkit_v7",
+  "context_scheme": "context_keep_written",
+  "code_mode": {
+    "library": "extended",
+    "prompt": "v3",
+    "source": true
+  },
+  "policy": {
+    "timeout_s": 900,
+    "max_model_calls_per_observation": 120,
+    "action_codec": "motion_action_v3",
+    "require_live_marker": true,
+    "provider_recovery": "first_token_deadline_v1"
+  },
+  "required_service_capabilities": [
+    "resident_sam3_point_segmentation_v1",
+    "resident_sam3_text_grounding_v1",
+    "resident_contact_graspnet_v1"
+  ],
+  "instances": {
+    "robodojo": {
+      "id": "robodojo_arx_x5",
+      "tool_surface": "robodojo_placement_toolkit_v6",
+      "prompt_bundle": "ora/policy/prompt_bundles/toolkit_v7/robodojo.yaml",
+      "environment_prompt_profile": "robodojo_public_explicit_v7",
+      "runtime": {
+        "kind": "robodojo",
+        "transport": "local_rpc",
+        "root_env": "ROBODOJO_ROOT",
+        "python_env": "ROBODOJO_PYTHON",
+        "asset_root_env": "ROBODOJO_ASSET_ROOT",
+        "required_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+        "required_isaaclab_revision": "afca7b09d60d8beb9c1cb28b43066499940b969b",
+        "required_curobo_revision": "d17b54ce32cba095c0b000c4c58777075d11de0e",
+        "required_xpolicylab_revision": "5d0be1499634d3176258c8f2e31f5fe816497b0a",
+        "required_asset_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6",
+        "require_gpu": true,
+        "num_envs": 1,
+        "env_config": "arx_x5",
+        "sensor_profile": "rgbd_metric_v1",
+        "physics_dt": 0.004,
+        "control_hz": 25,
+        "native_actions_per_command": 20,
+        "main_camera": "head",
+        "policy_cameras": [
+          "head",
+          "left_wrist",
+          "right_wrist"
+        ],
+        "workspace_profile": "robodojo_arx_x5_tabletop_v1",
+        "startup_timeout_s": 600,
+        "request_timeout_s": 600,
+        "close_timeout_s": 30,
+        "motion_planner": {
+          "implementation": "curobo_v2",
+          "python_env": "CUROBO_V2_PYTHON",
+          "root_env": "CUROBO_V2_ROOT",
+          "required_revision": "d17b54ce32cba095c0b000c4c58777075d11de0e",
+          "request_timeout_s": 180,
+          "robot": "arx_x5",
+          "world_model": "public_depth_voxel_v1"
+        },
+        "motion_timing": {
+          "implementation": "toppra_ruckig",
+          "python_env": "ORA_TIMING_PYTHON"
+        },
+        "motion_profile": "ora/policy/embodiments/arx-x5/motion-profile-v2.json"
+      }
+    }
+  }
+}

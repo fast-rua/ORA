@@ -1,0 +1,122 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "vision_segment",
+  "events": {
+    "mask_omitted": ["query_index", "reason", "backend_score"]
+  },
+  "call": [
+    "{args.camera}",
+    "{args.points_uv|count|n:point}"
+  ],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"eq": ["result.status", "no_candidate"]}, "text": "no mask at any point", "failed": true},
+    {"if": {"eq": ["result.status", "partial"]},
+     "text": "{result.queries[?status=candidates]|count} of {result.query_count} points answered", "failed": true},
+    {"text": "{result.candidates|count|n:candidate} for {result.query_count|n:point}"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "the points and camera the masks were requested for, and the per-point budget",
+      "line": "segment {args.points_uv|count|n:point} in the {args.camera} camera, each queried alone, at most {args.max_candidates|or:3|n:mask} per point"
+    },
+    {
+      "name": "per-point answers",
+      "doc": "what the service returned for each point and how many of its masks were kept",
+      "when": {"not": {"empty": "result.queries"}},
+      "line": "{result.queries[?status=candidates]|count} of {result.queries|count} points returned a mask",
+      "verdict": [
+        {"if": {"eq": ["result.status", "candidates"]}, "text": "every point answered"},
+        {"text": "{result.queries[?status!=candidates]|count} without a mask"}
+      ],
+      "each": {
+        "over": "result.queries",
+        "limit": 8,
+        "line": [
+          "point {item.point_uv|uv}: {item.raw_candidate_count|n:mask} from the service, {item.candidate_count} kept",
+          {"if": {"not": {"empty": "item.candidate_ids"}}, "text": "{item.candidate_ids|join}"},
+          {"if": {"eq": ["item.status", "no_candidate"]}, "text": "no mask contains the point"},
+          {"if": {"eq": ["item.status", "failed"]}, "text": "the service failed for it ({item.error_code|or:no code})"},
+          {"if": {"gt": ["item.omitted_over_point_limit", 0]},
+           "text": "{item.omitted_over_point_limit|n:mask} over the per-point limit"},
+          {"if": {"gt": ["item.omitted_over_call_cap", 0]},
+           "text": "{item.omitted_over_call_cap|n:mask} over the call cap"}
+        ]
+      }
+    },
+    {
+      "name": "selection",
+      "doc": "how the raw masks were filtered, merged and capped: masks that exclude their point, near-duplicates, the delivery cap",
+      "when": {"has": "result.selection"},
+      "line": [
+        "{result.selection.raw_candidate_count} raw masks, {result.selection.usable_candidate_count} contain their point (the part connected to it is kept)",
+        "{result.selection.duplicate_count} merged as duplicates (IoU >= {result.selection.mask_iou_threshold|f2})",
+        "{result.selection.returned_count} returned of at most {result.selection.max_returned_candidates}",
+        {"if": {"gt": ["result.selection.omitted_over_call_cap_total", 0]},
+         "text": "{result.selection.omitted_over_call_cap_total|n:mask} left out by the call cap"},
+        {"if": {"gt": ["result.selection.omitted_over_point_limit_total", 0]},
+         "text": "{result.selection.omitted_over_point_limit_total|n:mask} left out by the per-point limit"}
+      ],
+      "verdict": [
+        {"if": {"not": {"empty": "result.selection.rejected_candidates"}},
+         "text": "{result.selection.rejected_candidates|count|n:mask} dropped for excluding their point"}
+      ]
+    },
+    {
+      "name": "masks left out",
+      "doc": "the masks the point limit or the call cap dropped, with their scores (stage event mask_omitted)",
+      "when": {"not": {"empty": "events.mask_omitted"}},
+      "line": "{events.mask_omitted|count|n:mask} did not make the delivery",
+      "each": {
+        "over": "events.mask_omitted",
+        "limit": 6,
+        "line": "point {item.query_index}: a mask scored {item.backend_score|f2} was left out ({item.reason})"
+      }
+    },
+    {
+      "name": "measurement",
+      "doc": "each delivered mask: its size, how much of the raw mask the prompted component kept, its depth coverage and its world position and extent",
+      "when": {"not": {"empty": "result.candidates"}},
+      "line": "{result.candidates|count|n:mask} measured on the aligned depth",
+      "verdict": [
+        {"if": {"not": {"empty": "result.candidates[?localization.status=insufficient_depth]"}},
+         "text": "{result.candidates[?localization.status=insufficient_depth]|count} without enough depth to localize"},
+        {"text": "all localized"}
+      ],
+      "each": {
+        "over": "result.candidates",
+        "line": [
+          "{item.candidate_id}: score {item.backend_score|f2}",
+          "{item.mask_summary.pixel_count} px ({item.mask_summary.area_fraction|pct1} of the image)",
+          {"if": {"not": {"empty": "item.shared_with_source_indexes"}},
+           "text": "found from point index {item.shared_with_source_indexes|join}"},
+          {"if": {"lt": ["item.normalization.retained_fraction", 1]},
+           "text": "kept {item.normalization.retained_fraction|pct} of the raw mask (the part connected to the point)"},
+          {"if": {"eq": ["item.mask_touches_image_boundary", true]}, "text": "touches the image border"},
+          {"if": {"eq": ["item.localization.status", "localized"]},
+           "text": "centre {item.localization.center_xyz_m|xyz} m (world), extent {item.localization.extent_xyz_m|xyz} m"},
+          {"if": {"eq": ["item.localization.status", "insufficient_depth"]},
+           "text": "insufficient depth: no position or size"}
+        ]
+      }
+    }
+  ],
+  "conclusion": [
+    {"if": {"eq": ["result.status", "no_candidate"]},
+     "text": "none of the {result.query_count|n:point} gave a mask"},
+    {"text": "{result.candidates|count|n:mask} proposed; result.queries[i].candidate_ids lists each point's own; a score orders masks within one point only, and the masks are proposals, not identified objects, so compare each overlay with the task before choosing one"}
+  ],
+  "next": [
+    {"if": {"any": [{"eq": ["result.status", "no_candidate"]}, {"eq": ["result.status", "partial"]}]},
+     "text": "place the empty points on the intended object's interior (away from its boundary, shadows and the table), or segment another public view; the other points' results stand"},
+    {"if": {"all": [{"eq": ["error.code", "invalid_arguments"]}, {"has": "error.constraints.maxItems"}]},
+     "text": "send at most {error.constraints.maxItems} entries of {error.field|or:the list} per call"},
+    {"if": {"all": [{"eq": ["error.code", "invalid_arguments"]}, {"has": "error.constraints.rule"}]},
+     "text": "keep every point inside the {error.constraints.width}x{error.constraints.height} image ({error.constraints.rule}); a point outside refuses the whole call; {error.field|or:an entry} is {error.received|uv}"},
+    {"if": {"eq": ["error.code", "invalid_arguments"]},
+     "text": "correct {error.field|or:the arguments}: {error.message}"},
+    {"if": {"eq": ["error.code", "segmentation_failed"]},
+     "text": "the segmentation service did not answer for this request ({error.message}): retry once"}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "report_issue",
+  "description": "Record concise tool or context feedback without changing the world or ending the episode.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

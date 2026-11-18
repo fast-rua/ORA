@@ -1,0 +1,71 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "robot.submit_action",
+  "description": "Submit one observation-bound robot target for trusted execution. A valid proposal is not an execution receipt, contact observation, grasp verdict, or task success; use the next fresh observation for measured outcome. Pose and gripper are independently optional under target_state_v4; omitted controlled dimensions preserve the execution-time measured state, and a combined request runs gripper only after motion reaches.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "arm": {
+        "type": "string",
+        "enum": [
+          "left",
+          "right"
+        ]
+      },
+      "pose": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "position_m": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "orientation_xyzw": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          }
+        },
+        "required": [
+          "position_m",
+          "orientation_xyzw"
+        ],
+        "additionalProperties": false
+      },
+      "gripper": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "required": [
+      "arm"
+    ],
+    "anyOf": [
+      {
+        "required": [
+          "pose"
+        ]
+      },
+      {
+        "required": [
+          "gripper"
+        ]
+      }
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

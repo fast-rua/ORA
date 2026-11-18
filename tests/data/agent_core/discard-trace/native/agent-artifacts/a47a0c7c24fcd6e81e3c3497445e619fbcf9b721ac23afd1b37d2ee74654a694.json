@@ -1,0 +1,1 @@
+{"action":"set_gripper","action_id":"action-0eedc4a168f3c37b","arguments":{"arm":"left","gripper":0.2},"bound_observation_sha256":"0549e73067fcaee2016a27c20003e369aecec6ec79485e4a1b301ffeec1ffd85","observation_id":"synthetic:native-boundary:0000","schema":"ora-action.v3"}

@@ -1,0 +1,294 @@
+#!/usr/bin/env bash
+# Run CI's checks locally in parallel lanes, then summarize them.
+#
+#   scripts/dev/check [--quick] [--public] [--no-docs] [--workers N] [--logs DIR]
+#
+# After the agent-core packages are installed (npm ci in ora-pi and ora-pi/web;
+# the suite's Pi-core cases need ora-pi's), these lanes run at the same time:
+#   A  the Python suite under pytest-xdist, without the agent-core tests
+#      (-m "not agent_core") and the no-write check, with
+#      ORA_TEST_REQUIRE_AGENT_CORE=1 as in CI's tests job: its cases that
+#      start the Pi core fail instead of skipping when it cannot start
+#   B  the agent-core tests (-m agent_core: tests/agent_core/) with
+#      ORA_TEST_REQUIRE_AGENT_CORE=1: a missing node, package or clean checkout
+#      fails instead of skipping
+#   C  the TypeScript agent-core tests, then ORA's web page: typecheck, test, build
+#   Y  the YAM station's simulator tests (tests/ora/environment/backends/yam and
+#      the MuJoCo scene trace) under the station's own interpreter, $YAM_PYTHON,
+#      which holds MuJoCo and i2rt; the default interpreter skips them, so
+#      without this lane a change in main that breaks the station passes. Where
+#      YAM_PYTHON is unset or lacks them, the lane is reported as skipped
+#   D  policy.lock and whitespace in local changes, and, when the checkout has
+#      an internal/ directory, the development repository's own checks (with
+#      its sealed-run agent-core and context goldens, which need ora-pi's
+#      packages; the context goldens' fixtures live outside git)
+# Then, one after the other: the documentation build, and the check that
+# `ora baselines --explain` writes no files, which compares the checkout's
+# ignored files and so runs alone.
+#
+#   --quick      ora-pi's packages, lanes A, Y and D and the no-write check only:
+#                no agent-core lane, TypeScript tests, web page or docs
+#   --public     leave out the internal/ checks, as the public repository does
+#   --no-docs    leave out the documentation build
+#   --workers N  pytest-xdist workers for lane A (default: CPUs, at most 8)
+#   --logs DIR   where each step writes its log, outside the checkout
+#                (default: a new directory under $TMPDIR)
+#
+# Python comes from scripts/lib/python.sh. When that interpreter lacks
+# pytest-xdist and is uv's project environment, lane A layers pytest-xdist and
+# pytest-timeout on with `uv run --no-sync`, which leaves the environment as it
+# is; otherwise lane A runs in one process. Lane B's quickstart cases preflight a
+# clean checkout, so commit first; lane A's run on a snapshot of the working
+# tree. Exit 0 when every step that ran passed, 1 when one failed, 2 on a usage
+# error.
+
+set -uo pipefail
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd -- "$ROOT" || exit 2
+# shellcheck source=../lib/python.sh
+. "$ROOT/scripts/lib/python.sh"
+
+NO_WRITE=tests/ora/app/test_baselines.py::test_the_command_writes_no_files
+PRIVATE="$ROOT/internal"
+TEST_TIMEOUT_S=300
+
+usage() { sed -n '2,/^$/{s/^# \{0,1\}//;p;}' "${BASH_SOURCE[0]}"; }
+fail_usage() { echo "check: $1" >&2; usage >&2; exit 2; }
+
+QUICK='' PUBLIC='' DOCS=1 WORKERS='' LOGS=''
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --quick) QUICK=1 ;;
+    --public) PUBLIC=1 ;;
+    --no-docs) DOCS='' ;;
+    --workers) [ $# -ge 2 ] || fail_usage "--workers needs a number"; WORKERS=$2; shift ;;
+    --workers=*) WORKERS=${1#*=} ;;
+    --logs) [ $# -ge 2 ] || fail_usage "--logs needs a directory"; LOGS=$2; shift ;;
+    --logs=*) LOGS=${1#*=} ;;
+    -h|--help) usage; exit 0 ;;
+    *) fail_usage "unknown argument: $1" ;;
+  esac
+  shift
+done
+
+if [ -z "$WORKERS" ]; then
+  WORKERS=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
+  [ "$WORKERS" -le 8 ] 2>/dev/null || WORKERS=8
+fi
+case "$WORKERS" in ''|*[!0-9]*|0) fail_usage "--workers must be a positive number" ;; esac
+
+if [ -z "$LOGS" ]; then
+  LOGS=$(mktemp -d "${TMPDIR:-/tmp}/ora-check.XXXXXX") || exit 2
+else
+  mkdir -p -- "$LOGS" || exit 2
+fi
+LOGS="$(cd -- "$LOGS" && pwd)"
+case "$LOGS/" in
+  "$ROOT"/*) fail_usage "--logs must be outside the checkout: the no-write check compares its files" ;;
+esac
+rm -f -- "$LOGS"/*.results
+
+ora_python check
+export PYTHON
+
+# ---- steps and results ---------------------------------------------------------
+# record LANE NAME RESULT SECONDS LOG: one line per step in LANE's results file.
+record() {
+  printf '%s\t%s\t%s\t%s\t%s\n' "$@" >> "$LOGS/$1.results"
+  printf '[%s] %-15s %s (%ss)\n' "$1" "$2" "$3" "$4"
+}
+
+# step LANE NAME COMMAND...: run COMMAND into its own log and record the result.
+step() {
+  local lane=$1 name=$2 log="$LOGS/$1-$2.log" started=$SECONDS status
+  shift 2
+  printf '$ %s\n\n' "$*" > "$log"
+  "$@" >> "$log" 2>&1
+  status=$?
+  if [ "$status" -eq 0 ]; then
+    record "$lane" "$name" ok $((SECONDS - started)) "$log"
+  else
+    record "$lane" "$name" "failed (exit $status)" $((SECONDS - started)) "$log"
+  fi
+  return "$status"
+}
+
+skip() { record "$1" "$2" "skipped: $3" 0 ""; }
+
+# ---- what this machine offers ---------------------------------------------------
+node_problem() {
+  local version major minor
+  command -v node >/dev/null 2>&1 || { echo "node is not on PATH"; return; }
+  command -v npm >/dev/null 2>&1 || { echo "npm is not on PATH"; return; }
+  version=$(node --version 2>/dev/null)
+  major=${version#v}; major=${major%%.*}
+  minor=${version#v*.}; minor=${minor%%.*}
+  case "$major$minor" in ''|*[!0-9]*) echo "node $version is not readable"; return ;; esac
+  if [ "$major" -lt 22 ] || { [ "$major" -eq 22 ] && [ "$minor" -lt 19 ]; }; then
+    echo "node $version is older than 22.19"
+  fi
+}
+
+# Lane A's pytest: the selected interpreter's with pytest-xdist, else uv's
+# project environment with the plugins layered on, else one process.
+PYTEST=("$PYTHON" -m pytest) XDIST=() TIMEOUT=() NOTE=''
+uv_environment=${UV_PROJECT_ENVIRONMENT:-$ROOT/.venv}
+if "$PYTHON" -c 'import xdist' >/dev/null 2>&1; then
+  XDIST=(-n "$WORKERS")
+  if "$PYTHON" -c 'import pytest_timeout' >/dev/null 2>&1; then TIMEOUT=(--timeout "$TEST_TIMEOUT_S"); fi
+elif command -v uv >/dev/null 2>&1 && [ "$PYTHON" = "$uv_environment/bin/python" ]; then
+  PYTEST=(uv run --no-sync --with 'pytest-xdist>=3.6' --with 'pytest-timeout>=2.3' python -m pytest)
+  XDIST=(-n "$WORKERS") TIMEOUT=(--timeout "$TEST_TIMEOUT_S")
+  NOTE="pytest-xdist layered on with uv run --no-sync"
+else
+  NOTE="pytest-xdist is not installed for $PYTHON; lane A runs in one process (uv sync --all-extras --locked installs it)"
+fi
+
+# ---- lanes ------------------------------------------------------------------------
+lane_a() {
+  step A suite env ORA_TEST_REQUIRE_AGENT_CORE=1 "${PYTEST[@]}" -q -rs -p no:cacheprovider ${XDIST[@]+"${XDIST[@]}"} \
+    ${TIMEOUT[@]+"${TIMEOUT[@]}"} -m "not agent_core" --deselect "$NO_WRITE" tests
+}
+
+lane_b() {
+  if [ -n "$NODE_PROBLEM" ]; then skip B agent-core "$NODE_PROBLEM"; return; fi
+  if [ -n "$PI_PACKAGES" ]; then skip B agent-core "$PI_PACKAGES"; return; fi
+  step B agent-core env ORA_TEST_REQUIRE_AGENT_CORE=1 "$PYTHON" -m pytest -q -rs -p no:cacheprovider \
+    -m agent_core tests
+}
+
+lane_c() {
+  if [ -n "$NODE_PROBLEM" ]; then skip C node-tests "$NODE_PROBLEM"; return; fi
+  if [ -n "$PI_PACKAGES" ]; then
+    skip C node-tests "$PI_PACKAGES"
+  else
+    step C node-tests env ORA_TEST_PYTHON="$PYTHON" node --test ora-pi/test/*.test.ts ora-pi/test/*.test.mjs
+  fi
+  if [ -n "$WEB_PACKAGES" ]; then skip C web "$WEB_PACKAGES"; return; fi
+  step C web-typecheck npm run typecheck --prefix ora-pi/web
+  step C web-test npm test --prefix ora-pi/web
+  step C web-build npm run build --prefix ora-pi/web
+}
+
+lane_d() {
+  step D policy-lock "$ROOT/scripts/ora" lock --check
+  step D whitespace git -C "$ROOT" diff --check HEAD
+  [ -d "$PRIVATE" ] || return 0
+  if [ -n "$PUBLIC" ]; then skip D internal "--public"; return; fi
+  local release="$PRIVATE/release/release-ora"
+  step D release-tests "$PYTHON" -m pytest -q -rs -p no:cacheprovider "$PRIVATE/release/test_release_ora.py"
+  if "$PYTHON" "$release" scan --help >/dev/null 2>&1; then
+    step D release-scan "$PYTHON" "$release" scan
+  else
+    skip D release-scan "release-ora has no scan command in this checkout"
+  fi
+  step D research-check "$PYTHON" "$PRIVATE/research/research.py" check
+  step D research-tests "$PYTHON" -m pytest -q -rs -p no:cacheprovider "$PRIVATE/research/test_research.py"
+  step D catalog-check "$PYTHON" "$PRIVATE/catalog.py" check
+  step D catalog-tests "$PYTHON" -m pytest -q -rs -p no:cacheprovider "$PRIVATE/test_catalog.py"
+  step D grasp-outcome-tests "$PYTHON" -m pytest -q -rs -p no:cacheprovider "$PRIVATE/experiments/grasp-outcomes/test_grasp_outcomes.py"
+  local parallel=()
+  [ ${#XDIST[@]} -gt 0 ] && parallel=(-n 3)
+  goldens D goldens "$PRIVATE/goldens/agent-core" ${parallel[@]+"${parallel[@]}"}
+  # The context goldens replay their cases in parallel themselves; their fixtures live
+  # outside git, and the cases skip (with the reason) where the fixtures root is absent.
+  goldens D context-goldens "$PRIVATE/goldens/context"
+}
+
+lane_y() {
+  local yam=${YAM_PYTHON:-} site layer
+  if [ -z "$yam" ] || [ ! -x "$yam" ]; then skip Y yam-sim "YAM_PYTHON is not set to an interpreter"; return; fi
+  if ! "$yam" -c 'import mujoco, i2rt' >/dev/null 2>&1; then skip Y yam-sim "$yam lacks mujoco or i2rt"; return; fi
+  # The station's interpreter has no pytest: the suite interpreter's pytest is layered on, the checkout first.
+  site=$("$PYTHON" -c 'import pathlib, pytest; print(pathlib.Path(pytest.__file__).resolve().parents[1])') || {
+    skip Y yam-sim "$PYTHON has no pytest"; return; }
+  layer=$(mktemp -d "${TMPDIR:-/tmp}/ora-check-yam.XXXXXX")
+  for module in _pytest pytest pluggy iniconfig packaging py.py; do
+    if [ -e "$site/$module" ]; then ln -s "$site/$module" "$layer/$module"; fi
+  done
+  # test_capture.py needs the orchestrator's web dependencies, which the station's interpreter lacks; lane A runs it.
+  step Y yam-sim env MUJOCO_GL="${MUJOCO_GL:-egl}" PYTHONPATH="$ROOT:$layer" "$yam" -m pytest -q -rs \
+    -p no:cacheprovider --basetemp "$layer/tmp" tests/ora/environment/backends/yam \
+    tests/ora/environment/test_mujoco_scene_trace.py --ignore=tests/ora/environment/backends/yam/test_capture.py
+  rm -rf "$layer"
+}
+
+# goldens LANE NAME DIR [PYTEST ARGS...]: one internal goldens directory, which needs ora-pi's packages.
+goldens() {
+  local lane=$1 name=$2 dir=$3
+  shift 3
+  if [ ! -d "$dir" ]; then return 0; fi
+  if [ -n "$NODE_PROBLEM" ]; then skip "$lane" "$name" "$NODE_PROBLEM"; return 0; fi
+  if [ -n "$PI_PACKAGES" ]; then skip "$lane" "$name" "$PI_PACKAGES"; return 0; fi
+  step "$lane" "$name" env ORA_TEST_REQUIRE_AGENT_CORE=1 "${PYTEST[@]}" -q -rs -p no:cacheprovider \
+    "$@" ${TIMEOUT[@]+"${TIMEOUT[@]}"} "$dir"
+}
+
+# ---- run ------------------------------------------------------------------------
+trap 'trap - INT TERM; kill 0' INT TERM
+
+mode="lanes A B C Y D"; [ -n "$QUICK" ] && mode="lanes A Y D (--quick)"
+echo "check: $mode; python $PYTHON; logs in $LOGS"
+[ -n "$NOTE" ] && echo "check: $NOTE"
+
+if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=normal 2>/dev/null)" ]; then
+  echo "check: the checkout has local changes; the quickstart cases preflight a clean checkout and fail (commit first)"
+fi
+
+# The suite's Pi-core cases (lane A) need ora-pi's packages as much as lanes B and C do.
+NODE_PROBLEM=$(node_problem) PI_PACKAGES='' WEB_PACKAGES=''
+if [ -n "$NODE_PROBLEM" ]; then
+  skip setup packages "$NODE_PROBLEM; the Pi-core cases fail"
+else
+  step setup ora-pi npm ci --prefix ora-pi --prefer-offline --no-audit --no-fund \
+    || PI_PACKAGES="npm ci in ora-pi failed"
+  if [ -z "$QUICK" ]; then
+    step setup ora-pi-web npm ci --prefix ora-pi/web --prefer-offline --no-audit --no-fund \
+      || WEB_PACKAGES="npm ci in ora-pi/web failed"
+  fi
+fi
+
+lane_a & pids=($!)
+lane_y & pids+=($!)
+lane_d & pids+=($!)
+if [ -z "$QUICK" ]; then
+  lane_b & pids+=($!)
+  lane_c & pids+=($!)
+fi
+wait "${pids[@]}"
+
+# The documentation build writes ignored files, and the no-write check compares
+# them, so both run after the lanes and the no-write check runs last.
+if [ -n "$QUICK" ]; then
+  skip end docs "--quick"
+elif [ -z "$DOCS" ]; then
+  skip end docs "--no-docs"
+else
+  step end docs "$ROOT/scripts/docs" build
+fi
+step end no-write "$PYTHON" -m pytest -q -rs -p no:cacheprovider "$NO_WRITE"
+
+# ---- summary --------------------------------------------------------------------
+echo
+echo "Summary (logs in $LOGS):"
+failed=0
+for lane in setup A B C D end; do
+  [ -f "$LOGS/$lane.results" ] || continue
+  while IFS=$'\t' read -r row_lane name result seconds log; do
+    line=$(printf '  %-5s %-15s %-22s %5ss' "$row_lane" "$name" "$result" "$seconds")
+    if [ -n "$log" ]; then
+      # pytest's last line: "N passed, M skipped, ... in Ts".
+      tally=$(grep -E '^(=+ )?([0-9]+ [a-z]+(, )?)+ in [0-9.]+s|^(=+ )?no tests ran in' "$log" \
+        | tail -n 1 | sed 's/^=* *//; s/ *=*$//')
+      [ -n "$tally" ] && line="$line  $tally"
+    fi
+    case "$result" in failed*) failed=$((failed + 1)); line="$line  $log" ;; esac
+    echo "$line"
+  done < "$LOGS/$lane.results"
+done
+if [ "$failed" -gt 0 ]; then
+  echo "check: $failed step(s) failed"
+  exit 1
+fi
+echo "check: every step that ran passed"

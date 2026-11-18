@@ -16,6 +16,7 @@ import numpy as np
 import torch
 from PIL import Image
 
+from .construction import bind_egl_device
 from .robustness import RobustnessEnvironment
 from .session import _prepare_pinned_libero_imports
 
@@ -66,6 +67,10 @@ def render_batch(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
         )
         from libero.libero.envs import OffScreenRenderEnv
 
+        egl_device = bind_egl_device()
+        if egl_device is not None:
+            print(f"LIBERO preview worker: EGL device {egl_device['index']} ({egl_device['driver']})",
+                  file=sys.stderr, flush=True)
         results = []
         for spec in specs:
             print(

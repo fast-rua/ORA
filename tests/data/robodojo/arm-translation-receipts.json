@@ -332,7 +332,7 @@
   }
  },
  "source": {
-  "action-2f0458f8a19b86cb": "EXP11B g006 deposit_coin, run exp11b-robodojo-77dc8ee25ded--20261003T050746Z (gpt-6-astra): left-arm move_pose, recorded contact_motion.realized_translation_world_m [0.0, 0.0, 0.0]",
+  "action-2f0458f8a19b86cb": "deposit_coin, run exp11b-robodojo-77dc8ee25ded--20261003T050746Z (gpt-6-astra): left-arm move_pose, recorded contact_motion.realized_translation_world_m [0.0, 0.0, 0.0]",
   "action-373156b08ce03c24": "run exp11b-robodojo-25c549d8bbcd--20261002T231609Z: both-arm move_pose",
   "action-477fa0b7a2f99666": "same run: right-arm move_pose"
  },

@@ -115,6 +115,49 @@ class EnvironmentSession(Protocol):
         """Release all simulator, transport, sensor, or robot resources."""
 
 
+#: The optional operator view: one picture for the human operator, never for the policy.
+#: A session may define ``operator_view() -> {"png", "camera", "width", "height"} | None``;
+#: a free-play Supervisor asks for it after each published observation and stores it
+#: beside the run's evidence (episode_play.py). Its bytes never reach the policy.
+OPERATOR_VIEW_FIELDS = frozenset({"png", "camera", "width", "height"})
+MAX_OPERATOR_VIEW_BYTES = 8 * 1024 * 1024
+_OPERATOR_VIEW_CAMERA = re.compile(r"[A-Za-z0-9_.-]{1,64}")
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def png_size(data: bytes) -> tuple[int, int]:
+    """(width, height) from a PNG's IHDR chunk; ValueError when ``data`` is not a PNG."""
+
+    if len(data) < 24 or not data.startswith(_PNG_SIGNATURE) or data[12:16] != b"IHDR":
+        raise ValueError("not a PNG image")
+    return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+
+
+def validate_operator_view(value: Any) -> dict[str, Any] | None:
+    """Check one ``operator_view()`` answer: None, or a PNG with its camera and its size."""
+
+    if value is None:
+        return None
+    if not isinstance(value, Mapping) or set(value) != OPERATOR_VIEW_FIELDS:
+        raise EnvironmentContractError("operator_view must return None or {png, camera, width, height}")
+    data = value["png"]
+    if not isinstance(data, (bytes, bytearray)) or not 0 < len(data) <= MAX_OPERATOR_VIEW_BYTES:
+        raise EnvironmentContractError(f"operator_view png must be 1..{MAX_OPERATOR_VIEW_BYTES} bytes")
+    camera = value["camera"]
+    if not isinstance(camera, str) or not _OPERATOR_VIEW_CAMERA.fullmatch(camera):
+        raise EnvironmentContractError("operator_view camera must be a short name ([A-Za-z0-9_.-], at most 64)")
+    width, height = value["width"], value["height"]
+    if any(isinstance(item, bool) or not isinstance(item, int) or not 0 < item <= 8192 for item in (width, height)):
+        raise EnvironmentContractError("operator_view width and height must be integers in 1..8192")
+    try:
+        size = png_size(bytes(data))
+    except ValueError as exc:
+        raise EnvironmentContractError("operator_view png is not a PNG image") from exc
+    if size != (width, height):
+        raise EnvironmentContractError(f"operator_view says {width}x{height}, its PNG is {size[0]}x{size[1]}")
+    return {"png": bytes(data), "camera": camera, "width": width, "height": height}
+
+
 @runtime_checkable
 class RestartableEnvironmentSession(EnvironmentSession, Protocol):
     """Opt-in extension for multiple independent rounds in one live session."""

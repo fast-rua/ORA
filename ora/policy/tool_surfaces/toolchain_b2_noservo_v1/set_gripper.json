@@ -1,0 +1,94 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "set_gripper",
+  "description": "Set one or both grippers to a named directive in a single call.\nUse when: you are opening to release or approach, or closing to grasp, and you already know which directive each gripper should hold. On a two-armed embodiment this is how the two are coordinated: naming both in one call is the only way to state that they change together. Near miss: this is not grasp_execute. If you have chosen a current grasp candidate and accept the committed sequence without intermediate decisions, call that instead -- it approaches, closes and measures as one committed sequence, and a bare close here does none of that. Use this standalone command when a separate decision after pose execution is needed.\nEffect: submits one gripper directive per named gripper through the Supervisor and consumes one robot decision. **An omitted gripper holds its current directive; it is not re-sent and not re-actuated.** The end-effector pose target is held unchanged. Measured state may still move under contact, and that is evidence rather than a fault.\nReturns: a submitted acknowledgement, then a measured receipt and a fresh observation on the next turn. When closing, an intent block echoes the target_ref you supplied and labels it agent_annotation_only.\nDoes not: prove anything was grasped, held, released or moved; report jaw separation; verify what the jaws closed on; or make target_ref evidence -- it is your annotation of what you believe you are closing on, never a measurement. A closed jaw is not a grasp.\nOn error: Refused: an empty targets map or an arm outside left and right, or a directive other than open and close; a target_ref that is blank or not a string (invalid_arguments, naming target_ref); a placement waiting at its pre-release stop (skill_sequence_paused); the episode's terminal boundary (episode_terminal). A schema refusal is invalid_arguments naming the field; an invalid_motion_arguments refusal names none -- re-read this schema rather than resubmitting the same shape. invalid_arguments naming target_ref means a blank string was sent; send a non-empty reference or omit it entirely.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "targets"
+    ],
+    "properties": {
+      "targets": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Which grippers change and to what. Name only the grippers you intend to change; an omitted one holds its current directive. Dimensionless named directives, not apertures.",
+        "properties": {
+          "left": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "open",
+              "close",
+              null
+            ],
+            "description": "Directive for the left gripper. Omit to hold. Null means omitted."
+          },
+          "right": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "open",
+              "close",
+              null
+            ],
+            "description": "Directive for the right gripper. Omit to hold. Null means omitted."
+          }
+        }
+      },
+      "target_ref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Optional annotation naming the target you believe you are closing on, from the current observation. Dimensionless reference; recorded and echoed, never treated as evidence that anything was grasped. Meaningless when only opening."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "action"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "set_gripper"
+      },
+      "intent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_ref",
+          "role"
+        ],
+        "description": "Present only when a gripper was closed. Echoes the annotation you supplied and labels what it is.",
+        "properties": {
+          "target_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The reference you supplied, or null if you supplied none."
+          },
+          "role": {
+            "type": "string",
+            "const": "agent_annotation_only",
+            "description": "States that this reference is your annotation and not a measurement that anything was grasped."
+          }
+        }
+      }
+    }
+  }
+}

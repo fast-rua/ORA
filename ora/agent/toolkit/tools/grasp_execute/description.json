@@ -1,0 +1,77 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "grasp_execute",
+  "description": "Execute your selected grasp through open, pregrasp, approach, close, lift and verify.\nUse when: grasp_plan returned candidates on the current observation and you selected one, the gripper may open at its current position, and a short upward probe is appropriate. Use manual motion for articulation or a grasp that must not lift.\nEffect: opens the gripper first, which releases anything currently held; a nearly closed gripper is not proof it is empty. Moves to the candidate's pregrasp pose, follows its approach to the contact pose, closes, then requests 3 cm world-up at the same orientation. The Supervisor drives five stage actions as one robot decision with no intermediate Agent turn. Pose stages use the same semantic motion route as manual move_pose: free-space pregrasp, contact approach, and precision lift. Opening uses the embodiment's open directive, not the candidate's predicted aperture. Targets are committed once.\nReturns: the completed sequence with its cost, receipt and remaining_budget: stage statuses, the measured link6 lift (this backend publishes no jaw separation: ARX finger readings are normalized encoder values, and the close stage's gripper_outcome and the verify stage's jaw_hold are the jaw evidence), plus rigid-versus-stationary depth support for the selected visible surface. Occluded, unavailable or ambiguous surface evidence is unknown.\nDoes not: change candidate, retry, stop for a decision halfway, infer an empty gripper before opening, or certify attachment, stable transport or task success. Depth support does not re-identify an object; a completed sequence only records execution.\nOn error: Refused: a candidate from an earlier observation (stale_candidate_observation) or not published by grasp_plan (candidate_unavailable); a pregrasp or contact pose that is missing, non-finite or more than 0.001 from a unit quaternion, a pregrasp whose orientation differs from the contact orientation or that does not stand off from it, or a pregrasp, contact or 3 cm lift pose outside the action workspace (candidate_geometry_unavailable); either probed pose unreachable, or the two reachable only under different equivalents (grasp_pregrasp_unreachable); another committed sequence in flight (skill_sequence_active); the episode's terminal boundary (episode_terminal). Stale candidates require grasp_plan on the current observation. A stage that does not arrive ends the sequence before later stages, with a fresh observation; inspect it and re-plan. If lift did not complete, the final scene may differ from the post-close state. Before opening or committing, runs one read-only backend probe of the selected pregrasp and contact poses, each from the current measured joints, for the compiled orientation and its 180-degree jaw flip. When the compiled poses are not both admitted but the flipped ones are, the flip is committed and reported as pose_selection adopted_equivalent. A refusal executes no action and reports grasp_pregrasp_unreachable with a bounded planning summary; select another candidate or reposition. Passing covers only these current-state poses under the backend's published collision coverage. The Supervisor revalidates execution after opening; contact, lift and retention remain unchecked by the probe. The receipt includes precommit_motion_check (one query, zero robot decisions). Its close stage uses the same jaw rule as set_gripper: a close that stops on the object ends 3 native actions after the jaws stop, the close stage reports status executed with reason gripper_stalled_before_target and a gripper_outcome measurement per closing arm, and the committed sequence continues to lift and verification; a stall is not a verified grasp. On this backend the probe is one IK solve per pose by the planner move_pose uses, in the world a plan to that pose would see; it plans no path, so a stage it passed can still be refused after opening. A refused probe's summary counts each variant's reason in variant_failure_counts, such as ik_failed or goal_below_support; a reason describes that solve, not proof that the pregrasp is unreachable. On this backend each arm stage (pregrasp, approach, lift) is one smooth trajectory at move_pose's fast speed, its interaction picking the route as for move_pose, spending what the whole sequence's budget has left; open and close are set_gripper's rate-limited jaw commands (at most 30 each; a close waits for the arm to settle, then closes at the SDK limiter's full drive and, once the finger stops, squeezes leading it by at most 5 mm); the whole sequence can consume up to 810, and what the episode has left ends it sooner. A stage path the collision screen or the IK refuses stops the sequence there with no action sent (stage reason as the refusal code, receipt status refused_before_motion). With no calibrated jaw aperture here, closure_strength stays unavailable and the verify stage adds jaw_hold: likely (jaws still held apart at the close opening after the lift), unlikely (the close never left the open position, or the jaws closed to the floor or to the held drive target) or unknown (also when a reading it compares has the finger pair shifted more than 4 mm to one side), with the normalized readings, finger offsets and tolerance in verification.jaw_hold.evidence. It is not a grasp, contact or retention verdict. Fixed texts stated once here and left out of results and effects: the result's claim_boundary is \"one committed sequence of trusted executions and the public measurements taken after it; motion arrival and jaw separation beside visible extents are evidence, not grasp, placement, retention or official task success\"; precommit_motion_check.claim_boundary (also in a grasp_pregrasp_unreachable refusal) is \"Current-state planning/admission for the probed stages, with the selected backend's collision coverage. Does not certify contact, lift, retention or task success; execution revalidates after opening.\"; last_action_effect.detail.verification.claim_boundary is \"jaw separation beside visible extents is evidence, not a holding verdict; no value of this pair establishes contact or retention\"; last_action_effect.detail.verification.lift_probe.claim_boundary is \"short_lift_evidence_only;not_attachment_or_stable_transport_or_task_success\"; last_action_effect.detail.verification.jaw_hold.claim_boundary is \"normalized jaw-encoder readings under the backend drive limiter; not a calibrated aperture, contact, attachment, retention or task-success verdict\".\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "candidate_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "The candidate_id of one candidate from a grasp_plan call on the current observation. A candidate produced from an earlier observation is refused as stale rather than executed against geometry the robot has moved through."
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "One short sentence saying why this candidate was chosen over the others, at most 200 characters. It is echoed into the receipt and is the only record of the reason: the trajectory keeps the call and its result, never the reasoning behind them."
+      }
+    },
+    "required": [
+      "candidate_id",
+      "rationale"
+    ]
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,405 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "push_T_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/push_T_random.py",
+    "file_sha256": "dc8d9c8e0d2e8dfffa2b7d433a8278c0eaf707cc4861b15035364c2e70061dab",
+    "run_reward_lines": [
+      19,
+      29
+    ],
+    "run_reward_sha256": "9619615988f3e2d9ea9379e72501f018f2a69aac1d4bbf31f475dfab665c8e6e",
+    "gen_instruction_lines": [
+      31,
+      33
+    ],
+    "gen_instruction_sha256": "b60e47841aa2d92883faeec658572c692f213ea49b26a83814fb7129e99da82b",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          6,
+          9
+        ],
+        "sha256": "1ab87058b1de099a9a82d6c20ffa9930075084515a79b97b794c7b9710f40661"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          11,
+          13
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          15,
+          17
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      }
+    },
+    "step_lim_line": 9,
+    "config_path": "task/RoboDojo/config/push_T_random.yml",
+    "config_sha256": "07609ec20cea40afa1d5720e895fb1b445411f261b2e5b6850e75d0f1930d32d",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "push_T",
+      "source_path": "task/RoboDojo/tasks/push_T.py",
+      "file_sha256": "a01d753bc320ffbf492ccc29e5f7ab3b39e6c7d255cd25804db1934a30fa5b41",
+      "run_reward_sha256": "9619615988f3e2d9ea9379e72501f018f2a69aac1d4bbf31f475dfab665c8e6e",
+      "gen_instruction_sha256": "b60e47841aa2d92883faeec658572c692f213ea49b26a83814fb7129e99da82b",
+      "config_path": "task/RoboDojo/config/push_T.yml",
+      "config_sha256": "b55ea11002ff3e5dc63982ca8c1247fd7bee4f4a607f4d674e220b86cf120a25",
+      "methods_byte_identical": [
+        "__init__",
+        "_post_setup_scene",
+        "gen_instruction",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/push_T_random_0.json",
+    "layout_sha256": "11dcb2c9c947dd81aec783ae4235d748da3ebfc01e2091d0dcbf1e439038a709",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 600,
+  "instruction": {
+    "text": "Push the T-shaped block to align it precisely with the gray T-shaped pad.",
+    "origin": "task/RoboDojo/tasks/push_T_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "push_T",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/push_T-review-v3.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/push_T-completion-v2.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in run_reward or gen_instruction: both FunctionDef spans are byte-identical to push_T.py. The whole files differ only in the mixin name (PushTRandomCommon) and the exported class name.",
+      "Behavioural differences come from the scene only: T model 1 instead of 0, distractor clutter, randomized room/table/ground materials."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/push_T_random.yml:13 T block index [1] (base push_T.yml:13 index [0]).",
+      "task/RoboDojo/config/push_T_random.yml:20-36 t_cushion pad, same spawn region and 360-degree yaw as the base.",
+      "task/RoboDojo/config/push_T_random.yml:38-58 Clutter: region 1 x -0.6..0.6, y -0.5..-0.25 or 0..0.5; region 2 x -0.6..-0.45 or 0.45..0.6, y -0.25..0; 10 each, category_unique, yaw +-30 deg.",
+      "task/RoboDojo/config/push_T_random.yml:60-62 ProhibitedArea [-0.35, -0.5, 0.35, -0.4] (camera stand zone).",
+      "Saved layouts: 30 at seed 0 (push_T_random_0..29); layouts 0-9 hold 13-17 clutter objects, randomized Room/Table/Ground materials."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/push_T_random_0.json",
+      "objects": [
+        "Rigid t model 1, label t, at (0.2014, -0.1865, 0.7725), yaw -21.4 deg, flat",
+        "Geometry t_cushion model 0, label target_t, at (0.0719, -0.2326, 0.765), yaw 26.6 deg",
+        "Geometry camera_stand model 0 at (0.0, -0.47, 0.765)",
+        "14 clutter objects (type cluttered, no label): ball, cereal, clip, coin, cutter, headphones, minecraft_blocks x2, pen, phone_stand, pokeball, stapler, toy_plane, walkie_talkie",
+        "Room Simple_Room randomized material; Table scale 1.4 x 1.1 x 0.05 at z 0.74 (top z 0.765)"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Same pad model 0 and a T block whose metadata (silhouette bbox, footprint centroid, canonical heading axis) is byte-identical to model 0; c1/c2 lines identical. One T block and one T pad in the scene; no clutter object is T-shaped."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "is_qpos_close is a full 3D orientation test against a flat, static pad; the block spawns flat (pure-yaw quaternion)."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "The same query([is_lift(t, 0.01)], 0) at line 29 latches permanent failure; block reset centre z 0.7725 on table top 0.765, as the base."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "all_robot_back_to_origin() at line 26."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "Instruction template is the base's verbatim: 'Push the T-shaped block to align it precisely with the gray T-shaped pad.'; one template, no placeholder.",
+        "where": "task/RoboDojo/tasks/push_T_random.py:31-33 (base task/RoboDojo/tasks/push_T.py:31-33)"
+      },
+      {
+        "claim": "run_reward registers one check stage: is_qpos_close(t, target_t, dis_threshold=7), is_AB_xy_distance_within_threshold(t, target_t, threshold=0.007), all_robot_back_to_origin(); plus query([is_lift(t, z_threshold=0.01)], 0). FunctionDef bytes identical to the base's.",
+        "where": "task/RoboDojo/tasks/push_T_random.py:19-29 (base task/RoboDojo/tasks/push_T.py:19-29)"
+      },
+      {
+        "claim": "step_lim = 600, as the base.",
+        "where": "task/RoboDojo/tasks/push_T_random.py:9 (base push_T.py:9)"
+      },
+      {
+        "claim": "The only source difference is the mixin name PushTRandomCommon and the exported class name.",
+        "where": "task/RoboDojo/tasks/push_T_random.py:5,36"
+      },
+      {
+        "claim": "Config selects T block model 1 instead of model 0; the pad (t_cushion, no index list) and both spawn regions are unchanged.",
+        "where": "task/RoboDojo/config/push_T_random.yml:10-13 (base task/RoboDojo/config/push_T.yml:10-13)"
+      },
+      {
+        "claim": "Config adds two Clutter regions of up to 10 distractors each, kept out of the central strip x -0.45..0.45, y -0.25..0 where the block and pad spawn, and a ProhibitedArea in front of the camera stand.",
+        "where": "task/RoboDojo/config/push_T_random.yml:38-62"
+      },
+      {
+        "claim": "Failure latch: query count above aim 0 marks the env failed permanently; query loop runs before the check loop.",
+        "where": "env/reward_manager/reward_manager.py:236-241,294-296,357-389"
+      },
+      {
+        "claim": "is_lift compares root z with the reset pose stored by init_state.",
+        "where": "env/reward_manager/func_parser.py:32-59,64-73"
+      },
+      {
+        "claim": "is_qpos_close compares the full 3D orientation via cal_quat_dis, strict less-than.",
+        "where": "env/reward_manager/func_parser.py:1978-2000"
+      },
+      {
+        "claim": "is_AB_xy_distance_within_threshold uses the block's instance origin, world xy, strict.",
+        "where": "env/reward_manager/func_parser.py:1672-1740"
+      },
+      {
+        "claim": "T block models 0 and 1 have byte-identical metadata.json (same 0.08 x 0.06 x 0.015 m aligned bbox centred on the origin, same footprint centroid at local x -0.005) and different object.usdz bytes (same part names box_bar/stem in the USD tokens).",
+        "where": "Object/RoboDojo/Rigid/t/00000/metadata.json, Object/RoboDojo/Rigid/t/00001/metadata.json"
+      },
+      {
+        "claim": "Seed 0 holds 30 push_T_random layouts (base: 55 push_T layouts).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/push_T_random_{0..29}.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "orientation",
+      "summary": "The block must end up turned to the same heading as the T-shaped pad, its own T lined up with the pad's T.",
+      "numeric": "is_qpos_close(label_A=\"t\", label_B=\"target_t\", dis_threshold=7) at push_T_random.py:22. Impl func_parser.py:1978-2000: cal_quat_dis(rot_t, rot_target_t) * 180/pi < 7 deg, strict; full 3D orientation (utils/transformer.py cal_quat_dis). Reset offset for seed 0 / ordinal 0: 47.94 deg (block yaw -21.4 deg, pad yaw 26.6 deg, both pure yaw).",
+      "source_lines": [
+        22,
+        22
+      ],
+      "classification": "stated",
+      "note": "Same reading as the base record: the pad is a flat T silhouette of the block's own shape, so 'align it precisely with the gray T-shaped pad' states the heading, and both are visible in RGB. Block model 1's metadata is byte-identical to model 0's, so the canonical-heading agreement between block and pad the base record inferred (both footprint centroids on local x at negative x) carries over; model 1's mesh bytes differ and were not parsed (open question).",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "spatial",
+      "summary": "The block must come to rest sitting inside the pad's outline, not merely overlapping its edge.",
+      "numeric": "is_AB_xy_distance_within_threshold(label_A=\"t\", label_B=\"target_t\", threshold=0.007) at push_T_random.py:23-25. Impl func_parser.py:1672-1740: Euclidean world-xy distance between the block's instance origin and the pad's instance origin < 0.007 m, strict. Reset offset for seed 0 / ordinal 0: 0.1375 m.",
+      "source_lines": [
+        23,
+        25
+      ],
+      "classification": "stated",
+      "note": "As the base: one pad, visible, and the window is looser than the visible nesting fit (pad 0.084 x 0.068 m vs block 0.08 x 0.06 m, both origins at their bbox centres).",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "protocol",
+      "summary": "Both arms must be back at the end-effector pose they held at reset at the same moment the block is judged to be in place.",
+      "numeric": "all_robot_back_to_origin() at push_T_random.py:26 with wrapper defaults pos_threshold=0.15 m per axis, rot_threshold=20 deg (reward_manager.py:829-831; func_parser.py:1631-1644). Reference end poses captured at reset by init_state (func_parser.py:54-59).",
+      "source_lines": [
+        26,
+        26
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The universal RoboDojo clause; a policy that has pushed the block onto the pad has its working end effector out over the table. Disclosed as the contract's last bullet.",
+      "public_clauses": [
+        4
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "latching_failure",
+      "summary": "If the block is ever found raised or tipped off the table surface, the episode is failed permanently and cannot be recovered.",
+      "numeric": "query([is_lift(label=\"t\", z_threshold=0.01)], aim_num=0) at push_T_random.py:29. Impl func_parser.py:64-73: root z minus reset root z > 0.01 m. reward_manager.step runs the query loop first and _mark_env_failed sets env.success False once the count exceeds 0 (reward_manager.py:236-241, 294-296, 357-375). Block model 1 extents 0.08 x 0.06 x 0.015 m, origin at its centre, reset centre z 0.7725 on table top 0.765: lifting or tipping it about a long bottom edge by roughly 21 deg crosses 0.01 m.",
+      "source_lines": [
+        29,
+        29
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "As the base: 'push' names a means but not that lifting is scored, terminal and triggered by a tip-up. Distractors in this variant sit outside the block/pad strip (config lines 38-58), but a block pushed onto a tall distractor could also rise; the public bullet already says any raise off the table surface fails.",
+      "public_clauses": [
+        3
+      ]
+    }
+  ],
+  "latching_failures": [
+    "c4"
+  ],
+  "gap": {
+    "stated": [
+      "c1",
+      "c2"
+    ],
+    "derivable": [],
+    "hidden": [
+      "c3",
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 2,
+    "hidden_active": [
+      "c3",
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Identical predicate and instruction to push_T: c1 (heading) and c2 (position) are stated by 'align it precisely with the gray T-shaped pad' and verifiable from RGB; c4, the permanent lift/tip failure latch, and c3, the arm return, are hidden and bite. instruction_incomplete; the base contract text closes the gap unchanged.",
+  "semantic_contract": [
+    "The T-shaped block must lie directly over the gray T-shaped pad with its footprint matching the pad's own T footprint: centred on it and turned to the same heading, so that the two T shapes coincide. Resting inside or overlapping the pad's outline without matching it is not enough.",
+    "The block must be lying flat on the table the same way up as it started.",
+    "The block must stay down on the table surface throughout the attempt; if it is ever raised or tipped up off the table, the episode ends at once as a permanent failure, and setting the block back down does not undo that.",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/push_T-completion-v2.md",
+    "sha256": "1a245fdb17e916476ca9bd112a88294a3138b4499af3b1cb5594d9b498cdf11c"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "The T-shaped block must lie directly over the gray T-shaped pad with its footprint matching the pad's own T footprint: centred on it and turned to the same heading, so that the two T shapes coincide. Resting inside or overlapping the pad's outline without matching it is not enough.",
+      "The block must be lying flat on the table the same way up as it started.",
+      "The block must stay down on the table surface throughout the attempt; if it is ever raised or tipped up off the table, the episode ends at once as a permanent failure, and setting the block back down does not undo that.",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        1
+      ],
+      "c3": [
+        4
+      ],
+      "c4": [
+        3
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/push_T_random.yml",
+      "sha256": "07609ec20cea40afa1d5720e895fb1b445411f261b2e5b6850e75d0f1930d32d"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/t/00001/metadata.json",
+      "sha256": "4b40f7225308b3bede5b33947853800b86b20266ff2a0c5947b1a884182e1a25"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/t/00001/object.usdz",
+      "sha256": "f6634d82aa7e5a389b17f8ce40af445a82e156a02c1c45d08c64838b6c41b7c2"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/t_cushion/00000/metadata.json",
+      "sha256": "5db39d764136c7aa8fc506e529322f5fcb1901349eeb5f6bf53d227b36215e9c"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/camera_stand/00000/metadata.json",
+      "sha256": "981392df89e5a45a28c0240ef0cb289b778550ec7ad49e98419a813865bb3d30"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_post_setup_scene",
+      "gen_instruction",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Block nested in the pad's outline but turned 180 degrees: c1 fails; clause 1.",
+      "Block picked up and set down exactly on the pad: c4 already latched a permanent failure; clause 3.",
+      "Block pushed onto a distractor and tipped up past about 21 degrees: c4 latches; clause 3.",
+      "Block aligned but one arm still over the table: c3 fails; clause 4."
+    ],
+    "open_questions": [
+      "T model 1's mesh (object.usdz) differs from model 0's and was not parsed; the canonical-heading agreement with the pad rests on byte-identical metadata. A render of a reset scene would confirm the T silhouette and its heading.",
+      "Model 1's rendered colour against randomized table materials was not checked."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "One check stage plus one aim-0 query; success latches at the first native-action boundary where all three conjuncts hold, failure (query) is evaluated first and dominates (reward_manager.py:357-389, 527-587).",
+    "The run_reward and gen_instruction FunctionDef bytes equal push_T.py's; the record therefore reuses push_T's reviewed clauses and its contract text verbatim, re-measured on push_T_random layout 0.",
+    "T model 1 vs model 0: metadata.json bytes identical; object.usdz bytes differ (each a single main.usdc with the same box_bar/stem part names). The shape and canonical heading facts come from metadata, as in the base record; colour is captioned 'deep red' for both.",
+    "Distractors: 13-17 clutter objects per layout 0-9 (type cluttered, no label), placed outside the strip where block and pad spawn (config lines 38-58); none is T-shaped and none carries a label the predicate reads. The pad remains a static, non-colliding Geometry decal.",
+    "Room, table and ground materials are randomized per layout; the instruction still calls the pad 'gray' while its caption says matte black, as in the base.",
+    "BUDGET. step_lim = 600 native actions (push_T_random.py:9)."
+  ],
+  "notes": [
+    "Object/RoboDojo/Rigid/t/00000/metadata.json and Object/RoboDojo/Rigid/t/00001/metadata.json both hash to 4b40f7225308b3bede5b33947853800b86b20266ff2a0c5947b1a884182e1a25; object.usdz of model 0 98bae9ae3dddf67e58004695930c09f3d36f715dfa2bf5d65d1ed2b7179fa493, of model 1 f6634d82aa7e5a389b17f8ce40af445a82e156a02c1c45d08c64838b6c41b7c2.",
+    "push_T_random.py file sha256 dc8d9c8e0d2e8dfffa2b7d433a8278c0eaf707cc4861b15035364c2e70061dab; run_reward lines 19-29 sha256 9619615988f3e2d9ea9379e72501f018f2a69aac1d4bbf31f475dfab665c8e6e (equal to push_T.py's); gen_instruction lines 31-33 sha256 b60e47841aa2d92883faeec658572c692f213ea49b26a83814fb7129e99da82b."
+  ],
+  "forbidden_public_claims": [
+    "Any statement of where the block or the pad lies, or of its heading.",
+    "Any numeric window for position, heading or lift.",
+    "That the distractor objects must be moved, avoided or left untouched (the evaluator does not read them)."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

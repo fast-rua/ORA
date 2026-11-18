@@ -1,0 +1,199 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "RubiksCubeInFrontOfBowlTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab RubiksCubeInFrontOfBowlTask at the pinned revision; generated per predicate family (relative_position); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Put the rubiks cube in front of the bowl",
+ "family": "relative_position",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/rubiks_cube_in_front_of_bowl.py",
+   "sha256": "5833595378cd3f7464552a32877068c29489197a52701f13ae83e6a3278ac6a8"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/rubiks_cube_banana_bowl.usda",
+   "sha256": "22b95d601defb9252a448a1b37d0548e1f2dc3bfb0c3d86a04c2ef5c4cc817a0"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/RubiksCubeInFrontOfBowlTask-s0-witness.json",
+   "sha256": "50807ae8dba00849aa757e0442f3985375878c0f4ed20b2addc2b22cd84ae0d7"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read RubiksCubeInFrontOfBowlTask terminations: success = object_in_front_of(object='rubiks_cube', reference_object='bowl', frame_of_reference='robot', mirrored=False, require_gripper_detached=True), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene rubiks_cube_banana_bowl.usda: rubiks_cube, bowl among 4 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Vector between root positions in the robot root frame, projected on the table plane, inside the direction cone; ORA's public poses use the same robot root frame."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (2) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 50807ae8dba0)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 50807ae8dba0): placed -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 50807ae8dba0): reset_state -> False; opposite -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_in_front_of(object='rubiks_cube', reference_object='bowl', frame_of_reference='robot', mirrored=False, require_gripper_detached=True): the xy vector from the reference's root to the object's root, in the robot root frame, inside the 45-degree cone of the direction.",
+   "interpretation": "In front of the bowl, on the robot's side of it.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N; with release required the level check is skipped.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_in_front_of and its predicate_logic helpers.",
+   "interpretation": "Direction cone and contact force bar withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The Rubik's cube must end up in front of the bowl, on the robot's side of it, rather than diagonally beside it.",
+  "Let go of the Rubik's cube: the task is not complete while any part of the gripper still touches it."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "opposite: false.",
+   "expected": "witness case opposite"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": false,
+  "subtasks": "rubiks_cube_in_front_of_bowl(groups=['group1', 'group2', 'group3'], logical=all) score=1.0",
+  "notes": []
+ },
+ "compatibility": {
+  "status": "ready",
+  "blocked": [],
+  "notes": []
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "opposite",
+    "expected": false,
+    "ops": [
+     {
+      "op": "relative",
+      "object": "rubiks_cube",
+      "reference": "bowl",
+      "direction": "behind"
+     }
+    ],
+    "ticks": 40
+   },
+   {
+    "case": "placed",
+    "expected": true,
+    "ops": [
+     {
+      "op": "relative",
+      "object": "rubiks_cube",
+      "reference": "bowl",
+      "direction": "front"
+     }
+    ],
+    "ticks": 40
+   }
+  ],
+  "visibility_objects": [
+   "rubiks_cube",
+   "bowl"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793859595.56173,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/RubiksCubeInFrontOfBowlTask-s0-witness.json",
+  "sha256": "50807ae8dba00849aa757e0442f3985375878c0f4ed20b2addc2b22cd84ae0d7",
+  "plan_sha256": "67af56f0413dfa7365f4d2f95f5c8a8e0d649a196337e9f4d5e61743444e6538"
+ }
+}

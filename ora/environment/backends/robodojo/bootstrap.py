@@ -201,7 +201,8 @@ def build_environment(config: Mapping[str, Any]) -> tuple[Any, Any, dict[str, An
 
         task = manifest["task"]
         eval_config = OmegaConf.load(root / "env_cfg/arx_x5.yml")
-        eval_config.update({"task_name": task, "seed": 0, "num_envs": 1})
+        # Upstream SeedManager reads its layouts from Eval_Layout/.../<seed>/.
+        eval_config.update({"task_name": task, "seed": int(config.get("eval_seed", 0)), "num_envs": 1})
         composed = OmegaConf.create({
             name: OmegaConf.load(root / f"env_cfg/{name}/{eval_config.config[name]}.yml")
             for name in ("sim", "scene", "robot", "camera")
@@ -225,14 +226,11 @@ def build_environment(config: Mapping[str, Any]) -> tuple[Any, Any, dict[str, An
             raise RobodojoError("upstream task physics cadence has changed")
         task_class = getattr(importlib.import_module(f"task.RoboDojo.tasks.{task}"), task)
         cls = type("HarnessRoboDojoTask", (EvaluationLifecycle, task_class), {})
-        import faulthandler
+        from .reset_diagnostics import stack_timer
 
-        with (Path(config["output_root"]) / "environment-initialization-stack.txt").open("w") as stack_log:
-            faulthandler.dump_traceback_later(120, file=stack_log)
-            try:
-                environment = cls(composed, app)
-            finally:
-                faulthandler.cancel_dump_traceback_later()
+        with (Path(config["output_root"]) / "environment-initialization-stack.txt").open("w") as stack_log, \
+                stack_timer(120, stack_log):
+            environment = cls(composed, app)
         environment.harness_output_root = Path(config["output_root"])
         manifest["camera_capture"] = {
             "adapter": "single_environment_numpy_rgbd_v1", "num_envs": 1,

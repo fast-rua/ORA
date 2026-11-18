@@ -2,9 +2,9 @@
 
 Host-side only: the isolated worker never reads the catalog. It answers which
 official layouts a persistent session may schedule for a task
-(``robodojo-layout-pools-v1.json``: one pool per task in default order, with
+(``robodojo-layout-pools-v2.json``: one pool per task in default order, with
 its review status and the hash-bound contract appendix that
-``agent/composition/robodojo_layout_compatibility.py`` checks at RunSpec
+``agent/composition/task_contract/robodojo_layouts.py`` checks at RunSpec
 resolution). A task without a pool, or whose pool is still pending review, cannot
 be scheduled; nothing here falls back to layout 0.
 """

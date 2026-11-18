@@ -84,13 +84,21 @@ class PolicyTurnInput:
         object.__setattr__(self, "image_paths", tuple(Path(path) for path in self.image_paths))
 
     def runtime_kwargs(self) -> dict[str, Any]:
-        """Project the typed turn into the runtime-owned invocation shape."""
+        """Project the typed turn into the runtime-owned invocation shape.
+
+        ``turn_budget`` is the round budget left when this turn starts. The
+        observation's ``context.remaining_budget`` was published with the
+        observation and goes stale when the Supervisor asks again on the same
+        observation, so a core caps its model calls by ``turn_budget``.
+        """
         value = {
             "task_instruction": self.task_instruction,
             "context": _thaw(self.context),
             "image_path": self.image_path,
             "allow_reminder": self.allow_reminder,
         }
+        if self.budget:
+            value["turn_budget"] = _thaw(self.budget)
         if self.terminal_lifecycle:
             value["terminal_lifecycle"] = True
         if self.image_paths:
@@ -105,6 +113,7 @@ class PolicyRuntimeEvent:
     kind: Literal[
         "fresh_observation",
         "environment_receipt",
+        "action_discarded",
         "official_verdict",
         "run_termination",
         "operator_message",
@@ -153,13 +162,29 @@ class LifecycleRequest:
         return _thaw(self.details)
 
 
-PolicyOutcome: TypeAlias = ActionProposal | NoAction | LifecycleRequest
+@dataclass(frozen=True)
+class ExecutedActions:
+    execution: Mapping[str, Any]
+    model_calls: int
+    details: Mapping[str, Any] = field(default_factory=dict)
+    kind: Literal["actions_executed"] = "actions_executed"
+
+    def as_record(self) -> dict[str, Any]:
+        return _thaw(self.details)
+
+
+PolicyOutcome: TypeAlias = ActionProposal | NoAction | LifecycleRequest | ExecutedActions
 
 
 def policy_outcome_from_mapping(value: Mapping[str, Any]) -> PolicyOutcome:
     raw = copy.deepcopy(dict(value))
     attempts = raw.get("attempts", 1)
     model_calls = int(attempts) if isinstance(attempts, int) and attempts >= 0 else 1
+    if raw.get("actions_executed") is True:
+        execution = raw.get("execution")
+        if not isinstance(execution, Mapping) or execution.get("native_actions_used", 0) <= 0:
+            raise PolicySessionError("executed outcome requires trusted positive consumption")
+        return ExecutedActions(execution=_freeze(execution), model_calls=model_calls, details=_freeze(raw))
     if raw.get("submitted") is True:
         action = raw.get("action")
         return ActionProposal(

@@ -36,7 +36,8 @@ libero_pro:
   simulator_config:
     environment_variable: LIBERO_CONFIG_PATH
     purpose: Host-local LIBERO path map; generated state and never policy-visible.
-# CuRobo motion planner used by the LIBERO motion tools (optional).
+# CuRobo motion planners (optional): v0.7.8 for RoboTwin and LIBERO's frozen
+# replay baseline, cuRobo V2 for LIBERO's default planner.
 motion_planner:
   python:
     environment_variable: CUROBO_PYTHON
@@ -44,6 +45,15 @@ motion_planner:
   root:
     environment_variable: CUROBO_ROOT
     purpose: Exact clean CuRobo checkout matching the pinned revision.
+  v2_python:
+    environment_variable: CUROBO_V2_PYTHON
+    purpose: cuRobo V2 interpreter (LIBERO's planner); the RoboDojo runtime's for now.
+  v2_root:
+    environment_variable: CUROBO_V2_ROOT
+    purpose: Clean cuRobo V2 checkout at the pinned revision that interpreter imports curobo from.
+  timing_python:
+    environment_variable: ORA_TIMING_PYTHON
+    purpose: Small CPU interpreter of the motion timing worker (ora/environment/planners/timing/requirements.py).
 # RoboDojo (omit when the host does not run RoboDojo). The worker derives the
 # runtime root from ROBODOJO_PYTHON (<root>/env/bin/python); see .env.example.
 robodojo:

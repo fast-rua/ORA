@@ -5,7 +5,30 @@ import json
 from pathlib import Path
 from typing import Any
 from ora.environment.controllers.libero_osc import libero_osc_action_contract
-from ora.environment.graphics_probe import configure_libero_graphics
+from ora.environment.graphics_probe import bind_software_egl_device, configure_libero_graphics
+
+#: The EGL device this process renders on, bound once by ``bind_egl_device``.
+_EGL_DEVICE: dict[str, Any] | None = None
+
+
+def bind_egl_device() -> dict[str, Any] | None:
+    """Point a Mesa lane at Mesa's software EGL device, once per process, before LIBERO creates a context.
+
+    Mesa lists every DRM render node before its software device, so device 0 is
+    the software device only on a host without ``/dev/dri``. robosuite asserts
+    at import that ``MUJOCO_EGL_DEVICE_ID`` is one of ``CUDA_VISIBLE_DEVICES``
+    (a Mesa lane meets it with ``"K,0"``) and reads the variable again when it
+    creates its first context, so robosuite is imported first and the device is
+    bound in between. Returns the record (``graphics_probe.bind_software_egl_device``),
+    or ``None`` when software rendering is not asked for.
+    """
+
+    global _EGL_DEVICE
+    if _EGL_DEVICE is None:
+        import robosuite.utils.binding_utils  # noqa: F401  runs robosuite's import-time device check first
+
+        _EGL_DEVICE = bind_software_egl_device()
+    return _EGL_DEVICE
 
 
 def build_environment(
@@ -29,8 +52,21 @@ def build_environment(
     from robosuite.controllers import load_controller_config
     import robosuite
     import robosuite.models.grippers.panda_gripper as panda_gripper_module
-    if environment_driver != "direct_libero_v1":
+    try:
+        egl_device = bind_egl_device()
+    except (OSError, RuntimeError) as exc:
+        raise LiberoProError(f"LIBERO software EGL device: {exc}") from exc
+    from .direct import DRIVERS, PLAY_DRIVER, PRACTICE_DRIVER, DirectLiberoEnvironment, withhold_official_predicate
+    from ora.environment.benchmarks.libero_pro import PRACTICE_SEED_FLOOR
+    if environment_driver not in DRIVERS:
         raise LiberoProError("unsupported LIBERO environment driver")
+    if environment_driver == PLAY_DRIVER and robustness_case is not None:
+        raise LiberoProError("a LIBERO play scene loads no robustness case")
+    practice = environment_driver == PRACTICE_DRIVER
+    if practice and robustness_case is not None:
+        raise LiberoProError("practice initial states are not qualified for robustness cases")
+    if practice and seed < PRACTICE_SEED_FLOOR:
+        raise LiberoProError(f"a practice episode needs a practice seed of at least {PRACTICE_SEED_FLOOR}")
     from libero.libero import benchmark
     runtime_bindings["environment_driver"] = environment_driver
     from .registration import ensure_perturbation_suites
@@ -85,10 +121,12 @@ def build_environment(
         if not dependency.is_file():
             raise LiberoProError(f"RoboSuite control dependency is unavailable: {dependency}")
     from libero.libero.envs import OffScreenRenderEnv
-    from .direct import DirectLiberoEnvironment
     active_bddl = robustness_bddl or Path(benchmark_suite.get_task_bddl_file_path(task_id))
     factory = lambda: OffScreenRenderEnv(
         bddl_file_name=str(active_bddl), **{**init_params, "ignore_done": True})
+    if environment_driver == PLAY_DRIVER:
+        scene_factory = factory
+        factory = lambda: withhold_official_predicate(scene_factory())
     if robustness_bddl is not None:
         from .robustness import robustness_env_factory
         factory = robustness_env_factory(factory, case=str(robustness_case), suite=suite,
@@ -97,7 +135,7 @@ def build_environment(
         factory=_camera_metadata_env_factory(factory),
         init_states=benchmark_suite.get_task_init_states(task_id),
         first_reset_id=first_id, reset_id=reset_id, seed=seed,
-        task_language=str(task.language), max_sim_steps=max_sim_steps)
+        task_language=str(task.language), max_sim_steps=max_sim_steps, practice=practice)
     public_environment_context = libero_public_environment_context(
         task, init_params=init_params,
     )
@@ -126,9 +164,11 @@ def build_environment(
         "task_name": str(task.name),
         "bddl_file": str(active_bddl),
         "init_states_file": str(init_states_path),
-        "reset_id": reset_id,
+        # A practice episode loads no official state, so it has no reset id.
+        "reset_id": None if practice else reset_id,
         "trial_count": trials,
         "environment_driver": environment_driver,
+        "egl_device": egl_device,
         "libero_pro_root": str(libero_pro_root),
         "data_root": str(data_root),
         "runtime_bindings": {

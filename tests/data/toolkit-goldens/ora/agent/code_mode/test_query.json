@@ -1,0 +1,10 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_a_surface_the_environment_plans_for_stays_unqueried_when_it_runs_the_toolkit/refusal[libero]": "9e961511c6f09abfe7027fd6659ba53bb525d206c8e85073747f8cdefe14c153",
+  "test_a_surface_the_environment_plans_for_stays_unqueried_when_it_runs_the_toolkit/refusal[robocasa]": "9e961511c6f09abfe7027fd6659ba53bb525d206c8e85073747f8cdefe14c153",
+  "test_a_surface_the_environment_plans_for_stays_unqueried_when_it_runs_the_toolkit/refusal[robolab]": "9e961511c6f09abfe7027fd6659ba53bb525d206c8e85073747f8cdefe14c153",
+  "test_a_surface_the_environment_plans_for_stays_unqueried_when_it_runs_the_toolkit/refusal[robotwin]": "9e961511c6f09abfe7027fd6659ba53bb525d206c8e85073747f8cdefe14c153",
+  "test_a_surface_the_environment_plans_for_stays_unqueried_when_it_runs_the_toolkit/refusal[yam]": "9e961511c6f09abfe7027fd6659ba53bb525d206c8e85073747f8cdefe14c153"
+ }
+}

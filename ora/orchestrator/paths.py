@@ -408,7 +408,7 @@ def link_logical_workspace(experiment: str, storage: Path | None = None) -> Path
     (``spec._generated_resource``), so when an output-storage selector moves
     storage elsewhere the logical name is a symlink to it. Launch creates it
     (``register_run``); a builder that writes such a resource before any run
-    (``benchmark_spec.compose``) creates it first. Returns the storage path.
+    (``spec.benchmark.compose``) creates it first. Returns the storage path.
     """
 
     identifier = stable_id(experiment, "experiment")

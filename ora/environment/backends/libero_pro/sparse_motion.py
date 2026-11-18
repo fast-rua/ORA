@@ -15,14 +15,18 @@ from typing import Any, Mapping
 
 from ora.contracts import MOTION_ACTION_SCHEMA
 from ora.environment.backends.libero_pro.motion_settle import (
+    LIBERO_CONTROL_PERIOD_S,
     merge_settled_receipt,
     precontact_pose,
     precontact_refusal,
     settle_refusal,
 )
 from ora.environment.controllers.hybrid_motion import (
+    libero_global_joint_ceilings,
     libero_local_endpoint_tolerances,
 )
+from ora.environment.controllers.jaw_flip_retry import jaw_twin
+from ora.environment.controllers.motion_pace import paces, speed_report
 
 from .common import (
     LIBERO_SPARSE_RECEIPT_SCHEMA,
@@ -52,9 +56,17 @@ class _SparseMotionV3:
     before_orientation: Any
     strategy: str
     precontact: list[float] | None
+    #: The requested end-effector speed (``ora.contracts.motion_speed`` wire form; None: the default).
+    speed: Mapping[str, Any] | None = None
+    #: ``motion`` of the receipt: the global segment's pacing, or the request's caps on a local route.
+    motion: dict[str, Any] | None = None
     routes: list[str] = field(default_factory=list)
     settle_disclosure: dict[str, Any] | None = None
     precontact_disclosure: dict[str, Any] | None = None
+    #: Whether the global segment ran the jaw twin of its goal, and ``target`` is the twin since.
+    jaw_twin: bool = False
+    #: Which route a planned free-space segment ran and why (``osc_transit.route_choice``; v4).
+    route_choice: dict[str, Any] | None = None
 
 
 def _sparse_segment_outcome(
@@ -203,6 +215,7 @@ class LiberoSparseMotionMixin:
             before_position=before_position,
             before_orientation=before_orientation,
             strategy=strategy, precontact=precontact,
+            speed=arguments.get("speed"),
         )
 
     def _run_sparse_motion_v3(self, plan: _SparseMotionV3) -> dict[str, Any]:
@@ -212,8 +225,16 @@ class LiberoSparseMotionMixin:
 
         previous_transform = getattr(self, "_sparse_receipt_transform", None)
         previous_interaction = getattr(self, "_active_motion_interaction", None)
+        previous_speed = getattr(self, "_active_motion_speed", None)
+        previous_slow_final = getattr(self, "_active_motion_slow_final", True)
+        previous_plan = getattr(self, "_active_sparse_plan", None)
+        self._active_sparse_plan = plan
         self._sparse_receipt_transform = lambda inner: self._sparse_v3_receipt(plan, inner)
         self._active_motion_interaction = plan.interaction
+        # Every segment keeps the move's speed; a pre-contact segment ends short
+        # of the goal, so the slow final segment belongs to the local approach.
+        self._active_motion_speed = plan.speed
+        self._active_motion_slow_final = plan.strategy != "global_precontact_then_local"
         try:
             if plan.strategy in {"global_then_local_settle", "global_precontact_then_local"}:
                 plan.routes.append("libero_curobo_joint_position")
@@ -229,6 +250,12 @@ class LiberoSparseMotionMixin:
                         },
                     },
                 })
+                # The disclosure refuses the hand-off once the session reports
+                # any terminal status after the first segment (official
+                # success, LIBERO truncation, the sim-step cap, an abort or a
+                # control fault), so the action ends with the first segment's
+                # receipt and the loop meets the terminal status, rather than
+                # the next segment raising on an already terminal episode.
                 handoff = plan.precontact_disclosure if plan.precontact else plan.settle_disclosure
                 if handoff is None or not handoff.get("attempted"):
                     return first
@@ -247,8 +274,11 @@ class LiberoSparseMotionMixin:
                 plan, plan.before_position, plan.before_orientation,
             )
         finally:
+            self._active_sparse_plan = previous_plan
             self._sparse_receipt_transform = previous_transform
             self._active_motion_interaction = previous_interaction
+            self._active_motion_speed = previous_speed
+            self._active_motion_slow_final = previous_slow_final
 
     def _run_sparse_local_segment(
         self, plan: _SparseMotionV3, from_position: Any, from_orientation: Any,
@@ -306,7 +336,7 @@ class LiberoSparseMotionMixin:
         landed = (inner.get("after") or {}).get("right", {}).get("pose_xyz_xyzw")
         measured = isinstance(landed, list) and len(landed) == 7
         reason = precontact_refusal(
-            terminated=bool(self.terminated or self.truncated),
+            terminated=self.is_terminal,
             motion_status=str(inner.get("motion_status")),
             endpoint_measured=measured,
             within_local_envelope=measured and _within_local_servo_envelope(
@@ -355,7 +385,7 @@ class LiberoSparseMotionMixin:
         bound_m, bound_rad = libero_local_endpoint_tolerances()
         reason = settle_refusal(
             strategy=plan.strategy,
-            terminated=bool(self.terminated or self.truncated),
+            terminated=self.is_terminal,
             motion_status=str(inner.get("motion_status")),
             endpoint_measured=measured, residual_m=residual_m,
             residual_rad=residual_rad, bound_m=bound_m,
@@ -369,11 +399,56 @@ class LiberoSparseMotionMixin:
             "attempted": reason is None, "reason": reason,
         }
 
+    def _adopt_jaw_twin(
+        self, plan: _SparseMotionV3, inner: Mapping[str, Any],
+    ) -> None:
+        """Once the global segment ran the jaw twin of its goal, the move's target is the twin too.
+
+        ``planned_motion._jaw_twin_route`` runs the twin of a goal the pacing refused
+        for its wrist (``controllers/jaw_flip_retry.py``) and says so in the
+        segment's ``pacing.wrist.jaw_flip_retry``. The same grasp is then the
+        target turned a half-turn about its approach axis, so the settle, the
+        local approach after a pre-contact pose and the pose error all read that
+        twin; a settle back to the request would turn the hand half a turn.
+        """
+
+        record = ((inner.get("pacing") or {}).get("wrist") or {}).get("jaw_flip_retry")
+        if plan.jaw_twin or not isinstance(record, Mapping) or record.get("applied") is not True:
+            return
+        target = [*plan.target["position_m"], *plan.target["orientation_xyzw"]]
+        plan.target = {**plan.target, "orientation_xyzw": jaw_twin(target)[3:]}
+        plan.jaw_twin = True
+
+    def _sparse_motion_report(
+        self, plan: _SparseMotionV3, inner: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """The receipt's ``motion``: the global segment's pacing once it ran (or refused), else the caps."""
+
+        pacing = inner.get("pacing")
+        if isinstance(pacing, Mapping):
+            plan.motion = dict(pacing)
+        elif plan.motion is None:
+            move, slow = paces(plan.speed)
+            profile = getattr(self, "motion_profile", None)
+            ceiling = (libero_global_joint_ceilings(profile, tick_s=LIBERO_CONTROL_PERIOD_S)
+                       if isinstance(profile, Mapping) else (None, None))
+            plan.motion = {"speed": speed_report(
+                plan.speed, move.within(*ceiling), None if slow is None else slow.within(*ceiling),
+            )}
+        line = (plan.route_choice or {}).get("line")
+        if line is not None and "planned_ticks" not in plan.motion:
+            # The OSC line's own plan: its ticks before the settle (``planned_motion._osc_line_reference``).
+            plan.motion = {**plan.motion, "route": "osc_straight_line", "planned_ticks": int(line["planned_ticks"]),
+                           "duration_s": int(line["planned_ticks"]) * LIBERO_CONTROL_PERIOD_S}
+        return dict(plan.motion)
+
     def _sparse_v3_receipt(
         self, plan: _SparseMotionV3, inner: dict[str, Any],
     ) -> dict[str, Any]:
         """Project one executor segment receipt into the canonical sparse receipt."""
 
+        motion = self._sparse_motion_report(plan, inner)
+        self._adopt_jaw_twin(plan, inner)
         self._disclose_sparse_precontact(plan, inner)
         self._disclose_sparse_settle(plan, inner)
         status, stage, code = _sparse_segment_outcome(plan, inner)
@@ -411,6 +486,7 @@ class LiberoSparseMotionMixin:
                    if plan.settle_disclosure is not None else {}),
                 **({"precontact": dict(plan.precontact_disclosure)}
                    if plan.precontact_disclosure is not None else {}),
+                **({"route_choice": dict(plan.route_choice)} if plan.route_choice is not None else {}),
                 "plan_validation": (
                     {"status": "kinematics_only"}
                     if plan.strategy == "global" else None
@@ -421,9 +497,8 @@ class LiberoSparseMotionMixin:
             "steps_used": inner.get("steps_used"),
             "sim_steps_total": inner.get("sim_steps_total"),
             "control_health": inner.get("control_health"),
-            "terminal_after_action": bool(
-                self.terminated or self.truncated
-            ),
+            "motion": motion,
+            "terminal_after_action": self.is_terminal,
             "segment": inner,
             "segments": [inner],
             "finished_unix_s": time.time(),

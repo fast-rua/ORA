@@ -1,0 +1,1 @@
+"""Translation-only motion primitive."""

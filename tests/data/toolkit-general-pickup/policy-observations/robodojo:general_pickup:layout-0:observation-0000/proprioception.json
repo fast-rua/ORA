@@ -1,0 +1,95 @@
+{
+  "end_effectors": {
+    "left": {
+      "arm_joint_qpos": [
+        5.115578100012286e-13,
+        -1.156115904982105e-15,
+        1.767066072491508e-17,
+        7.853062682560905e-16,
+        -9.987136985467604e-13,
+        2.5006576670483227e-12
+      ],
+      "gripper": 0.9999944421428222,
+      "gripper_command": 1.0,
+      "gripper_command_target": "open",
+      "gripper_feedback": {
+        "arrival_check": {
+          "comparison": "<=",
+          "residual_normalized": 5.557857177818093e-06,
+          "tolerance_normalized": 0.03,
+          "within_tolerance": true
+        },
+        "drive_target_opening_normalized": 1.0,
+        "drive_target_source": "resolved_sdk_joint_position_target",
+        "effective_target_opening_normalized": 1.0,
+        "finger_lateral_offset_m": -1.862645149230957e-09,
+        "measured_opening_normalized": 0.9999944421428222,
+        "measurement_source": "two_finger_encoder_mean_v1",
+        "pose_hold_semantics": "preserve_last_applied_drive_target",
+        "requested_command": "open",
+        "requested_opening_normalized": 1.0,
+        "schema": "ora.gripper-feedback.v2"
+      },
+      "gripper_finger_qpos": [
+        0.043999698013067245,
+        0.043999701738357544
+      ],
+      "pose_frame": "robodojo_episode_local_ee_link",
+      "pose_xyz_xyzw": [
+        -0.2995290756225586,
+        -0.35229986906051636,
+        0.921500027179718,
+        -4.327419134142474e-08,
+        -6.000607299938565e-08,
+        0.7072135210037231,
+        0.7069999575614929
+      ]
+    },
+    "right": {
+      "arm_joint_qpos": [
+        5.115569426394906e-13,
+        -1.1561103992679478e-15,
+        1.7667572032507807e-17,
+        7.853009213606109e-16,
+        -9.98713048025457e-13,
+        2.5006572333674537e-12
+      ],
+      "gripper": 0.9999944421428222,
+      "gripper_command": 1.0,
+      "gripper_command_target": "open",
+      "gripper_feedback": {
+        "arrival_check": {
+          "comparison": "<=",
+          "residual_normalized": 5.557857177818093e-06,
+          "tolerance_normalized": 0.03,
+          "within_tolerance": true
+        },
+        "drive_target_opening_normalized": 1.0,
+        "drive_target_source": "resolved_sdk_joint_position_target",
+        "effective_target_opening_normalized": 1.0,
+        "finger_lateral_offset_m": -1.862645149230957e-09,
+        "measured_opening_normalized": 0.9999944421428222,
+        "measurement_source": "two_finger_encoder_mean_v1",
+        "pose_hold_semantics": "preserve_last_applied_drive_target",
+        "requested_command": "open",
+        "requested_opening_normalized": 1.0,
+        "schema": "ora.gripper-feedback.v2"
+      },
+      "gripper_finger_qpos": [
+        0.043999698013067245,
+        0.043999701738357544
+      ],
+      "pose_frame": "robodojo_episode_local_ee_link",
+      "pose_xyz_xyzw": [
+        0.3004709482192993,
+        -0.35229986906051636,
+        0.921500027179718,
+        -4.327419134142474e-08,
+        -6.000607299938565e-08,
+        0.7072135210037231,
+        0.7069999575614929
+      ]
+    }
+  },
+  "single_arm": false
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "open_gripper",
+  "description": "Propose an open command while holding the measured current grip-site pose. Use when: current evidence supports jaw opening; use move_pose for a pose change. Effect: submits one observation-bound gripper-only action v3 proposal to the Supervisor and ends this turn. Returns: submitted status and open_gripper action immediately; the later receipt and fresh observation show measured motion and opening. Does not: establish release at a correct place, invariant measured pose or task success. On error: wait for a pending action to finish and inspect fresh evidence before changing the plan.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "const": "submitted"
+      },
+      "action": {
+        "const": "open_gripper"
+      }
+    },
+    "required": [
+      "status",
+      "action"
+    ],
+    "additionalProperties": false
+  }
+}

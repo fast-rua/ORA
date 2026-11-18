@@ -1,0 +1,230 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "ReorientWhiteMugsTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab ReorientWhiteMugsTask at the pinned revision; generated per predicate family (upright); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Make sure all the white mugs are upright so that the opening is facing upwards.",
+ "family": "upright",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/reorient_white_mugs.py",
+   "sha256": "d88ff10dd34013aa49c564c56d0abf6dbef14224010d46e6956b5671ee48b086"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/mugs4_measuringcup_drill_bowl_v2.usda",
+   "sha256": "96937326711c09723b57b9e7abcad5e9319b6f55fcd02e72c3ef3cfad9d5e75b"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/ReorientWhiteMugsTask-s0-witness.json",
+   "sha256": "a566c5fcc3c4e0d126a796cc03c0ed5d0b1c48bd66b2cb7f931ade5c7f566845"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read ReorientWhiteMugsTask terminations: success = object_upright(object=['upright_white_mug', 'sideways_white_mug'], up_axis='z', logical='all', require_gripper_detached=True), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene mugs4_measuringcup_drill_bowl_v2.usda: upright_white_mug, sideways_white_mug among 8 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only. At reset one white mug starts upright and already satisfies its term."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Upright is the object's local +z against world up; the witness's upright pose (identity orientation) gives the success termination."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (2) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 a566c5fcc3c4)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 a566c5fcc3c4): upright -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 a566c5fcc3c4): reset_state -> False; inverted -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_upright(object=['upright_white_mug', 'sideways_white_mug'], up_axis='z', logical='all', require_gripper_detached=True): the object's local up axis within the tolerance angle of world +z.",
+   "interpretation": "Upright.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "object_identity",
+   "source_basis": "The instruction 'Make sure all the white mugs are upright so that the opening is facing upwards.' refers by descriptor; the termination names ['sideways_white_mug', 'upright_white_mug'].",
+   "interpretation": "Which objects the descriptor covers is the task's own inference.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Naming the objects would answer the task (no privileged information); the public clauses keep the instruction's descriptor (all the white mugs)."
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_upright and its predicate_logic helpers.",
+   "interpretation": "Tilt angle limit and contact force bar withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "All the white mugs must end up standing upright, each with its opening facing up.",
+  "Let go of them: the task is not complete while the gripper still touches any of them."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "inverted: false.",
+   "expected": "witness case inverted"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": true,
+  "subtasks": "reorient_white_mugs(groups=['reorienting_sideways_white_mug'], logical=all) score=1.0",
+  "notes": [
+   "objects: the termination adds ['upright_white_mug']"
+  ]
+ },
+ "compatibility": {
+  "status": "ready_with_note",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "reorientation",
+    "detail": "needs the object turned upright (a regrasp or a placement in a new orientation); expressible with move_pose orientations"
+   },
+   {
+    "code": "wide_object",
+    "detail": "no face of the white mug fits the open gripper (85 mm); a grasp needs a rim, handle, stem or edge"
+   },
+   {
+    "code": "reset_relation",
+    "detail": "one white mug starts upright and already satisfies its term"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "inverted",
+    "expected": false,
+    "ops": [
+     {
+      "op": "orient",
+      "object": "upright_white_mug",
+      "pose": "inverted"
+     },
+     {
+      "op": "orient",
+      "object": "sideways_white_mug",
+      "pose": "inverted"
+     }
+    ],
+    "ticks": 40
+   },
+   {
+    "case": "upright",
+    "expected": true,
+    "ops": [
+     {
+      "op": "orient",
+      "object": "upright_white_mug",
+      "pose": "upright"
+     },
+     {
+      "op": "orient",
+      "object": "sideways_white_mug",
+      "pose": "upright"
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "upright_white_mug",
+   "sideways_white_mug"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793862860.321395,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/ReorientWhiteMugsTask-s0-witness.json",
+  "sha256": "a566c5fcc3c4e0d126a796cc03c0ed5d0b1c48bd66b2cb7f931ade5c7f566845",
+  "plan_sha256": "74a04bd2fd0e1135e906455ae95cbfd0a6b707d0d5af08281145518fbba4da38"
+ }
+}

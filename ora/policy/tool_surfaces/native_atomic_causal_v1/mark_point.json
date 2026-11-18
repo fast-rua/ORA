@@ -1,0 +1,32 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "mark_point",
+  "description": "Measure one point from an exact returned view and pixel. Reuse point_id across complementary views when requested. This is read-only; solved XYZ is geometry, not object identity, contact, or a grasp verdict.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "point_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "view": {
+        "type": "string",
+        "minLength": 1
+      },
+      "x": {
+        "type": "integer"
+      },
+      "y": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "point_id",
+      "view",
+      "x",
+      "y"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

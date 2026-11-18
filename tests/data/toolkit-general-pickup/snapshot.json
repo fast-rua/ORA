@@ -1,0 +1,345 @@
+{
+  "schema": "rsi.traj.snapshot.v0",
+  "run_id": "e0003-first-episode-robodojo-a8b9a603d7ce--20261023T021000Z",
+  "source_run": ".",
+  "source_commit": "36b17f4e3804fbac4f6c051e21a5c5c5d438aba5",
+  "boundary": {
+    "kind": "before_call",
+    "call": 0,
+    "seq": 6,
+    "tool_call_id": "chatcmpl-tool-81c25cefba22c98b",
+    "model_call_id": "model-call-000000"
+  },
+  "identity": {
+    "round_index": 0,
+    "tool_call_id": "chatcmpl-tool-81c25cefba22c98b",
+    "model_call_id": "model-call-000000",
+    "interface_ordinal": null,
+    "semantic_request_hash": null,
+    "invocation_id": null,
+    "observation_id": "robodojo:general_pickup:layout-0:observation-0000",
+    "observation_sha256": "193e8f6296207e16aac46715d2ab47706fb746ca99a169f6fb1e271d0eb20633",
+    "world_mutation_sequence": null,
+    "world_mutation_sequence_scope": "所选/最近原生回执原值；不推导执行后的新值",
+    "action_sequences": [],
+    "native_action": null
+  },
+  "available_at_boundary": {
+    "observation": {
+      "id": "robodojo:general_pickup:layout-0:observation-0000",
+      "recorded": true,
+      "published_seq": 1,
+      "published_unix_s": 1792721482.9973264,
+      "manifest": {
+        "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/observation.json",
+        "recorded": true,
+        "sha256": "193e8f6296207e16aac46715d2ab47706fb746ca99a169f6fb1e271d0eb20633",
+        "bytes": 7465
+      },
+      "files": [
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/calibration.json",
+          "recorded": true,
+          "sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e",
+          "bytes": 3319
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/depth-m.npy",
+          "recorded": true,
+          "sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411",
+          "bytes": 1228928
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/rgb.png",
+          "recorded": true,
+          "sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e",
+          "bytes": 437799
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/calibration.json",
+          "recorded": false,
+          "sha256": "4bfcafe7877bf03d79fc9fbf7901ed282d90aa27d16f9d18a2782beb31282fba",
+          "bytes": 3787
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/depth-m.npy",
+          "recorded": false,
+          "sha256": "1350bdeef74e2d96b307e3b123ffacbba87ea094938236064c190950fea5f28d",
+          "bytes": 1228928
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/rgb.png",
+          "recorded": false,
+          "sha256": "1cd2f420364eaad3cd45d0af51f95e19b997a309bc153e048ef40e9cbbdc11a6",
+          "bytes": 414140
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/observation.json",
+          "recorded": true,
+          "sha256": "193e8f6296207e16aac46715d2ab47706fb746ca99a169f6fb1e271d0eb20633",
+          "bytes": 7465
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/proprioception.json",
+          "recorded": true,
+          "sha256": "60bc1456644299fc1aa2a7a8f5852df00c389c238f4d464e5635bf42be4e0861",
+          "bytes": 3092
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/calibration.json",
+          "recorded": false,
+          "sha256": "3c0210d6b93947860a831b028a3b074ce000ee14e9db21060415c7646cdc5e15",
+          "bytes": 3789
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/depth-m.npy",
+          "recorded": false,
+          "sha256": "9d63bcb675008baed62ab9ae77139eff3dd9f82543f6f66870e8f3177e9144a3",
+          "bytes": 1228928
+        },
+        {
+          "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/rgb.png",
+          "recorded": false,
+          "sha256": "f66e71333d82db9c0601d0899cb28d55c62755849aae10a79429e1ac9d74b2b7",
+          "bytes": 399264
+        }
+      ],
+      "round_index": 0,
+      "policy_state": {
+        "path": "policy-state/steps/step-0000.json",
+        "recorded": false,
+        "sha256": "436b8bdc45e87c0359b640b831a013c3a335c6216ea9bca54431c8e3f9d33bb7",
+        "bytes": 7636
+      },
+      "source_state_ref": {
+        "path": "policy-state/steps/step-0000.json",
+        "sha256": "436b8bdc45e87c0359b640b831a013c3a335c6216ea9bca54431c8e3f9d33bb7",
+        "state_sha256": "d98dc79c3d6038de5f597ea2c5a500fb4b4a9f0bd4e161c6acd5b2e3f70fc836",
+        "step": 0
+      },
+      "exactness": "最近已发布的 policy 观测；不是插值出的当前物理世界"
+    },
+    "policy_state": {
+      "path": "policy-state/steps/step-0000.json",
+      "recorded": false,
+      "sha256": "436b8bdc45e87c0359b640b831a013c3a335c6216ea9bca54431c8e3f9d33bb7",
+      "bytes": 7636
+    },
+    "previous_receipts": [],
+    "previous_tool_results": [],
+    "controller_sample": null
+  },
+  "replay_evidence": {
+    "availability": "属于所选调用的事后证据；不可当作调用前已知数据",
+    "tool_request": {
+      "tool": "vision_ground",
+      "parameters": {
+        "camera": "head",
+        "max_candidates": 3,
+        "text": "mint green scissors"
+      },
+      "tool_call_id": "chatcmpl-tool-81c25cefba22c98b"
+    },
+    "tool_response": {
+      "path": "native/agent-artifacts/4a688513b013103735868101508049ca980dcbf1fd595d7c7feddaaeac5a7748.json",
+      "recorded": false,
+      "sha256": "4a688513b013103735868101508049ca980dcbf1fd595d7c7feddaaeac5a7748",
+      "bytes": 9981
+    },
+    "simulator_exports": [],
+    "external_services": [
+      {
+        "service": "sam3",
+        "query_ref": "grounding-query-a1fcc49b49e51e4be83c46aa",
+        "strategy": "recompute_and_compare",
+        "request": {
+          "tool": "vision_ground",
+          "parameters": {
+            "camera": "head",
+            "max_candidates": 3,
+            "text": "mint green scissors"
+          },
+          "observation_id": "robodojo:general_pickup:layout-0:observation-0000",
+          "observation_manifest": {
+            "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/observation.json",
+            "recorded": true,
+            "sha256": "193e8f6296207e16aac46715d2ab47706fb746ca99a169f6fb1e271d0eb20633",
+            "bytes": 7465
+          },
+          "input_blobs": [
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/calibration.json",
+              "recorded": false,
+              "sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e",
+              "bytes": 3319,
+              "declared_sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e"
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/depth-m.npy",
+              "recorded": false,
+              "sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411",
+              "bytes": 1228928,
+              "declared_sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411"
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/rgb.png",
+              "recorded": false,
+              "sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e",
+              "bytes": 437799,
+              "declared_sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e"
+            }
+          ],
+          "observation_files": [
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/calibration.json",
+              "recorded": false,
+              "sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e",
+              "bytes": 3319
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/depth-m.npy",
+              "recorded": false,
+              "sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411",
+              "bytes": 1228928
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head/rgb.png",
+              "recorded": false,
+              "sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e",
+              "bytes": 437799
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/calibration.json",
+              "recorded": false,
+              "sha256": "4bfcafe7877bf03d79fc9fbf7901ed282d90aa27d16f9d18a2782beb31282fba",
+              "bytes": 3787
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/depth-m.npy",
+              "recorded": false,
+              "sha256": "1350bdeef74e2d96b307e3b123ffacbba87ea094938236064c190950fea5f28d",
+              "bytes": 1228928
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/left_wrist/rgb.png",
+              "recorded": false,
+              "sha256": "1cd2f420364eaad3cd45d0af51f95e19b997a309bc153e048ef40e9cbbdc11a6",
+              "bytes": 414140
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/observation.json",
+              "recorded": true,
+              "sha256": "193e8f6296207e16aac46715d2ab47706fb746ca99a169f6fb1e271d0eb20633",
+              "bytes": 7465
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/proprioception.json",
+              "recorded": true,
+              "sha256": "60bc1456644299fc1aa2a7a8f5852df00c389c238f4d464e5635bf42be4e0861",
+              "bytes": 3092
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/calibration.json",
+              "recorded": false,
+              "sha256": "3c0210d6b93947860a831b028a3b074ce000ee14e9db21060415c7646cdc5e15",
+              "bytes": 3789
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/depth-m.npy",
+              "recorded": false,
+              "sha256": "9d63bcb675008baed62ab9ae77139eff3dd9f82543f6f66870e8f3177e9144a3",
+              "bytes": 1228928
+            },
+            {
+              "path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/right_wrist/rgb.png",
+              "recorded": false,
+              "sha256": "f66e71333d82db9c0601d0899cb28d55c62755849aae10a79429e1ac9d74b2b7",
+              "bytes": 399264
+            }
+          ],
+          "manifest_identity": {
+            "backend": {
+              "config_sha256": "4335e4c2d463dac2e9867c80cc7256053a690240a3b8b1972646395369410212",
+              "id": "sam3_point_api",
+              "version": "v1"
+            },
+            "camera": "head",
+            "max_candidates": 3,
+            "observation_id": "robodojo:general_pickup:layout-0:observation-0000",
+            "source": {
+              "files": {
+                "calibration": {
+                  "bytes": 3319,
+                  "name": "calibration.json",
+                  "sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e"
+                },
+                "depth": {
+                  "bytes": 1228928,
+                  "name": "depth-m.npy",
+                  "sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411"
+                },
+                "rgb": {
+                  "bytes": 437799,
+                  "name": "rgb.png",
+                  "sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e"
+                }
+              },
+              "policy_observation_path": "policy-observations/robodojo:general_pickup:layout-0:observation-0000/head"
+            },
+            "text": "mint green scissors",
+            "visualization": {
+              "depth_profile": {
+                "renderer": "grounding-candidate-depth-profile.v1",
+                "support_line": true
+              },
+              "renderer": "grounding-candidate-inspection.v2"
+            }
+          },
+          "service_identity": {
+            "config_sha256": "4335e4c2d463dac2e9867c80cc7256053a690240a3b8b1972646395369410212",
+            "id": "sam3_point_api",
+            "version": "v1"
+          },
+          "wire_request_recorded": false,
+          "note": "旧格式保留工具参数和 manifest identity；未声明为完整服务 wire request"
+        },
+        "historical_comparison": [
+          {
+            "path": "native/agent-artifacts/4a688513b013103735868101508049ca980dcbf1fd595d7c7feddaaeac5a7748.json",
+            "recorded": false,
+            "sha256": "4a688513b013103735868101508049ca980dcbf1fd595d7c7feddaaeac5a7748",
+            "bytes": 9981,
+            "json_pointer": "",
+            "byte_scope": "whole_file"
+          },
+          {
+            "path": "openeta-tool-artifacts/grounding-queries/grounding-query-a1fcc49b49e51e4be83c46aa/manifest.json",
+            "recorded": false,
+            "sha256": "1f24641f177aa36b86bc3ed35f77ab93a370371a48d546da583f6bec82f45c2f",
+            "bytes": 21814
+          },
+          {
+            "path": "openeta-tool-artifacts/grounding-queries/grounding-query-a1fcc49b49e51e4be83c46aa/overlay.png",
+            "recorded": false,
+            "sha256": "c3445731c6dcc2ef769f109c0bfc247e56aa95c9f0723967bcf8b72f28095416",
+            "bytes": 436706
+          }
+        ],
+        "response_role": "comparison_only",
+        "semantic_request_hash": null,
+        "invocation_id": null,
+        "identity_status": "等待 toolkit 协议；不对旧记录虚构默认参数或 interface ordinal"
+      }
+    ],
+    "environment_response": null,
+    "completed_native_receipts": []
+  },
+  "completeness": {
+    "toolkit_protocol": "pending",
+    "exact_interface_replay": false,
+    "note": "旧轨迹没有统一 interface ordinal、默认参数与底层请求键；无记录的数据必须报未记录。"
+  },
+  "warnings": [
+    "Fixture keeps only original first observation manifest/proprioception bytes; omitted files explicitly recorded=false."
+  ]
+}

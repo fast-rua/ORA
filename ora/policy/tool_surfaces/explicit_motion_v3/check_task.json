@@ -1,0 +1,10 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "check_task",
+  "description": "Read the environment-owned faithful LIBERO task result. Use when: physical and visual evidence suggests the requested task may be complete, and always before finish_episode(outcome=success). Effect: read-only; it queries the only policy-visible official task checker. Returns: task_success when the checker is available, or a retryable task_checker_unavailable result. Does not: change the world, explain why the task passed or failed, expose the hidden predicate, or substitute for physical verification during manipulation. On error: Refused: any argument (invalid_arguments). Wait for the Runtime to expose the checker and retry; never infer official success from tool or motion success.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  }
+}

@@ -18,6 +18,8 @@ For robot dependencies, use `ora doctor --env robotwin`, `--env libero_pro`, or
 | Wrong Python or missing package | Run `uv sync --all-extras --locked` from the source checkout, then use `uv run --locked`. |
 | Dirty-source refusal | Review and commit intentional changes; keep keys and outputs ignored. |
 | Missing FFmpeg | Install system FFmpeg, including `ffprobe`, for video export and tests. Synthetic itself does not need it. |
+| `the Pi agent core cannot start` (preflight `agent_core`, `ora doctor`) | Install Node.js 22.19 or newer and run `npm ci --prefix ora-pi --prefer-offline --no-audit --no-fund` ([agent core install](installation.md#nodejs-and-the-agent-core)). |
+| `... names the Python Native agent core, which was removed from ORA` or `this plan was resolved for the Python Native agent core` | A RunSpec, `ORA_AGENT_CORE`, `--agent-core` or a persisted plan names the retired Native core: drop the setting (Pi is the only agent core) or resolve the RunSpec again; the sealed runs of that core still evaluate, open in the viewer and replay. |
 
 ## Model API
 
@@ -49,4 +51,4 @@ and seal; later revalidation writes a separate report.
 
 For a bug report, include doctor output, source commit, run ID, refusal code,
 and a redacted log excerpt. Never include keys. The
-[CLI reference](../guides/cli-reference.md) lists inspection/export commands.
+[command guide](../usage/commands.md) lists inspection/export commands.

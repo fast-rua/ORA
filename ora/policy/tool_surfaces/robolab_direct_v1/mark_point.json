@@ -1,0 +1,54 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "mark_point",
+  "description": "Measure up to eight visible pixels of one current RGB view as world-frame points in a single call.\nUse when: one or more exact pixels — not an object identity, centre or full extent — must become world XYZ for a waypoint, clearance comparison or geometric fallback. Pass point_ids and points_uv index-aligned and of equal length, in the native top-left [x,y] coordinates of the named view, choosing pixels well inside the intended visible surface. For one pixel, pass one point_id and one points_uv entry in the same batch format.\nEffect: read-only with respect to the world, but every measured pixel persists one observation-bound geometric mark under its point_id. Reusing a name already solved from another view verifies the new measurement against the stored one instead of replacing it; a disagreement beyond 25 mm fails only that entry, with error_code inconsistent_mark, and keeps the stored measurement.\nReturns: a call status of solved, partial or failed, plus one marks[] entry per requested pixel in request order, each repeating its own source_index. An entry carries its own status, xyz_m in metres when it solved, the distinct views that measured that name, and its depth-support evidence — measured depth, window radius, valid, supporting and rejected sample counts, and maximum support deviation — on success and on failure alike. The call returns one composite overlay: each entry names the colour_rgb it was drawn in, and image_mapping binds a panel to a source_index rather than to its position, because inline images are evicted one block at a time. Measurement feedback states coordinate units and limitations; null residuals are unmeasured.\nDoes not: track a pixel through robot or camera motion, segment or identify the object, infer hidden geometry, correct a click on the wrong surface, expose simulator ground truth, or prove reachability, collision clearance, contact, retention or success. A single-view depth reading measures a visible surface, not an object centre, and eight measured pixels are not a shape.\nOn error: Refused: a call with more than eight entries, point_ids and points_uv of unequal lengths, a repeated or empty name, a name longer than 64 characters, a negative pixel coordinate, or a view that cannot be marked; the whole call is refused and the refusal names the field. A pixel that cannot be measured fails only its own entry and leaves the rest solved. Read that entry's error_code: aim farther inside the surface for depth_discontinuity or insufficient_depth_support, choose a different pixel for invalid_depth at the camera far plane, and resolve a disputed name from a complementary current view. A wrist camera moves with its arm, so after any motion discard old wrist pixels and query the fresh observation rather than hand-projecting the old image location.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "view",
+      "point_ids",
+      "points_uv"
+    ],
+    "properties": {
+      "view": {
+        "type": "string",
+        "enum": [
+          "agentview",
+          "wrist"
+        ],
+        "description": "Exact returned current RGB view containing every pixel in this call. All [u,v] pairs are in this view's top-left OpenCV pixel frame at the resolution that view was returned at, and every resulting coordinate is in metres in the world frame. A wrist view is valid calibration only at its current post-motion pose: pixels read from a wrist view before it moved are not current geometry."
+      },
+      "point_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "uniqueItems": true,
+        "description": "One to eight stable names, index-aligned with points_uv: point_ids[i] names the geometric point measured at points_uv[i]. Must have the same length as points_uv or the whole call is rejected. Names must be distinct within one call: reusing a name already solved in this round from another view verifies it against the stored measurement, which is meaningless against a second pixel of the same image.",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "One short stable name for this geometric point, at most 64 characters, for example \"mug_rim_left\". Dimensionless identifier, not a coordinate."
+        }
+      },
+      "points_uv": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "description": "One to eight pixels to measure, index-aligned with point_ids and measured in array order. Must have the same length as point_ids or the whole call is rejected. Each pixel is measured independently: one pixel outside the image or without usable depth fails only its own entry and leaves the rest solved.",
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "One pixel as [u,v] in integer pixels of the exact returned view, top-left OpenCV origin: u from the left edge, v from the top edge.",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Non-negative pixel coordinate in the exact returned view's own resolution."
+          }
+        }
+      }
+    }
+  }
+}

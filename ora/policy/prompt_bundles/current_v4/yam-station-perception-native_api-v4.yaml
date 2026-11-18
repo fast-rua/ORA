@@ -1,0 +1,63 @@
+schema: ora.prompt-bundle-authoring.v1
+bundle_id: direct_v4_yam_station_perception_native_api_v1
+status: draft
+runtime:
+  policy_kind: native_api
+  context_schema: ora.policy-context.v3
+  provider_scaffold: none
+layers:
+  planner:
+    sources:
+    - ora/policy/planners/native/policy-v5.md
+    delivery: system
+  core:
+    sources:
+    - ora/policy/core/evidence-action-loop-v8.md
+    delivery: project_instructions
+  environment:
+    source: ora/policy/environments/yam/boundary-v1.md
+    delivery: project_instructions
+  embodiment:
+    source: ora/policy/embodiments/yam-station/manual-public-geometry-v1.md
+    format: prompt_bundle_embodiment_v1
+    # The surface delivers current public robot facts on the yam_linear_4310_tcp frame,
+    # so the card binds its descriptor, as on RoboTwin, beside the controller profile.
+    descriptor: ora/policy/embodiments/yam-station/descriptor-public-geometry-v1.json
+    control_profile: ora/policy/embodiments/yam-station/control-direct-v1.json
+    delivery: project_instructions
+  episode_task:
+    source: ora/policy/prompt_bundles/templates/episode-task-v2.md
+    placeholder: '{{TASK}}'
+    delivery: first_user_message
+  tool_manual:
+    sources:
+    - ora/policy/prompt_bundles/templates/tool-schema-delivery-v1.md
+    delivery: manifest_only
+    reader_tool: null
+  tool_surface:
+    profile: yam_perception_v1
+    delivery: provider_tools_field
+  dynamic_runtime:
+    owner: ora
+    delivery: current_user_tail
+bindings:
+  environment_prompt_profile:
+    profile_id: yam_public_direct_v1
+    public_environment_context:
+      schema: ora.public-environment-context.v1
+      environment_id: yam
+      embodiment_id: yam_station_linear_4310_d405
+      robot_models:
+      - I2RT YAM v1 x2, linear_4310 grippers, wrist RealSense D405
+      controller: YAM_IK_JOINT_SCHEDULE
+      public_cameras:
+      - overhead
+      - front
+      - wrist_left
+      - wrist_right
+ownership:
+  environment_terms:
+  - robot cell
+  embodiment_terms:
+  - I2RT
+  - YAM

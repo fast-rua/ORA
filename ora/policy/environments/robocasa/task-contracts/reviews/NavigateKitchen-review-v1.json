@@ -1,0 +1,118 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robocasa",
+ "task": "NavigateKitchen",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robocasa NavigateKitchen at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "a9e152e2eea16d342dac40e4577fb4c68b932854"
+ ],
+ "task_language": "Navigate to the stand mixer. (Target fixture sampled per seed.)",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robocasa/environments/kitchen/atomic/kitchen_navigate.py",
+   "sha256": "b7ed373e381f45e78a8a2ee530ea80a32537d7b9a4e77abf376cf1d55ffe1037"
+  },
+  {
+   "role": "target_pose_helper",
+   "path": "robocasa/utils/env_utils.py",
+   "sha256": "2543d593897008b104c0fa7bb83c987675b4e583ae519b324de98f99c71a5fcd"
+  },
+  {
+   "role": "episode_success_timing",
+   "path": "robocasa/environments/kitchen/kitchen.py",
+   "sha256": "35b1395ce65d51b993296aff1881fd5371542aec4c4e8ffc38c3f775327b5c56"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robocasa/NavigateKitchen-s0-witness.json",
+   "sha256": "455185af5f93c25b615ff8aeec1d5135fd6868af5d2828b8798321226d5d125f"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read _check_success (mobilebase0_base body position and euler yaw against target_pos/target_ori) and compute_robot_base_placement_pose."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Read _setup_kitchen_references: source and target fixtures sampled per seed among unique fixture classes at least 1 m apart; the robot starts at the source fixture."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Target pose is in world frame in front of the nearest counter of the fixture; the base yaw is the body's world euler z."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "Evaluated after every control step; the ORA session latches the first success."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Fixtures are visible from the base-mounted cameras; the base pose is public proprioception (mobile_base)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness: the real move_base servo driven to the target pose on seed 0 gives true (episode latched)."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: behind the spot and turned 25 degrees give false; reset state false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "_check_success: base body xy within 0.20 m of target_pos from compute_robot_base_placement_pose (the standard working spot in front of the fixture).",
+   "interpretation": "Stop at the spot directly in front of the fixture.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "_check_success: cos(target yaw - base yaw) >= 0.98 (within about 11 degrees of facing the fixture).",
+   "interpretation": "Face the fixture squarely.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "kitchen_navigate.py:_check_success, env_utils.compute_robot_base_placement_pose.",
+   "interpretation": "The 0.20 m radius, the yaw bound and the target pose itself are withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits and the private target pose stay off-policy; arm pose is irrelevant to the predicate."
+  }
+ ],
+ "public_clauses": [
+  "Drive the mobile base to stop directly in front of the named fixture, close to it, with the robot squarely facing it; stopping beside it, further back or turned away does not complete the task."
+ ],
+ "counterexamples": [
+  {
+   "case": "Base 0.35 m behind the target spot, facing the fixture: false.",
+   "expected": "witness case behind_target_facing"
+  },
+  {
+   "case": "Base at the target spot turned 25 degrees: false.",
+   "expected": "witness case at_target_turned_25_deg"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

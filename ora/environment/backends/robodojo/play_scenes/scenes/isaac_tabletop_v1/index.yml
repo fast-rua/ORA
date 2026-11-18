@@ -1,0 +1,67 @@
+# ORA free-play scene set isaac-tabletop-v1: its scenes and what each one is.
+#
+# Data, read by the host-safe registry (benchmarks/robodojo_play_scenes.py) and by the play worker.
+# Each entry names a scene YAML beside this file (<name>.yml). A scene's audit binds its own canonical
+# entry (every field but the operator's description), its YAML and the layout generator, so editing
+# one entry or one YAML retires only that scene's play-scene audits; this file's other bytes bind
+# nothing.
+#
+#   label           what the operator sees the scene called
+#   physics_device  cpu for a scene with an articulation (RoboDojo reads its joint properties
+#                   through numpy), cuda:0 for a rigid-only scene
+#   settle_steps    4 ms physics steps after each reset before the first observation: 12 s where
+#                   the toaster's timer knob (a soft spring drive) relaxes for about 10 s, 6 s
+#                   otherwise (a pen leaning in its holder still turns after 2 s)
+#   assets          <section>/<category> of every RoboDojo library object the scene places
+#   description     what the operator is told the scene holds (ora play); never sent to the policy
+
+scenes:
+  - name: breakfast
+    label: breakfast table
+    physics_device: cpu
+    settle_steps: 3000
+    assets: [Articulation/toaster, Articulation/egg_holder, Clutter/plate, Rigid/egg, Rigid/bread, Rigid/mug,
+             Rigid/juice_carton, Rigid/yogurt, Rigid/bowl, Rigid/grapes]
+    description: >-
+      A breakfast table: a toaster and an egg carton with two eggs at the back, a plate with two slices
+      of bread, a mug, a juice carton, a yogurt and a bowl of grapes.
+
+  - name: desk
+    label: office desk
+    physics_device: cuda:0
+    settle_steps: 1500
+    assets: [Clutter/book, Rigid/keyboard, Rigid/mouse, Rigid/mug, Rigid/pen_holder, Rigid/pen, Rigid/stapler,
+             Rigid/tape_dispense, Rigid/phone]
+    description: >-
+      An office desk to tidy: a keyboard, a mouse, a mug, a pen holder with a pen, a stapler, a tape
+      dispenser, a phone and a book.
+
+  - name: toys
+    label: toy table
+    physics_device: cuda:0
+    settle_steps: 1500
+    assets: [Clutter/minecraft_blocks, Rigid/teddy_bear, Rigid/chick, Rigid/wooden_toy, Rigid/owl,
+             Rigid/matryoshka_dolls, Rigid/cube, Rigid/toy_car]
+    description: >-
+      A kids' toy table: a teddy bear, a chick, a wooden toy, an owl and matryoshka dolls, three building
+      blocks (two of them stacked), two toy cars and a big toy block.
+
+  - name: kitchen_tidy
+    label: kitchen counter
+    physics_device: cuda:0
+    settle_steps: 1500
+    assets: [Clutter/kettle, Clutter/plate, Rigid/pot, Rigid/box, Rigid/plate, Rigid/noodles, Rigid/bowl, Rigid/mug,
+             Rigid/peeler, Rigid/bottle]
+    description: >-
+      A kitchen counter after cooking: a kettle, a pot and an open box at the back, two bowls, a mug, a
+      pack of noodles, a peeler and an oil bottle in the middle, and a small plate on a large plate.
+
+  - name: blocks
+    label: nine blocks
+    physics_device: cuda:0
+    settle_steps: 1500
+    assets: [Rigid/cube, Rigid/small_cube]
+    description: >-
+      Nine blocks in nine colours in a loose three-by-three grid in front of the arms, to stack and
+      sort as you ask: seven 35 mm blocks (red, orange, yellow, green, cyan, blue and magenta) and two
+      small ones, about 20 mm (white and dark olive).

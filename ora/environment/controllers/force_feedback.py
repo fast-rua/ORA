@@ -12,6 +12,17 @@ from typing import Any, Mapping, Sequence
 
 
 FORCE_DIRECTION_CONVENTION = "environment_on_eef_reaction_estimate"
+#: A contact move pushes on purpose, so force alone must not end it: turning a stove
+#: knob took 130 N while the hand kept advancing. It stops once the force has stayed
+#: above the threshold, over the move's lowest reading, for these ticks, and the target
+#: error fell by less than this over them. The floor takes out a held object's weight
+#: and the reaction a move starts in.
+CONTACT_STALL_TICKS = 3
+CONTACT_STALL_PROGRESS_M = 0.0005
+#: A contact move is leaving its target once the target error has risen for these ticks
+#: and stands this far above the lowest it reached. No contact is needed for that.
+CONTACT_DIVERGENCE_RISING_TICKS = 2
+CONTACT_DIVERGENCE_LIMIT_M = 0.005
 
 
 def sensor_reaction_feedback(
@@ -81,4 +92,33 @@ def precision_force_stop_reason(
     if (math.isfinite(magnitude_n) and math.isfinite(threshold_n)
             and magnitude_n > threshold_n > 0.0):
         return "contact_stop"
+    return None
+
+
+def contact_force_stop_reason(
+    *, interaction: str | None, forces_n: Sequence[float], errors_m: Sequence[float],
+    threshold_n: float, enabled: bool,
+) -> str | None:
+    """A contact move pressing without advancing, from one reading per tick."""
+    ticks = CONTACT_STALL_TICKS
+    if not enabled or interaction != "contact_approach" or len(forces_n) <= ticks:
+        return None
+    floor = min(forces_n[:-ticks])
+    pressing = all(force - floor > threshold_n for force in forces_n[-ticks:])
+    if pressing and errors_m[-ticks] - errors_m[-1] < CONTACT_STALL_PROGRESS_M:
+        return "contact_stop"
+    return None
+
+
+def contact_divergence_stop_reason(
+    *, interaction: str | None, errors_m: Sequence[float], enabled: bool,
+) -> str | None:
+    """A contact move whose hand is leaving its target, from one error per tick."""
+    ticks = CONTACT_DIVERGENCE_RISING_TICKS
+    if not enabled or interaction != "contact_approach" or len(errors_m) <= ticks:
+        return None
+    recent = errors_m[-ticks - 1:]
+    rising = all(later > earlier for earlier, later in zip(recent, recent[1:]))
+    if rising and errors_m[-1] - min(errors_m) > CONTACT_DIVERGENCE_LIMIT_M:
+        return "tracking_diverged"
     return None

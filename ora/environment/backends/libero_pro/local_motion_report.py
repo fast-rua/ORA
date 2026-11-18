@@ -23,6 +23,7 @@ from ora.environment.controllers.hybrid_motion import (
     libero_local_endpoint_tolerances,
 )
 from ora.contracts.workspace import is_monotonic_workspace_recovery
+from ora.environment.controllers.force_feedback import CONTACT_DIVERGENCE_LIMIT_M
 from ora.environment.controllers.libero_osc import (
     GRIPPER_TOLERANCE_NORMALIZED,
     CONTROL_HEALTH_NUMERIC_TOLERANCE,
@@ -47,6 +48,8 @@ def _local_motion_codes(run: _LocalMotion) -> list[str]:
     codes: list[str] = []
     if run.force_stop_reason is not None:
         codes.append(run.force_stop_reason)
+    if run.divergence_stop_reason is not None:
+        codes.append(run.divergence_stop_reason)
     if run.steps_used >= run.loop_limit and (
         run.target_error_after_m >= POSE_POSITION_TOLERANCE_M
         or run.target_orientation_error_after_rad
@@ -268,7 +271,8 @@ class LiberoLocalMotionReportMixin:
             convergence_budget="osc_servo_iterations",
             execution_phase="local_control",
             stop_reason=(
-                run.terminal_tracking_reason or run.force_stop_reason or run.gripper_stall_reason
+                run.terminal_tracking_reason or run.force_stop_reason or run.divergence_stop_reason
+                or run.gripper_stall_reason
                 or ("environment_truncated" if self.truncated else None)
                 or ("environment_terminated" if self.terminated else None)
                 or ("servo_iteration_budget_exhausted" if run.steps_used >= run.loop_limit else None)
@@ -282,6 +286,7 @@ class LiberoLocalMotionReportMixin:
             "fault"
             if run.health_status == "fault"
             else "stopped" if run.force_stop_reason is not None
+            or run.divergence_stop_reason is not None
             or run.gripper_stall_reason is not None
             else "reached"
             if (
@@ -295,6 +300,10 @@ class LiberoLocalMotionReportMixin:
         )
 
     def _local_control_health(self, run: _LocalMotion) -> dict[str, Any]:
+        stopped_tick = (
+            run.tracking_stopped_tick if run.tracking_stopped_tick is not None
+            else run.divergence_stopped_tick
+        )
         return {
             "schema": CONTROL_HEALTH_SCHEMA,
             "status": run.health_status,
@@ -313,11 +322,12 @@ class LiberoLocalMotionReportMixin:
             "tracking_guard": {
                 "outcome": (
                     "terminal_fault" if run.terminal_tracking_reason is not None
+                    else "contact_divergence_stop" if run.divergence_stop_reason is not None
                     else "not_triggered"
                 ),
-                "reason": run.terminal_tracking_reason,
-                "first_threshold_tick": run.tracking_stopped_tick,
-                "stopped_tick": run.tracking_stopped_tick,
+                "reason": run.terminal_tracking_reason or run.divergence_stop_reason,
+                "first_threshold_tick": stopped_tick,
+                "stopped_tick": stopped_tick,
                 "telemetry_thresholds_crossed": sorted(run.tracking_advisories),
                 "telemetry_first_ticks": {
                     reason: run.first_threshold_ticks[reason]
@@ -335,7 +345,8 @@ class LiberoLocalMotionReportMixin:
                 ) if self.action_codec == "motion_action_v3" else None,
                 "exceeded": run.force_threshold_exceeded,
                 "first_threshold_tick": run.force_threshold_first_tick,
-                "stop_authority": run.force_stop_enabled and run.active_interaction == "precision",
+                "stop_authority": run.force_stop_enabled
+                and run.active_interaction in {"precision", "contact_approach"},
                 **({"stop_reason": run.force_stop_reason, "stopped_tick": run.force_stopped_tick}
                    if run.force_stop_enabled else {}),
             },
@@ -379,6 +390,20 @@ class LiberoLocalMotionReportMixin:
             )
         _atomic_json(tracking_path, tracking_record)
         return tracking_path
+
+    def _contact_stop_feedback(self, run: _LocalMotion) -> dict[str, Any]:
+        """The limit a stop compared against, beside the measured value it stopped on."""
+
+        if run.force_stop_reason is not None:
+            return {"force_stop_threshold_n": float(
+                self.motion_profile["sensing"]["force_telemetry_threshold_n"]
+            )}
+        if run.divergence_stop_reason is not None:
+            return {
+                "position_error_growth_m": run.contact_errors_m[-1] - min(run.contact_errors_m),
+                "position_error_growth_limit_m": CONTACT_DIVERGENCE_LIMIT_M,
+            }
+        return {}
 
     def _local_sensor_feedback(
         self, run: _LocalMotion, control_health: dict[str, Any],
@@ -443,11 +468,13 @@ class LiberoLocalMotionReportMixin:
             "external_force_magnitude_n": force_magnitude_n,
             "force_threshold_exceeded": run.force_threshold_exceeded,
             **self._force_direction_feedback(measured_motion),
-            **({"stop_reason": run.force_stop_reason or run.gripper_stall_reason}
+            **({"stop_reason": run.force_stop_reason or run.divergence_stop_reason or run.gripper_stall_reason}
                if run.force_stop_enabled or run.gripper_stall_reason else {}),
+            **self._contact_stop_feedback(run),
             "gripper_aperture": run.reached_gripper,
             "motion_state": (
                 "stopped" if run.terminal_tracking_reason is not None or run.force_stop_reason is not None
+                or run.divergence_stop_reason is not None
                 or run.gripper_stall_reason is not None else "idle"
             ),
             "reachability": None,

@@ -1,0 +1,11 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "open_gripper",
+  "description": "Execute one gripper-open mutation with no arguments. It cannot move the grip site. The next automatic actual observation reports measured aperture.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

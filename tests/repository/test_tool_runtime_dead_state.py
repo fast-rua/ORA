@@ -8,10 +8,11 @@ worse than dead code: a reader who finds it assumes something consumes it and
 preserves it through every refactor.
 
 This guard is deliberately narrow. It asks only about attributes assigned
-somewhere under `ora/agent/tools/`, and it counts a read anywhere in
+somewhere under the toolkit's host (`ora/agent/toolkit/host/`, the tool runtime
+frame in `host/runtime/` included), and it counts a read anywhere in
 `ora/` -- an attribute written by one tool module and consumed by
 another is live, which is why `_active_mark_point_batch` (written in
-`runtime/core.py`, read in `mark_point.py` and `mark_point_overlay.py`) is not a
+`runtime/core.py`, read in the dispatch's batch hooks) is not a
 finding. A per-file version of this check called that attribute dead.
 
 Tests are not counted as readers on purpose. A test that stores a value and
@@ -26,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = ROOT / "ora"
-SCOPE = "ora/agent/tools/"
+SCOPE = ("ora/agent/toolkit/host/",)
 
 
 def _attribute_use() -> tuple[dict[str, set[str]], set[str]]:

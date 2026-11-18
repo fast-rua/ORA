@@ -2,7 +2,7 @@
 
 A surface declaring ``motion_probe_ik_candidate_feedback_v1`` sends
 ``ora.motion-probe-request.v2`` with ``planner_feedback:
-ik_candidate_counts_v1`` (``agent/tools/motion_probe_feedback.py``). Each
+ik_candidate_counts_v1`` (``agent/toolkit/host/reach/probe_feedback.py``). Each
 variant's planner record then carries the shared contract RoboDojo already
 answers (``backends/robodojo/sparse_motion.py``): ``constraint_rejection_counts``
 over ``IK_CONSTRAINT_KEYS``, the validated ``planning_diagnostics`` and the
@@ -29,6 +29,10 @@ measured joints among them; ``vendored/planner.py`` ``_plan_pose_via_nearest_ik`
 ``constraint_rejection_counts`` keeps RoboTwin's three measured filters and
 reports the three RoboDojo-only filters (``fk_residual_exceeded``,
 ``joint_jump``, ``pitch_joint_wrap``) as ``None``: not applied, not zero.
+
+The shared planner (``shared_motion.py``) answers with no per-seed summary, so on a
+run that bound one every count is ``None`` and the outcome only says whether a
+trajectory was admitted.
 """
 
 from __future__ import annotations

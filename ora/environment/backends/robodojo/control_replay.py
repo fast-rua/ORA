@@ -2,7 +2,7 @@
 
 Qualification only (layer L0, replay contract ``control``). No policy,
 Provider or ToolSurface reaches this module, and it never writes inside the
-source run. ``ora.orchestrator.robodojo_motion_replay`` builds the
+source run. ``ora.orchestrator.backends.robodojo.motion.replay`` builds the
 worker configuration from the run's own RunPlan and starts this module with the
 run's RoboDojo interpreter; see that module for the operator command.
 
@@ -30,6 +30,14 @@ Contract:
   with the recorded first physics line's resolved ``command`` -- which is that
   dimension's exact value at the tick start -- and seeded from it when they
   differ; each seed is listed. Support-arm keys are never seeded.
+* Ticks recorded with per-physics-step targets (trace
+  ``ora.robodojo-controller-trace.v2``: ``follow_joint_trajectory`` and the
+  rate-limited ``set_gripper``) are restored by sending each step's recorded
+  ``requested`` control dict through ``native_tick_sequence``
+  (``native_sequence.replay_recorded_tick``): the data that reached the
+  simulator, never targets recomputed from knots, guards or tool code, so a
+  later code change cannot alter how an older run restores. Their applied velocity targets are journaled and compared too.
+  v1 ticks keep the ``native_tick`` path above, unchanged.
 * Every physics step is journaled in the session's ``record_physics`` fields.
   Applied targets that differ from the resolved command are counted, not
   raised. The original session's second check, that held dimensions kept
@@ -47,6 +55,8 @@ Contract:
   tick, env-relative as the evaluator reads them and assumed equal to the
   episode-local link6 frame until the host's frame check confirms it;
   qualification evidence, never policy-visible) and ``replay-worker.json``.
+* ``--scene-trace DIR`` (``ora replay RUN --scene``) also writes the scene this
+  replay passes through (``scene_trace.py``) there; it reads state only.
 """
 
 from __future__ import annotations
@@ -87,6 +97,7 @@ def parse_arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--native", type=Path, required=True, help="the sealed run's native root (read-only)")
     parser.add_argument("--output", type=Path, required=True, help="replay pass directory outside the run")
     parser.add_argument("--upto", type=int, default=None, help="replay only the first N recorded actions")
+    parser.add_argument("--scene-trace", type=Path, default=None, help="also write this replay's scene trace here")
     arguments = parser.parse_args(argv)
     if arguments.upto is not None and arguments.upto < 1:
         parser.error("--upto must be at least 1")
@@ -111,7 +122,7 @@ def _tick_commands(journal: Path, ticks: int) -> tuple[dict[str, Any], ...]:
 
 def recorded_actions(native_root: Path, *, upto: int | None = None) -> tuple[dict[str, Any], ...]:
     """Every recorded action in sequence: round index, native-tick samples and tick-start commands."""
-    from .session import CONTROL_TRACE_SCHEMA
+    from .session import CONTROL_TRACE_SCHEMA, CONTROL_TRACE_V2_SCHEMA
 
     native = Path(native_root)
     sequences = sorted(int(path.stem.split("-")[1]) for path in (native / "controller").glob("action-*.json"))
@@ -121,8 +132,8 @@ def recorded_actions(native_root: Path, *, upto: int | None = None) -> tuple[dic
     for sequence in sequences[:upto] if upto is not None else sequences:
         receipt = _load(native / "receipts" / f"action-{sequence:04d}.json")
         trace = _load(native / "controller" / f"action-{sequence:04d}.json")
-        if trace.get("schema") != CONTROL_TRACE_SCHEMA:
-            raise ReplayError(f"controller/action-{sequence:04d}.json is not {CONTROL_TRACE_SCHEMA}")
+        if trace.get("schema") not in (CONTROL_TRACE_SCHEMA, CONTROL_TRACE_V2_SCHEMA):
+            raise ReplayError(f"controller/action-{sequence:04d}.json is not {CONTROL_TRACE_SCHEMA} or v2")
         if trace.get("action_id") != receipt.get("action_id"):
             raise ReplayError(f"controller/action-{sequence:04d}.json action_id differs from its receipt")
         result.append({"sequence": sequence, "round_index": int(receipt.get("round_index", 0)),
@@ -215,10 +226,12 @@ class ReplayJournal:
 
     def close(self, action: Mapping[str, Any], samples: Sequence[Mapping[str, Any]], path: Path) -> None:
         from .common import file_hash, write_json
-        from .session import CONTROL_TRACE_SCHEMA
+        from .session import CONTROL_TRACE_SCHEMA, CONTROL_TRACE_V2_SCHEMA
 
+        v2 = any("control_steps" in sample for sample in samples)
         write_json(self.root / f"action-{int(action['sequence']):04d}.json", {
-            "schema": CONTROL_TRACE_SCHEMA, "action_id": action["action_id"], "samples": list(samples),
+            "schema": CONTROL_TRACE_V2_SCHEMA if v2 else CONTROL_TRACE_SCHEMA, "action_id": action["action_id"],
+            "samples": list(samples),
             "physics_journal": {"path": f"controller/{path.name}", "sha256": file_hash(path)},
         })
 
@@ -309,20 +322,38 @@ class _Progress:
 
 
 def _physics_recorder(session: Any, action: Mapping[str, Any], segment: str, journal: ReplayJournal,
-                      path: Path, progress: _Progress) -> Callable[[Mapping[str, Any]], None]:
-    """The session's ``record_physics`` fields, counting mismatches instead of faulting."""
+                      path: Path, progress: _Progress,
+                      control_steps: Sequence[Mapping[str, Any]] | None = None) -> Callable[[Mapping[str, Any]], None]:
+    """The session's ``record_physics`` fields, counting mismatches instead of faulting.
+
+    A v2 tick (``control_steps``) also journals the requested step and the
+    applied velocity targets, and counts velocity mismatches.
+    """
     import numpy as np
 
+    steps = {"index": 0}
+
     def record(command: Mapping[str, Any]) -> None:
-        applied = session._applied_position_targets()
-        journal.append(path, {"action_id": action["action_id"], "segment": segment,
-                              "physics_clock": session._clock(),
-                              "native_action": int(session.environment.take_action_cnt[0]),
-                              "command": command, "applied_position_targets": applied,
-                              "measured": session._proprioception()["end_effectors"]})
+        readings = session._arm_readings()
+        applied = session._applied_position_targets(readings)
+        line = {"action_id": action["action_id"], "segment": segment, "physics_clock": session._clock(),
+                "native_action": int(session.environment.take_action_cnt[0]),
+                "command": command, "applied_position_targets": applied}
+        velocities = {}
+        if control_steps is not None:
+            from .native_sequence import JOURNAL_V2_SCHEMA, applied_velocity_targets
+            velocities = applied_velocity_targets(session, readings)
+            line.update(schema=JOURNAL_V2_SCHEMA, step_index=steps["index"],
+                        requested=control_steps[steps["index"]], applied_velocity_targets=velocities)
+            steps["index"] += 1
+        journal.append(path, {**line, "measured": session._proprioception(readings)["end_effectors"]})
         progress.mismatches += sum(
             1 for key, target in command.items() if key in applied
             and not np.allclose(applied[key], target["position"], rtol=0, atol=APPLIED_TARGET_ATOL))
+        progress.mismatches += sum(
+            1 for key, values in velocities.items() if key in command
+            and not np.allclose(values, np.broadcast_to(np.asarray(command[key].get("velocity", 0), dtype=float),
+                                                        (len(values),)), rtol=0, atol=APPLIED_TARGET_ATOL))
 
     return record
 
@@ -334,19 +365,26 @@ def _replay_tick(session: Any, action: Mapping[str, Any], index: int, journal: R
     seeded = seed_held_targets(session, sample, action["tick_commands"][index])
     if seeded:
         progress.seeds.append({"action_sequence": action["sequence"], "tick_index": index, "keys": seeded})
+    steps = sample.get("control_steps")
     environment.controller_trace_callback = _physics_recorder(session, action, str(sample["segment"]),
-                                                              journal, path, progress)
+                                                              journal, path, progress, steps)
     try:
-        session._conformance_tick(deepcopy(sample["control"]))
+        if steps is not None:
+            # v2: the recorded per-physics-step targets go to the plant as they were sent.
+            from .native_sequence import replay_recorded_tick
+            replay_recorded_tick(session, deepcopy(list(steps)))
+        else:
+            session._conformance_tick(deepcopy(sample["control"]))
     finally:
         environment.controller_trace_callback = None
     return {"native_action": int(environment.take_action_cnt[0]), "physics_steps": session.sim_steps,
             "segment": sample["segment"], "control": deepcopy(sample["control"]),
+            **({"control_steps": deepcopy(list(steps))} if steps is not None else {}),
             "measured": session._proprioception()["end_effectors"]}
 
 
 def _replay_action(session: Any, action: Mapping[str, Any], journal: ReplayJournal, progress: _Progress,
-                   objects: ObjectLog | None) -> int:
+                   objects: ObjectLog | None, scene: Any = None) -> int:
     """Replay one action's ticks; returns how many recorded ticks the terminal left unreplayed."""
     path = journal.open(int(action["sequence"]))
     replayed: list[dict[str, Any]] = []
@@ -362,12 +400,14 @@ def _replay_action(session: Any, action: Mapping[str, Any], journal: ReplayJourn
         if objects is not None:
             objects.record(sequence=int(action["sequence"]), index=index, round_index=int(action["round_index"]),
                            native_action=replayed[-1]["native_action"])
+        if scene is not None:
+            scene.after_tick(session)
     journal.close(action, replayed, path)
     return 0
 
 
 def _replay_round(session: Any, round_index: int, members: Sequence[Mapping[str, Any]], journal: ReplayJournal,
-                  progress: _Progress, objects: ObjectLog | None) -> dict[str, Any]:
+                  progress: _Progress, objects: ObjectLog | None, scene: Any = None) -> dict[str, Any]:
     recorded = sum(len(item["samples"]) for item in members)
     before, unreplayed = progress.ticks, 0
     for item in members:
@@ -375,7 +415,11 @@ def _replay_round(session: Any, round_index: int, members: Sequence[Mapping[str,
             journal.close(item, [], journal.open(int(item["sequence"])))
             unreplayed += len(item["samples"])
             continue
-        unreplayed = _replay_action(session, item, journal, progress, objects)
+        if scene is not None:
+            scene.begin_action(item)
+        unreplayed = _replay_action(session, item, journal, progress, objects, scene)
+        if scene is not None:
+            scene.end_action()
     return {"round_index": round_index, "ticks_recorded": recorded, "ticks_replayed": progress.ticks - before,
             "ticks_unreplayed": unreplayed, "terminal_before_recorded_end": unreplayed > 0,
             "terminal_after_round": bool(session.is_terminal),
@@ -383,13 +427,15 @@ def _replay_round(session: Any, round_index: int, members: Sequence[Mapping[str,
 
 
 def replay_control(session: Any, actions: Sequence[Mapping[str, Any]], *, journal: ReplayJournal,
-                   objects: ObjectLog | None = None) -> dict[str, Any]:
-    """Feed every recorded control dict through ``native_tick``, round by round."""
+                   objects: ObjectLog | None = None, scene: Any = None) -> dict[str, Any]:
+    """Feed every recorded control dict through ``native_tick``, round by round; ``scene`` (``scene_trace.py``) sees them."""
     progress, rounds, started = _Progress(), [], time.time()
     for round_index, members in rounds_of(actions):
         for index in range(int(getattr(session, "round_index", 0)) + 1, round_index + 1):
             session.restart_round(index, seed=0)
-        rounds.append(_replay_round(session, round_index, members, journal, progress, objects))
+        if scene is not None:
+            scene.begin_round(session, round_index)
+        rounds.append(_replay_round(session, round_index, members, journal, progress, objects, scene))
     return {
         "replay_contract": REPLAY_CONTRACT, "actions_selected": len(actions),
         "ticks_recorded": sum(len(item["samples"]) for item in actions), "ticks_replayed": progress.ticks,
@@ -408,20 +454,11 @@ def replay_control(session: Any, actions: Sequence[Mapping[str, Any]], *, journa
     }
 
 
-def _require_same_sources(session: Any, reset: Mapping[str, Any], native_root: Path) -> None:
-    """Refuse a plant whose revisions, layout or actual source fingerprint differ from the run's."""
-    recorded = _load(Path(native_root) / "source-manifest.json")
-    current = getattr(session, "source", {}) or {}
-    if recorded.get("source_revisions") != current.get("source_revisions"):
-        raise ReplayError("worker source revisions differ from the run: "
-                          f"{current.get('source_revisions')} != {recorded.get('source_revisions')}")
-    layouts = (recorded.get("layout_file", {}).get("sha256"), current.get("layout_file", {}).get("sha256"))
-    if all(layouts) and layouts[0] != layouts[1]:
-        raise ReplayError("worker layout file differs from the run")
-    fingerprint = _load(Path(native_root) / "reset.json").get("actual_source_fingerprint")
-    if fingerprint is None or fingerprint != reset.get("actual_source_fingerprint"):
-        raise ReplayError("worker actual_source_fingerprint (loaded files, installed packages, resolved "
-                          "configuration) differs from the run's")
+def _require_same_sources(session: Any, reset: Mapping[str, Any], native_root: Path) -> list[dict]:
+    """Diagnostic identity audit; never replaces the recorded-control physical checks."""
+    from .toolkit_native_state import source_warnings
+
+    return source_warnings(session, reset, native_root)
 
 
 def _bounded_close(session: Any, timeout_s: float = CLOSE_TIMEOUT_S) -> bool:
@@ -443,34 +480,65 @@ def _session(config: Mapping[str, Any], output_root: Path) -> Any:
 
 
 def _replay_session(session: Any, config: Mapping[str, Any], native_root: Path, output: Path, upto: int | None,
-                    read_objects: Callable[[], Mapping[str, Any]] | None) -> dict[str, Any]:
+                    read_objects: Callable[[], Mapping[str, Any]] | None,
+                    warnings: list[dict], scene: Any = None) -> dict[str, Any]:
     actions = recorded_actions(native_root, upto=upto)
     started = time.time()
     reset = session.start()
     stages = {"start_s": round(time.time() - started, 3)}
-    _require_same_sources(session, reset, native_root)
+    warnings.extend(_require_same_sources(session, reset, native_root))
     probe = object_frame_probe(session)
     objects = ObjectLog(output / "private" / "object-poses.jsonl", read_objects or object_pose_reader(session))
-    replay = replay_control(session, actions, journal=ReplayJournal(Path(config["output_root"])), objects=objects)
-    return {"stages": stages, "replay": replay, "object_poses": {**objects.summary(), "frame_probe": probe},
-            "completed": replay["ticks_replayed"] == replay["ticks_recorded"]}
+    replay = replay_control(session, actions, journal=ReplayJournal(Path(config["output_root"])), objects=objects,
+                            scene=scene)
+    return {"warnings": warnings, "stages": stages, "replay": replay, "object_poses": {**objects.summary(), "frame_probe": probe},
+            "completed": replay["ticks_replayed"] == replay["ticks_recorded"],
+            **({"scene_trace": scene.finish()} if scene is not None else {})}
 
 
 def run_worker(config: Mapping[str, Any], native_root: Path, output: Path, *, upto: int | None = None,
                session_factory: Callable[..., Any] | None = None,
-               read_objects: Callable[[], Mapping[str, Any]] | None = None) -> dict[str, Any]:
+               read_objects: Callable[[], Mapping[str, Any]] | None = None, scene: Any = None) -> dict[str, Any]:
     """Start the plant, check its sources, replay, record and close; never raises a replay failure."""
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"schema": WORKER_REPORT_SCHEMA, "replay_contract": REPLAY_CONTRACT,
                               "native_root": str(native_root), "upto": upto, "error": None, "completed": False,
                               "replay": None, "object_poses": None, "stages": {}}
+    from ora.contracts.toolkit_protocol import compatibility, identity_warning
+    protocol = config.get("protocol_compatibility")
+    if protocol is None:
+        # The original python -m entry accepts old configs too. No source writes.
+        evidence = []
+        for name in ("toolkit-protocol.json", "native/toolkit-io/manifest.json"):
+            path = Path(native_root).parent / name
+            if not path.exists() and name != "toolkit-protocol.json":
+                continue
+            try:
+                version = _load(path).get("protocol_version") if path.exists() else None
+            except (OSError, ValueError, AttributeError):
+                version = None
+            evidence.append(dict(location=name, protocol_version=version))
+        protocol = compatibility(evidence)
+    report["protocol_compatibility"] = protocol
+    if config.get("qualification_binding") is not None:
+        # A direct -m caller can supply a production config. Record the obsolete
+        # admission evidence instead of letting it preempt physical replay.
+        report["warnings"] = [identity_warning("qualification_binding", config["qualification_binding"], None)]
+    config = {**config, "replay_identity_warnings": True, "qualification_binding": None}
     session = (session_factory or _session)(config=config, output_root=Path(config["output_root"]))
     try:
-        report.update(_replay_session(session, config, native_root, output, upto, read_objects))
+        from contextlib import nullcontext
+        from ora.contracts.execution_state import SCHEMA
+        scope = (session.execution_request({"schema": SCHEMA, "values": {}})
+                 if callable(getattr(session, "execution_request", None)) else nullcontext())
+        with scope:
+            report.update(_replay_session(session, config, native_root, output, upto, read_objects,
+                                          report.setdefault("warnings", []), scene))
     except Exception as exc:  # noqa: BLE001 - recorded for the host report, then the plant is closed
         report.update(error=f"{type(exc).__name__}: {exc}", traceback=traceback.format_exc())
     finally:
+        report["warnings"] = [*protocol["warnings"], *report.get("warnings", [])]
         _write_report(output, report)
         report["closed_within_timeout"] = _bounded_close(session)
         _write_report(output, report)
@@ -480,7 +548,11 @@ def run_worker(config: Mapping[str, Any], native_root: Path, output: Path, *, up
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = parse_arguments(argv)
     config = _load(arguments.config)
-    report = run_worker(config, arguments.native, arguments.output, upto=arguments.upto)
+    scene = None
+    if arguments.scene_trace is not None:
+        from .scene_trace import RoboDojoSceneTrace
+        scene = RoboDojoSceneTrace(arguments.scene_trace, run_id=Path(arguments.native).resolve().parent.name)
+    report = run_worker(config, arguments.native, arguments.output, upto=arguments.upto, scene=scene)
     return 0 if report["error"] is None else 1
 
 

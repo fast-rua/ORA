@@ -1,0 +1,208 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "align_plan",
+  "description": "Answer, from inverse kinematics alone, which standoff poses facing one target from one named side an arm can actually hold.\nUse when: you have a current target_ref and need an IK-only comparison of standoff poses from a named side. This is optional diagnosis, not a prerequisite for every approach. Near miss: this is not grasp_plan (where on this object do the fingers close); use grasp_plan for contact geometry and candidate finger poses; use move_pose when you already have the pose to command. An unreachable result describes this solver attempt, not an impossible approach side. If you later call grasp_plan, inspect its candidates independently: grasp_plan takes no approach_side or align candidate input, so it does not inherit this side selection. The five sides are world-frame directions toward the object and never toward an arm: top stands off above the target and travels down (world -Z), front stands off at -X travelling +X, back at +X travelling -X, left at +Y travelling -Y, and right at -Y travelling +Y. Choose the arm separately in arm; approach_side \"left\" does not mean the left arm. Two bounded numbers shape the request: standoff_m is the distance in metres from the target's visible-surface centroid to the candidate link6 position (default 0.10 m, permitted 0.02-0.30 m), and max_candidates is how many jaw rolls to sweep at that one position (default 3, at most 6).\nEffect: read-only. No action is submitted, no world state changes, no artifact is written, and no observation is produced or consumed. Every candidate is solved by inverse kinematics from this arm's current measured joint configuration against its joint limits, self-collision and a collision world built from the current depth images, with no path planned, so motion_planner_called is false in every result and the same request can answer differently after the arm has moved.\nReturns: schema, the echoed target_ref, approach_side and requested_arm, motion_planner_called, and candidates. Each candidate carries source_index (which synthesised pose it came from, counting from 0), arm, align_pose = {position_m [x,y,z] in metres, orientation_xyzw [x,y,z,w] normalized} as a world-frame public link6 pose, reachable, position_error_m in metres and orientation_error_deg in degrees at the best joint configuration the solver found, iterations (1 on this backend: one IK solve per pose), rejection_reason (null when reachable; otherwise ik_failed when the IK found no joint solution, goal_below_support when the pose puts a fingertip below the supporting surface, fk_residual_exceeded when a solution misses the pose by more than the position or orientation tolerance, or, for a pose left unanswered, fk_calibration_mismatch, stale_observation, no_planner or planner_error) and claim_boundary. All candidates share one standoff position and differ only by jaw roll about the approach axis. arm \"both\" returns one candidate per arm per pose, keyed by (arm, source_index). Unreachable candidates are returned rather than dropped, so a ruled-out side can be cited. Read position_error_m and orientation_error_deg rather than trusting the word reachable, then command a chosen align_pose through move_pose: under targets.<selected_arm>, set position_mode=absolute and orientation_mode=absolute_quaternion and copy position_m and orientation_xyzw. Select interaction by physical intent. Schema example only; replace this illustrative pose and arm with your chosen current result:\n{\"tool\":\"move_pose\",\"arguments\":{\"targets\":{\"right\":{\"position_mode\":\"absolute\",\"position_m\":[0.1,0.0,0.9],\"orientation_mode\":\"absolute_quaternion\",\"orientation_xyzw\":[0.0,0.0,0.0,1.0],\"interaction\":\"precision\"}}}}\n There is no later receipt and no reference to resolve, because nothing was submitted.\nDoes not: prove that a collision-free path exists, plan or execute any motion, or promise that move_pose to a returned pose will arrive. A returned pose has not been tried: reachable means only that one IK solve found a joint configuration holding that pose in that world. It is not a grasp, not a contact, not retention and not task success, and it makes no claim about the gripper, which is neither commanded nor read. The standoff is measured from the visible-surface centroid of the segmented mask, not from the object's true centre, so an occluded or one-sided view biases every candidate toward the camera. An unreachable verdict describes this arm from its present configuration; it is not proof that the approach is impossible. Use position_error_m and orientation_error_deg to interpret this attempt; do not turn them into a probability of path feasibility. Only the motion tool attempts the actual route. On this backend the solver is the IK of the planner move_pose uses, in the world a plan to that pose would see: the other arm stands in it at its measured joints, the space around the goal hand is cleared, and space no camera sees counts as free. A pose reported reachable can still be refused by a motion that starts from a different measured configuration, or by a blocked path.\nOn error: Refused: standoff_m outside 0.02-0.30 m or max_candidates outside 1 to 6; an approach_side or arm outside this tool's enums; a target_ref unknown in this round (target_ref_unavailable) or bound to an earlier observation (stale_observation); a target whose mask or depth cannot locate a centroid (target_geometry_unavailable). invalid_arguments naming standoff_m means the value left 0.02-0.30 m -- resubmit inside that range instead of retrying the same number. invalid_arguments naming approach_side means the string is not one of the five declared directions; re-read this tool's approach_side enum and select one of its values rather than inventing a synonym. invalid_arguments naming arm means the name is not an arm of this embodiment; this tool's arm enum is the complete list of what it has. target_ref_unavailable means no such segmented target exists and stale_observation means the reference predates the current observation: re-run vision_segment or vision_ground on the current view and use the new reference. target_geometry_unavailable is retryable and means the mask or its depth is too poor to locate a centroid, so obtain a clearer current view of that target first. goal_below_support is a limit of the surface under the pose, so raise the standoff or choose another side. fk_calibration_mismatch and stale_observation on a candidate mean it was not judged: ask again after the next observation. When candidates are unreachable, use their residuals and current geometry to choose a different side, standoff or arm if that answers a specific uncertainty. Do not exhaustively sweep unchanged requests. A world move changes the starting configuration and invalidates target references; obtain a fresh target before another query. Fixed texts stated once here and left out of results and effects: candidates[].claim_boundary is \"One IK solve per pose by the IK solver of the planner move_pose uses, seeded from the measured joints or a chained query's solution, with joint limits, self-collision and a collision world built from the current depth images. It plans no path, so a path can still be blocked: no payload, arrival, grasp or task-success claim.\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "approach_side": {
+        "description": "World-frame direction toward the object, never toward an arm: top stands off above the target and travels down (world -Z), front stands off at -X travelling +X, back at +X travelling -X, left at +Y travelling -Y, right at -Y travelling +Y.",
+        "enum": [
+          "top",
+          "left",
+          "right",
+          "front",
+          "back"
+        ],
+        "type": "string"
+      },
+      "arm": {
+        "description": "Which arm is asked. This is independent of approach_side. \"both\" asks the identical poses of each arm in one read-only call and returns one candidate per arm per pose.",
+        "enum": [
+          "left",
+          "right",
+          "both"
+        ],
+        "type": "string"
+      },
+      "max_candidates": {
+        "default": 3,
+        "description": "How many poses to synthesise at that one standoff position, differing only by jaw roll about the approach axis: 1 to 6, default 3. With arm \"both\" the result holds twice this many candidates. Null means omitted.",
+        "maximum": 6,
+        "minimum": 1,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "standoff_m": {
+        "default": 0.1,
+        "description": "Distance in metres from the target's visible-surface centroid to the candidate link6 position, along approach_side. Default 0.10 m. Values outside 0.02-0.30 m are refused. Null means omitted.",
+        "maximum": 0.3,
+        "minimum": 0.02,
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "target_ref": {
+        "description": "Segmented target from the current observation, as returned by vision_segment or vision_ground. The standoff is measured from this target's visible-surface centroid in metres; a reference bound to an earlier observation is refused as stale.",
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "target_ref",
+      "approach_side",
+      "arm"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "approach_side": {
+        "enum": [
+          "top",
+          "left",
+          "right",
+          "front",
+          "back"
+        ],
+        "type": "string"
+      },
+      "candidates": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "align_pose": {
+              "additionalProperties": false,
+              "properties": {
+                "orientation_xyzw": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "maxItems": 4,
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "position_m": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "position_m",
+                "orientation_xyzw"
+              ],
+              "type": "object"
+            },
+            "arm": {
+              "enum": [
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            "claim_boundary": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "iterations": {
+              "maximum": 60,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "orientation_error_rad": {
+              "minimum": 0,
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "position_error_m": {
+              "minimum": 0,
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "reachable": {
+              "type": "boolean"
+            },
+            "rejection_reason": {
+              "description": "null when reachable. ik_failed: the IK returned no joint solution. goal_below_support: the pose puts a fingertip below the supporting surface. fk_residual_exceeded: a solution exists but its forward kinematics misses the pose by more than the arrival tolerance (0.01 m or 0.1 rad). fk_calibration_mismatch, stale_observation, no_planner, planner_error: the pose was not answered.",
+              "enum": [
+                null,
+                "ik_failed",
+                "goal_below_support",
+                "fk_residual_exceeded",
+                "fk_calibration_mismatch",
+                "stale_observation",
+                "no_planner",
+                "planner_error"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source_index": {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_index",
+            "arm",
+            "align_pose",
+            "reachable",
+            "position_error_m",
+            "orientation_error_rad",
+            "iterations",
+            "rejection_reason",
+            "claim_boundary"
+          ],
+          "type": "object"
+        },
+        "maxItems": 12,
+        "minItems": 1,
+        "type": "array"
+      },
+      "motion_planner_called": {
+        "const": false,
+        "type": "boolean"
+      },
+      "requested_arm": {
+        "enum": [
+          "left",
+          "right",
+          "both"
+        ],
+        "type": "string"
+      },
+      "schema": {
+        "const": "ora.align-plan-result.v1",
+        "type": "string"
+      },
+      "target_ref": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema",
+      "target_ref",
+      "approach_side",
+      "requested_arm",
+      "motion_planner_called",
+      "candidates"
+    ],
+    "type": "object"
+  }
+}

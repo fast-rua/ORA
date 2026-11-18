@@ -34,7 +34,7 @@ recorded by the Runtime at episode termination. Motion completion, closed
 jaws, a plausible arrangement and the policy lifecycle never replace it.
 
 The episode ends at official success, or when the native-action allowance
-reported with the other remaining allowances is spent: the task's own
+reported with the other remaining allowances is spent: this run's
 native-action limit, or a lower physics cap where one applies. It can also end
 earlier, with the verdict false, when the task reaches a permanent official
 failure condition; which conditions a task carries and their thresholds are

@@ -12,7 +12,9 @@ import subprocess
 import time
 from typing import Any
 
-from .identity import grounding_grasp_adapter_sha256
+from .clients import ContactGraspNetServiceClient, Sam3ApiSegmenter
+from .identity import GROUNDING_GRASP_PROTOCOL_VERSION, grounding_grasp_adapter_sha256
+from .service_env import service_key, service_setting
 from .process import (IDENTITY_UNINSPECTABLE, capture_service_process_identity, isolated_service_environment,
                       service_process_identity_matches, service_process_identity_state,
                       terminate_service_process, uninspectable_message)
@@ -21,6 +23,7 @@ NAMES = {"segmentation": "SAM", "grasp_proposals": "GRASP"}
 FIELDS = ("instance_id", "pid", "started_unix_s", "adapter_sha256", "model",
           "load_count", "warmup_complete")
 REPORT_SCHEMA = "ora.perception-readiness.v1"
+PROTOCOL_CHECK_VARIABLE = "ORA_SERVICE_PROTOCOL_CHECK"
 
 
 def digest(value: Any) -> str:
@@ -29,7 +32,7 @@ def digest(value: Any) -> str:
 
 
 def endpoints() -> dict[str, str]:
-    ports = {name: int(os.environ.get(f"B2_{prefix}_PORT", default))
+    ports = {name: int(service_setting(prefix, "PORT") or default)
              for (name, prefix), default in zip(NAMES.items(), ("8114", "8115"))}
     if len(set(ports.values())) != 2 or any(not 1024 <= port <= 65535 for port in ports.values()):
         raise ValueError("service ports must be distinct integers in 1024..65535")
@@ -37,10 +40,9 @@ def endpoints() -> dict[str, str]:
 
 
 def clients(*, timeout_s: float = 60):
-    from ora.agent.tools.grasp import Sam3ApiSegmenter, ContactGraspNetApiProposer
     urls = endpoints()
     return {"segmentation": Sam3ApiSegmenter(endpoint=urls["segmentation"], timeout_s=timeout_s),
-            "grasp_proposals": ContactGraspNetApiProposer(endpoint=urls["grasp_proposals"], timeout_s=timeout_s)}
+            "grasp_proposals": ContactGraspNetServiceClient(endpoint=urls["grasp_proposals"], timeout_s=timeout_s)}
 
 
 def health() -> dict[str, Any]:
@@ -97,15 +99,17 @@ def lifecycle(
             port = int(endpoints()[name].rsplit(":", 1)[1])
             values = {}
             for field in ("PYTHON", "ROOT", "CHECKPOINT", "GPU"):
-                key = f"B2_{prefix}_{field}"
-                values[field] = os.environ.get(key, "")
+                values[field] = service_setting(prefix, field)
                 if not values[field]:
-                    raise ValueError(f"missing {key}")
+                    raise ValueError(f"missing {service_key(prefix, field)}")
             cmd = [values["PYTHON"], "-m", "ora.agent.model_services.grounding_grasp",
                    "--service", name, "--port", str(port), "--source-root", values["ROOT"],
                    "--checkpoint", values["CHECKPOINT"]]
             if name == "grasp_proposals":
-                cmd += ["--config", os.environ["B2_GRASP_CONFIG"]]
+                config = service_setting(prefix, "CONFIG")
+                if not config:
+                    raise ValueError(f"missing {service_key(prefix, 'CONFIG')}")
+                cmd += ["--config", config]
             if record and service_process_identity_matches(record):
                 if (record.get("command") != cmd or record.get("gpu") != values["GPU"]
                         or record.get("source_root") != str(root)):
@@ -153,8 +157,8 @@ def qualify(directory: Path) -> Path:
         after = {name: client.require_ready() for name, client in tools.items()}
         if any(before[name][key] != after[name][key] for name in tools for key in FIELDS):
             raise ValueError("service identity changed during readiness probes")
-        if any(h["adapter_sha256"] != grounding_grasp_adapter_sha256() for h in after.values()):
-            raise ValueError("service adapter differs from this checkout")
+        if any(h.get("protocol_version") != GROUNDING_GRASP_PROTOCOL_VERSION for h in after.values()):
+            raise ValueError("service protocol version differs from this checkout")
         checks = {"single_point_wire": mask.shape == (128, 128),
                   "batch_point_wire": bool(masks) and len(batch["query_results"]) == 1
                   and batch["query_results"][0]["error_code"] is None, "text_wire": isinstance(grounded, list),
@@ -162,6 +166,7 @@ def qualify(directory: Path) -> Path:
         if not all(checks.values()):
             raise ValueError("perception readiness wire probes failed")
         report = {"schema": REPORT_SCHEMA, "created_unix_s": time.time(), "passed": True,
+                  "protocol_version": GROUNDING_GRASP_PROTOCOL_VERSION,
                   "adapter_sha256": grounding_grasp_adapter_sha256(), "checks": checks,
                   "services": {n: {"endpoint": endpoints()[n], "health": h} for n, h in after.items()},
                   "claim_boundary": "Generated-image wire checks and model warmup only; no segmentation quality, grasp geometry or behavioral qualification."}
@@ -175,18 +180,36 @@ def qualify(directory: Path) -> Path:
             client.close()
 
 
+def protocol_check() -> bool:
+    """``ORA_SERVICE_PROTOCOL_CHECK=off`` binds a service of any protocol version (a transition aid)."""
+    value = os.environ.get(PROTOCOL_CHECK_VARIABLE, "on")
+    if value not in ("on", "off"):
+        raise ValueError(f"{PROTOCOL_CHECK_VARIABLE} must be on or off")
+    return value == "on"
+
+
 def binding(path: Path, surface: str, capabilities: list[str]) -> dict[str, Any]:
-    """Offline binding; the shared launch preflight verifies live identity again."""
+    """Offline binding; the shared launch preflight verifies live identity again.
+
+    A report binds when its services speak this checkout's protocol version;
+    the adapter content hashes on both sides are recorded as evidence only.
+    With the check off any version binds, and the binding says so.
+    """
     record = json.loads(path.read_text())
     expected_checks = {"single_point_wire", "batch_point_wire", "text_wire", "grasp_warmup"}
     if (path.name != digest(record) + ".json" or record.get("schema") != REPORT_SCHEMA
             or record.get("passed") is not True
             or not 0 <= time.time() - record.get("created_unix_s", 0) < 86400
-            or record.get("adapter_sha256") != grounding_grasp_adapter_sha256()
             or set(record.get("checks", {})) != expected_checks
             or not all(v is True for v in record["checks"].values())
             or set(record.get("services", {})) != set(NAMES)):
-        raise ValueError("service report is stale, changed or from another adapter")
+        raise ValueError("service report is stale, failed or changed")
+    checked = protocol_check()
+    versions = {name: record["services"][name]["health"].get("protocol_version") for name in NAMES}
+    if checked and (record.get("protocol_version") != GROUNDING_GRASP_PROTOCOL_VERSION
+                    or any(version != GROUNDING_GRASP_PROTOCOL_VERSION for version in versions.values())):
+        raise ValueError(f"service report speaks protocol {record.get('protocol_version')!r}, this checkout "
+                         f"{GROUNDING_GRASP_PROTOCOL_VERSION} ({PROTOCOL_CHECK_VARIABLE}=off binds it anyway)")
     children = {}
     for name in NAMES:
         item = record["services"][name]
@@ -196,6 +219,11 @@ def binding(path: Path, surface: str, capabilities: list[str]) -> dict[str, Any]
             "tool_surface": surface, "endpoint": item["endpoint"],
             **{key: item["health"][key] for key in FIELDS},
             "qualification": {"status": "passed", "sha256": digest(record),
-                              "created_unix_s": record["created_unix_s"]}}
+                              "created_unix_s": record["created_unix_s"],
+                              "protocol": {"check": "protocol_version" if checked else "off",
+                                           "service_version": versions[name],
+                                           "checkout_version": GROUNDING_GRASP_PROTOCOL_VERSION,
+                                           "service_adapter_sha256": item["health"]["adapter_sha256"],
+                                           "checkout_adapter_sha256": grounding_grasp_adapter_sha256()}}}
     return {"schema": "ora.model-service-set-binding.v2",
             "capability_scope": capabilities, "services": children}

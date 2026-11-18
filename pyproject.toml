@@ -20,18 +20,19 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/hao-ai-lab/ORA"
-Documentation = "https://github.com/hao-ai-lab/ORA/blob/main/docs/README.md"
-Issues = "https://github.com/hao-ai-lab/ORA/issues"
+Repository = "https://github.com/fast-rua/ORA"
+Documentation = "https://github.com/fast-rua/ORA/blob/main/docs/README.md"
+Issues = "https://github.com/fast-rua/ORA/issues"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "pytest-timeout>=2.3", "pytest-xdist>=3.6"]
 live = ["imageio>=2.34", "imageio-ffmpeg>=0.5"]
 
 [project.scripts]
-ora = "ora.orchestrator.cli:main"
+ora = "ora.app.main:main"
 ora-viewer = "viewer.app:main"
-ora-remote = "ora.orchestrator.ora_remote:main"
+ora-remote = "ora.app.remote:main"
+ora-robot = "ora.robot_client.cli:main"
 robotwin-qualify = "ora.environment.backends.robotwin.qualification:main"
 
 [tool.setuptools]
@@ -39,7 +40,7 @@ include-package-data = false
 license-files = ["LICENSE", "NOTICE", "third_party/*.txt"]
 
 # ora and viewer are discovered, so a new subpackage cannot be left out of the
-# wheel; experiments keeps only the Runtime qualification package.
+# wheel.
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
@@ -47,8 +48,6 @@ include = [
   "ora.*",
   "viewer",
   "viewer.*",
-  "experiments",
-  "experiments.runtime_v1",
 ]
 
 [tool.setuptools.package-data]
@@ -59,17 +58,32 @@ ora = [
   "policy/**/*.star",
   "orchestrator/hosts/*.yaml",
   "orchestrator/hosts/README.md",
-  "orchestrator/run_report_pricing.yaml",
+  "orchestrator/reports/run_report_pricing.yaml",
   "orchestrator/identity-registry.json",
+  "cell/operator/*.html",
+  "orchestrator/world_view_assets/*.html",
+  "orchestrator/world_view_assets/static/*",
   "agent/providers/*.yaml",
   "environment/benchmarks/*.json",
   "environment/backends/robotwin/vendored/*",
   "environment/backends/robodojo/installation/*",
+  "environment/backends/libero_pro/installation/*",
+  "agent/model_services/installation/*",
+  "app/help/*.md",
+  "environment/backends/robodojo/play_scenes/scenes/*/*.yml",
+  "agent/toolkit/tools/*/description.json",
+  "agent/toolkit/tools/*/explain.json",
+  "agent/toolkit/tools/*/checkpoints.json",
+  "agent/code_mode/sandbox-requirements.*",
+  "**/README.md",
 ]
-experiments = ["**/*.yaml", "**/*.md", "**/*.json"]
-viewer = ["templates/*.html", "static/*.css", "static/*.js", "provider-pricing.json"]
+viewer = ["templates/*.html", "static/*.css", "provider-pricing.json", "dashboard/static/*"]
 
+# No -q in addopts: the documented commands pass -q themselves, and -qq drops
+# the passed/skipped summary line.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
 pythonpath = ["."]
+markers = [
+    "agent_core: an agent-core test under tests/agent_core/ (the Pi core against its goldens); scripts/dev/check runs them as lane B and CI as its agent-core job, -m agent_core",
+]

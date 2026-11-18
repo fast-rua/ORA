@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORA 3D replay</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="replay.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.6/src/URDFLoader.js"
+  }
+}
+</script>
+</head>
+<body class="rp-body">
+<div id="notice" class="panel notice" hidden></div>
+<div class="rp-bar">
+  <button id="play" type="button" title="Play / pause (space)">Play</button>
+  <button id="prevAct" type="button" title="Previous robot command (shift+←)">&laquo; cmd</button>
+  <button id="nextAct" type="button" title="Next robot command (shift+→)">cmd &raquo;</button>
+  <button id="prevCall" type="button" title="Previous agent tool call ([)">&laquo; call</button>
+  <button id="nextCall" type="button" title="Next agent tool call (])">call &raquo;</button>
+  <label>speed <select id="speed">
+    <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option>
+    <option value="2">2x</option><option value="4">4x</option><option value="10">10x</option></select></label>
+  <input id="tick" type="range" min="0" max="0" value="0" step="1" aria-label="clock">
+  <span id="tickLabel" class="mono"></span>
+  <button id="reload" type="button" title="Re-read the run (a live run grows)">Reload</button>
+  <span id="rounds" class="small"></span>
+</div>
+<canvas id="strip" class="rp-strip" title="Robot commands by interaction mode, else by action (click to seek); ticks above = observations; ticks below = agent tool calls (red = error, blue = returned images)"></canvas>
+<div class="rp-bar small">
+  <label><input id="showRobot" type="checkbox" checked> robot<span class="rp-why"></span></label>
+  <label><input id="showCloud" type="checkbox" checked> point cloud (latest observation)</label>
+  <label><input id="showModels" type="checkbox" checked> objects (sim meshes, ground truth)<span class="rp-why"></span></label>
+  <label><input id="showLabels" type="checkbox"> object names</label>
+  <label><input id="showTraj" type="checkbox" checked> TCP paths</label>
+  <label><input id="showTarget" type="checkbox" checked> command target</label>
+  <label><input id="showTable" type="checkbox" checked> table<span class="rp-why"></span></label>
+  <span id="fkCheck" class="muted mono"></span>
+</div>
+<div class="rp-bar small muted"><span id="clockNote"></span></div>
+<div class="rp-layout">
+  <div class="rp-stage">
+    <div id="canvasHost" class="rp-canvas"></div>
+    <div class="rp-video-head"><strong>Cameras</strong> <span id="videoLabel" class="muted small"></span></div>
+    <div id="video" class="rp-video"></div>
+    <p class="muted small">Left arm blue, right arm red; TCP path solid up to now, light after (RoboDojo and RoboTwin: every logged
+      step; elsewhere straight between each command's measured start and end and each observation); the mobile base's path and
+      pose in teal (RoboCasa365). Strip colours by interaction mode (move_path: fast gray, move blue, fine amber, contact red, custom
+      purple; single moves: free space gray, precision amber, contact approach orange, contact red), else by action (gripper black,
+      base teal), refused or failed hatched. Objects are RoboDojo's simulator meshes at their ground-truth poses (developer only,
+      never shown to the agent; only for runs launched with ground-truth capture). The point cloud is the agent's own RGB-D at the
+      latest observation. Drag to orbit, right-drag to pan; space plays, ←/→ step one clock unit, shift+←/→ jump between robot
+      commands, [ / ] between agent tool calls. The Agent tab is the model's own trace: its thinking, the code or tool arguments,
+      what came back (text and the exact images it was shown) and the robot commands each call caused, placed on the same clock;
+      calls after the current time are dimmed.</p>
+  </div>
+  <div id="rpSplit" class="rp-split" title="drag to resize the side pane"></div>
+  <aside class="rp-side">
+    <div class="rp-tabs" role="tablist">
+      <button type="button" data-tab="agent" class="on">Agent</button>
+      <button type="button" data-tab="state">Robot &amp; objects</button>
+      <button type="button" data-tab="tools">Agent's files <span id="toolsCount" class="muted"></span></button>
+      <label class="small rp-follow"><input id="follow" type="checkbox" checked> follow</label>
+    </div>
+    <div id="cmdNow" class="rp-cmdnow small"></div>
+    <div id="pane-agent" class="rp-pane"><p class="muted">loading the agent's trace…</p></div>
+    <div id="side" class="rp-pane" hidden></div>
+    <div id="pane-tools" class="rp-pane" hidden></div>
+  </aside>
+</div>
+<script type="module" src="replay.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "set_gripper",
+  "description": "Set the gripper to a named directive.\nUse when: you are opening to release or approach, or closing to grasp, and you already know which directive each gripper should hold. This embodiment has one arm, so the directive needs no arm name. For manual grasp or placement, complete and inspect the required pose action before issuing the gripper-only command; this call does not execute a returned pose or candidate.\nEffect: submits one gripper directive per named gripper through the Supervisor and consumes one robot decision. The end-effector pose target is held unchanged. Measured state may still move under contact, and that is evidence rather than a fault.\nReturns: a submitted acknowledgement, then a measured receipt and a fresh observation on the next turn. When closing, an intent block echoes the target_ref you supplied and labels it agent_annotation_only.\nDoes not: prove anything was grasped, held, released or moved; report jaw separation; verify what the jaws closed on; or make target_ref evidence -- it is your annotation of what you believe you are closing on, never a measurement. A closed jaw is not a grasp.\nOn error: Refused: an action other than open and close; a target_ref that is blank or not a string (invalid_arguments, naming target_ref); the episode's terminal boundary (episode_terminal). A schema refusal is invalid_arguments naming the field; an invalid_motion_arguments refusal names none -- re-read this schema rather than resubmitting the same shape. invalid_arguments naming target_ref means a blank string was sent; send a non-empty reference or omit it entirely. Timing: the simulator advances in 20 Hz control ticks (50 ms each). One command runs until the jaws are within 0.03 of the commanded normalized opening, until they stop moving short of it, or for at most 80 control ticks (4 s). A full close in free air takes about 15 ticks (0.75 s). A close that stops on an object ends as soon as the jaws stop, typically within 0.7 s, and reports not_reached with failure_code gripper_stalled_before_target and gripper_outcome.measured_aperture_mm; that is the expected result of closing on an object, not a controller fault. A stalled close is consistent with a grasp but does not prove one: compare the measured aperture with the object's width, then lift and observe. Fixed texts stated once here and left out of results and effects: the action effect's gripper_outcome.claim_boundary is \"stalled_before_target means the jaws stopped short of the commanded opening; it is consistent with an object between the fingers and is not proof of a grasp\".",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "action"
+    ],
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "open",
+          "close"
+        ],
+        "description": "The directive this embodiment's single gripper takes. Dimensionless named directive, not an aperture."
+      },
+      "target_ref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Optional annotation naming the target you believe you are closing on, from the current observation. Dimensionless reference; recorded and echoed, never treated as evidence that anything was grasped. Meaningless when only opening."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "action"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "set_gripper"
+      },
+      "intent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_ref",
+          "role"
+        ],
+        "description": "Present only when a gripper was closed. Echoes the annotation you supplied and labels what it is.",
+        "properties": {
+          "target_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The reference you supplied, or null if you supplied none."
+          },
+          "role": {
+            "type": "string",
+            "const": "agent_annotation_only",
+            "description": "States that this reference is your annotation and not a measurement that anything was grasped."
+          }
+        }
+      }
+    }
+  }
+}

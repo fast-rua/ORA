@@ -31,6 +31,10 @@ from .common import (
 )
 
 
+class RetreatFirst(Exception):
+    """A dry run reached the retreat of a blocked recovery: its plan starts from a state the world has not reached."""
+
+
 class RoboTwinSparsePlanningMixin:
     """Sparse-motion planning, validation and blocked-motion recovery."""
 
@@ -127,7 +131,7 @@ class RoboTwinSparsePlanningMixin:
                 planner = getattr(state.environment.robot, f"{arm}_plan_path")
                 state.planner_results[arm] = planner(state.planner_pose_targets[arm])
             self._record_ik_candidate_evidence(state.planner_results[arm], arm=arm,
-                identity={"kind": "action", "action_id": state.action["action_id"],
+                identity={"kind": "dry_run" if state.dry_run else "action", "action_id": state.action["action_id"],
                           "action_sequence": self.action_sequence})
         planners_succeeded = all(
             isinstance(state.planner_results[arm], Mapping)
@@ -240,6 +244,8 @@ class RoboTwinSparsePlanningMixin:
         selected = blocked_arms & set(state.target_arms)
         if not selected:
             return True
+        if state.dry_run:  # the retreat moves the arm, and the plan starts where it stops
+            raise RetreatFirst
         distance = float(self.control_profile["profile"]["blocked_motion_recovery"]["retreat_distance_m"])
         current = {arm: _wxyz_to_xyzw(self._public_pose_wxyz(state.environment, arm))
                    for arm in state.target_arms}

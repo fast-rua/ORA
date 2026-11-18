@@ -1,0 +1,17 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_fixed_pool_result_and_review_artifacts/artifacts[0-left]": "86122b3b27f4821744f8c9cc7f361dd1b0eb52dc83068863250da848c4b95b44",
+  "test_fixed_pool_result_and_review_artifacts/artifacts[0-right]": "8033439ac93189a1ddc6f5dbb8c187ac8b481a6163304bb32d4b1b92ffbab6cc",
+  "test_fixed_pool_result_and_review_artifacts/artifacts[3-left]": "3af5a9bfbbe4f44a6bb86e1845c6be7b234771d84a94e4c88ce23b7ce6a89017",
+  "test_fixed_pool_result_and_review_artifacts/artifacts[3-right]": "6d56d3fbebd563a42549b50488761061bd4492625e6ff0428d05f6ed6be10966",
+  "test_fixed_pool_result_and_review_artifacts/result[0-left]": "a3be47aeaff26a1083dd4a115f5efa705c94d159d64cfee90479b0426c7a3a68",
+  "test_fixed_pool_result_and_review_artifacts/result[0-right]": "145aac3f5c147592349c09dc2ec51ac6dc7a588b8634f4a399eecdf064c44b32",
+  "test_fixed_pool_result_and_review_artifacts/result[3-left]": "c6d832373897a218a807e9345783c1ccd5adbeb24da0b82d368b8faf76468f3c",
+  "test_fixed_pool_result_and_review_artifacts/result[3-right]": "8c84367189d54f5139818cf4a35b4b64e88cff8c3877568ef20520d07da3cd5f",
+  "test_fixed_pool_result_and_review_artifacts/service_request[0-left]": "95f8c232075aba1a646746d37146aafd98abcb7d886151c6a5c099029bd14653",
+  "test_fixed_pool_result_and_review_artifacts/service_request[0-right]": "95f8c232075aba1a646746d37146aafd98abcb7d886151c6a5c099029bd14653",
+  "test_fixed_pool_result_and_review_artifacts/service_request[3-left]": "95f8c232075aba1a646746d37146aafd98abcb7d886151c6a5c099029bd14653",
+  "test_fixed_pool_result_and_review_artifacts/service_request[3-right]": "95f8c232075aba1a646746d37146aafd98abcb7d886151c6a5c099029bd14653"
+ }
+}

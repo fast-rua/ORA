@@ -1,0 +1,204 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "BowlInBinTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab BowlInBinTask at the pinned revision; generated per predicate family (in_container); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "put the bowl in the grey bin",
+ "family": "in_container",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/bowl_in_bin_task.py",
+   "sha256": "fb7ffe99ad9ad0c5658aa9be24a33b271ee67e8bbc1add9364f4d6e683ac3e7d"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/hull_check.py",
+   "sha256": "738f840e0c7a14900a2a18aac2836cb2b858e227c118a29516a3ba6619d7f4df"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/bin_mug_mustard_marker_bowl.usda",
+   "sha256": "9c0137e4c5510a13ae420245f834db3cda300d91f112ad30ee773be1eedc3491"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/BowlInBinTask-s0-witness.json",
+   "sha256": "07f1a599aa85fd62af5f4ded2d564d4701fe3e9eb79d1f609b456f2ae3345dd4"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read BowlInBinTask terminations: success = object_in_container(object='bowl', container='grey_bin', require_gripper_detached=True), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene bin_mug_mustard_marker_bowl.usda: bowl, grey_bin among 6 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Containment tests the centroid of the object's convex hull in the container's local frame against the container hull with its top faces removed (hull_check), so a tipped container fails and the region above the open top counts."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (2) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 07f1a599aa85)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 07f1a599aa85): all_in -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 07f1a599aa85): reset_state -> False; beside -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_in_container(object='bowl', container='grey_bin', require_gripper_detached=True): the object's convex-hull centroid inside the container's hull with its top faces removed, in the container's local frame.",
+   "interpretation": "The bowl in the grey bin.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_in_container and its predicate_logic helpers.",
+   "interpretation": "Hull slack, contact force bar and the open-top hull construction withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The bowl must end up inside the grey bin.",
+  "Let go of the bowl there: the task is not complete while any part of the gripper still touches it."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "beside: false.",
+   "expected": "witness case beside"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": false,
+  "subtasks": "pick_and_place(groups=['bowl'], logical=all) score=1.0",
+  "notes": []
+ },
+ "compatibility": {
+  "status": "ready",
+  "blocked": [],
+  "notes": []
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "beside",
+    "expected": false,
+    "ops": [
+     {
+      "op": "place",
+      "object": "bowl",
+      "beside": "grey_bin"
+     }
+    ],
+    "ticks": 40
+   },
+   {
+    "case": "all_in",
+    "expected": true,
+    "ops": [
+     {
+      "op": "place",
+      "object": "bowl",
+      "into": "grey_bin",
+      "slot": 0,
+      "slots": 1
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "bowl",
+   "grey_bin"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793853079.4273195,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/BowlInBinTask-s0-witness.json",
+  "sha256": "07f1a599aa85fd62af5f4ded2d564d4701fe3e9eb79d1f609b456f2ae3345dd4",
+  "plan_sha256": "f4c21b8f520ec70db04748597a1ad2c5a4d908dc9558b6594ba8ddf58a701f3d"
+ }
+}

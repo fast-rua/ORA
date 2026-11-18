@@ -1,7 +1,7 @@
-"""Read-only link6 kinematics using the installed SDK's own robot model.
+"""Read-only link6 kinematics using the installed SDK's own robot model, and the batch IK answer.
 
-The inverse world/base transform mirrors RobotManager.solve_ik. No task,
-collision object, planner trajectory, controller write or physics tick is read.
+The inverse world/base transform mirrors RobotManager.solve_ik. FK reads no task,
+collision object, planner trajectory, controller write or physics tick.
 """
 from __future__ import annotations
 
@@ -43,22 +43,14 @@ def fk_calibrated(session: Any, arm: str, measured: Mapping[str, Any]) -> bool:
 
 def solve_batch(session: Any, arm: str, poses: Sequence[Sequence[float]], *,
                 position_tolerance_m: float, orientation_tolerance_rad: float) -> list[Mapping[str, Any]]:
-    from .sparse_motion import solve_ik
-    measured = session._proprioception()['end_effectors'][arm]
-    if not fk_calibrated(session, arm, measured):
-        raise ValueError('RoboDojo read-only FK differs from the current measured link6 frame')
-    result = []
-    for pose in poses:
-        solved = solve_ik(session, arm, pose)
-        joints = solved.get('joint_target')
-        error = None if joints is None else cartesian_pose_error_twist(pose, fk_link6(session, arm, joints))
-        position = None if error is None else float(np.linalg.norm(error[:3]))
-        rotation = None if error is None else float(np.linalg.norm(error[3:]))
-        jump = solved.get('ik_selection', {}).get('outcome') == 'joint_jump'
-        reachable = not jump and error is not None and position <= position_tolerance_m and rotation <= orientation_tolerance_rad
-        result.append({'reachable': bool(reachable), 'position_error_m': position,
-            'orientation_error_rad': rotation, 'iterations': 1,
-            'reason': None if reachable else ('ik_failed' if joints is None else 'ik_branch_jump' if jump else 'fk_residual_exceeded'),
-            'ik_selection': solved.get('ik_selection'),
-            'claim_boundary': 'SDK IK and FK only; no physics, collision-free path, contact or task-success claim'})
-    return result
+    """One row per pose, each from the measured joints: what ``align_plan`` and ``probe_motion`` answer with.
+
+    The shared planner's IK (``reach_check``). A session whose runtime names no
+    ``motion_planner`` answers no pose (reason ``no_planner``, as a reach check
+    does), and no IK runs.
+    """
+    tolerances = {'position_tolerance_m': position_tolerance_m, 'orientation_tolerance_rad': orientation_tolerance_rad}
+    from .reach_check import reach_check_batch
+    answer = reach_check_batch(session, arm, [{'pose_xyzw': list(pose), 'from_index': None} for pose in poses],
+                               **tolerances)
+    return [{**row, 'iterations': 1, 'claim_boundary': answer['claim_boundary']} for row in answer['results']]

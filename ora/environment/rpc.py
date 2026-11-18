@@ -32,9 +32,11 @@ MAX_UNIX_SOCKET_PATH_BYTES = 103 if sys.platform == "darwin" else 107
 #: already uses 75). The launcher relaunches it under a new PID.
 PID_SEGMENT_COLLISION_EXIT = 73
 MAX_PID_COLLISION_RELAUNCHES = 3
+#: Where a worker writes the operator view for the client to read (under the run's native directory).
+OPERATOR_VIEW_TRANSFER = ".operator-view-transfer.png"
 #: Worker backends that start Kit in-process; only these are checked and
 #: relaunched, and only their session record carries pid_collision_relaunches.
-KIT_BACKENDS = frozenset({"robodojo"})
+KIT_BACKENDS = frozenset({"robodojo", "robolab"})
 #: Written next to the socket by a colliding worker: {"worker_pid", "segment"}.
 PID_COLLISION_FILE = "pid-collision.json"
 WORKER_ENVIRONMENT_ALLOWLIST = {
@@ -56,6 +58,14 @@ WORKER_ENVIRONMENT_ALLOWLIST = {
     "DISPLAY", "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP",
     "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
     "LIBERO_CONFIG_PATH", "LIBERO_TYPE", "TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD",
+    # A real cell's worker shares the cell lock and the approval broker's folder
+    # (ora/cell/lock.py, ora/cell/operator/approval.py) with `ora cell`, the cell
+    # board and the play terminal. Dropping these made a worker use the defaults
+    # while the operator's tools used the paths named here: its questions would
+    # wait where nobody looks, and two holders could each take "the" lock.
+    "ORA_CELL_LOCK", "ORA_CELL_APPROVALS",
+    # Explicit, evidence-recorded RoboDojo reset diagnostics; no policy secrets.
+    "ORA_ROBODOJO_RESET_TRACEBACK", "ORA_ROBODOJO_RESET_FATAL_TRACEBACK",
 }
 
 #: Isaac resolves scene MDL materials from a public S3 bucket. On hosts that
@@ -156,6 +166,7 @@ class LocalRpcEnvironmentSession:
         self.project_root = project_root.expanduser().resolve()
         self.output_root = output_root.expanduser().resolve()
         self.session_id = f"env-{uuid.uuid4().hex}"
+        self.execution_state_owner = None
         self.requested_socket_root = (
             socket_root.expanduser().resolve()
             if socket_root is not None
@@ -370,6 +381,9 @@ class LocalRpcEnvironmentSession:
             "method": method,
             "params": dict(params),
         }
+        owner = getattr(self, "execution_state_owner", None)
+        if owner is not None:
+            request["execution_state"] = owner.request(method, params)
         encoded = json.dumps(request, ensure_ascii=False, separators=(",", ":"))
         if len(encoded.encode()) > MAX_MESSAGE_BYTES:
             raise EnvironmentRpcError("environment RPC request exceeds size limit")
@@ -396,6 +410,8 @@ class LocalRpcEnvironmentSession:
             or response.get("request_id") != request_id
         ):
             raise EnvironmentRpcError("environment RPC response identity mismatch")
+        if owner is not None and response.get("execution_state") is not None:
+            owner.accept(method, params, response["execution_state"], response.get("result"))
         if response.get("ok") is not True:
             error = response.get("error", {})
             if not isinstance(error, Mapping):
@@ -487,6 +503,28 @@ class LocalRpcEnvironmentSession:
         if not isinstance(result, dict):
             raise EnvironmentRpcError("environment jaw state must be an object")
         return result
+
+    def operator_view(self) -> dict[str, Any] | None:
+        """The worker session's operator view: written by the worker beside the run, read back here.
+
+        The PNG crosses as a file under the run's native directory (the worker's
+        shared root), never inside the JSON line; the transfer file is removed.
+        """
+
+        transfer = self.output_root / OPERATOR_VIEW_TRANSFER
+        transfer.unlink(missing_ok=True)
+        result = self._request("operator_view", {"destination": str(transfer)})
+        if result is None:
+            return None
+        if not isinstance(result, dict) or set(result) != {"path", "camera", "width", "height"}:
+            raise EnvironmentRpcError("environment operator view result is invalid")
+        if Path(str(result["path"])).resolve() != transfer.resolve():
+            raise EnvironmentRpcError("environment operator view was written elsewhere")
+        try:
+            data = transfer.read_bytes()
+        finally:
+            transfer.unlink(missing_ok=True)
+        return {"png": data, "camera": result["camera"], "width": result["width"], "height": result["height"]}
 
     def status(self) -> dict[str, Any]:
         result = self._request("status", {})

@@ -20,8 +20,8 @@ layers:
   embodiment:
     source: ora/policy/embodiments/franka-panda/manual-public-geometry-v3.md
     format: prompt_bundle_embodiment_v1
-    descriptor: ora/policy/embodiments/franka-panda/descriptor-public-geometry-direct-v1-controller-feedback-v1-session-split-v1.json
-    control_profile: ora/policy/embodiments/franka-panda/motion-profile-v2.json
+    descriptor: ora/policy/embodiments/franka-panda/descriptor-public-geometry-direct-v1-controller-feedback-v1-session-split-v1-flat-surface-v1.json
+    control_profile: ora/policy/embodiments/franka-panda/motion-profile-v4.json
     delivery: project_instructions
   episode_task:
     source: ora/policy/prompt_bundles/templates/episode-task-v2.md

@@ -1,0 +1,18 @@
+/* ORA additions on top of Blume's theme. Colors come from blume.config.ts (theme.accent). */
+
+/* The welcome page's opening paragraph and the one-line facts under it (docs/README.md). */
+.ora-intro {
+  max-width: 42rem;
+  font-size: 1.06rem;
+  line-height: 1.65;
+}
+
+.ora-meta {
+  color: var(--muted-foreground, currentColor);
+  font-size: 0.8rem;
+}
+
+/* Long Python signatures wrap instead of scrolling. */
+pre code {
+  overflow-wrap: anywhere;
+}

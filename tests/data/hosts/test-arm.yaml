@@ -28,6 +28,15 @@ motion_planner:
   root:
     environment_variable: CUROBO_ROOT
     purpose: Exact clean CuRobo checkout matching the pinned revision.
+  v2_python:
+    environment_variable: CUROBO_V2_PYTHON
+    purpose: cuRobo V2 interpreter (LIBERO's planner); the RoboDojo runtime's for now.
+  v2_root:
+    environment_variable: CUROBO_V2_ROOT
+    purpose: Clean cuRobo V2 checkout at the pinned revision that interpreter imports curobo from.
+  timing_python:
+    environment_variable: ORA_TIMING_PYTHON
+    purpose: Small CPU interpreter of the motion timing worker (ora/environment/planners/timing/requirements.py).
 graphics_runtime:
   purpose: Offscreen EGL for MuJoCo from a user-space graphics runtime.
   root: /opt/nvidia-gfx

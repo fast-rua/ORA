@@ -3,19 +3,19 @@
 from __future__ import annotations
 import hashlib
 import json
-import os
 import subprocess
+import sys
+from dataclasses import replace
 from pathlib import Path
 import pytest
 from ora.environment.replay_worker import ReplayWorkerError, _FrameWriter, _apply_robotwin_control_target, _capture_steps, _needs_final_capture, _uniform_capture_steps, _libero_qualified_controller_binding, _recorded_control_step_count, _robotwin_replay_needs_planner, _robotwin_replay_route
-from experiments.runtime_v1 import run as experiment
 from viewer import app as viewer
 from viewer.libero_pro_catalog import CATALOG_SCHEMA as LIBERO_PRO_CATALOG_SCHEMA, LIBERO_PRO_CODE_REVISION, LIBERO_PRO_DATA_REVISION, MIGRATED_FROM_COMMIT as LIBERO_MIGRATED_FROM_COMMIT, ROBUSTNESS_CASES as LIBERO_ROBUSTNESS_CASES, TASKS as LIBERO_PRO_TASKS
 from viewer.robotwin_catalog import CATALOG_SCHEMA, MIGRATED_FROM_COMMIT, ROBOTWIN_REVISION, TASKS
 from viewer.registry import discover_run_roots, register_run, visible_runs
 from viewer.trajectory import ANALYSIS_SCHEMA, _controller_replay_source, _continuous_execution_source, _load_run_analysis, _render_continuous_execution_frame, _render_trajectory_frame, compile_raw_trajectory, compile_trajectory, compile_trajectory_video, raw_trajectory_event
 from viewer.replay import ViewerReplayError, ensure_controller_replay
-from tests.orchestrator.test_control_plane import (
+from tests.support.orchestrator.control_plane import (
     ROOT,
 )
 
@@ -264,23 +264,12 @@ def test_viewer_lists_resolved_runs_and_rejects_path_traversal(
         "ora.viewer-raw-trajectory.v1"
     )
     assert client.get("/api/run/example/trajectory/raw/unknown/1").status_code == 404
-    experiment_page = client.get("/experiment/viewer-test/runs")
+    experiment_page = client.get("/?view=all&experiment=viewer-test")
     assert experiment_page.status_code == 200
     assert b"synthetic-preflight" in experiment_page.data
-    assert b"2026-08-08" in experiment_page.data
-    assert b"Raw trace" in experiment_page.data
-    assert b"Configuration catalog" in experiment_page.data
-    assert b"All experiments / runs" in experiment_page.data
-    declaration = ROOT / "experiments/runtime_v1/experiment.yaml"
-    monkeypatch.setattr(viewer, "experiment_definition", lambda experiment_id: (
-        (declaration, {"configs": {"synthetic-config": {"policy": "scripted"}}})
-        if experiment_id == "viewer-config-test" else (None, {})
-    ))
-    config_page = client.get("/experiment/viewer-config-test/configs")
-    assert config_page.status_code == 200
-    assert b"Tracked experiment declaration" in config_page.data
-    assert b"synthetic-config" in config_page.data
-    assert b"experiments/runtime_v1/experiment.yaml" in config_page.data
+    assert b"/?view=all&amp;experiment=viewer-test" in registry_page.data
+    assert client.get("/experiment/viewer-test/runs").status_code == 404
+    assert client.get("/experiments").status_code == 404
     task_cohort = client.get("/task/libero_pro/libero_object_swap/0/runs")
     assert task_cohort.status_code == 200
     assert b"Cross-experiment task cohort" in task_cohort.data
@@ -1009,6 +998,11 @@ def test_viewer_discovers_and_classifies_configured_historical_outputs(tmp_path:
         registrations, view="formal", experiment="different-study",
     ) == []
     assert [run.run_id for run in visible_runs(registrations, view="formal")] == ["formal-run"]
+    late = replace(formal_registration, official_success=False, success_after_official_limit=True)
+    assert visible_runs([late], view="formal", outcome="failure") == []
+    assert visible_runs([late], view="formal", outcome="success") == []
+    assert visible_runs([late], view="formal", outcome="success_after_official_limit") == [late]
+    assert viewer._registered_outcome(late)[:2] == ("success after official limit", "")
     assert [run.run_id for run in visible_runs(
         registrations, view="formal", backend="libero_pro"
     )] == ["formal-run"]
@@ -1070,18 +1064,22 @@ def test_viewer_recovers_pre_manifest_images_and_agent_turns(tmp_path: Path) -> 
     ]
 
 
-def test_viewer_video_compiler_script_is_reusable() -> None:
-    script = ROOT / "scripts/dev/compile-viewer-videos"
-    assert script.is_file()
-    assert os.access(script, os.X_OK)
+def test_viewer_compiles_videos_and_previews_outside_the_web_process(capsys) -> None:
     completed = subprocess.run(
-        [str(script), "--help"], cwd=ROOT, check=True,
+        [sys.executable, "-m", "viewer.app", "compile", "videos", "--help"], cwd=ROOT, check=True,
         text=True, capture_output=True,
     )
+    assert completed.stdout.startswith("usage: ora-viewer compile videos")
     assert "--outputs-root OUTPUTS_ROOT" in completed.stdout
     assert "--video-scope {formal,libero,robotwin}" in completed.stdout
     assert "--replay-mode {forensic,review}" in completed.stdout
-    assert "--compile-videos" in completed.stdout
+    serve = viewer.build_parser().format_help()
+    assert "--video-scope" not in serve and "ora-viewer compile videos|previews" in serve
+    with pytest.raises(SystemExit) as raised:
+        viewer.main(["compile", "previews", "--help"])
+    assert raised.value.code == 0
+    assert capsys.readouterr().out.startswith("usage: ora-viewer compile previews")
+    assert "previews" in viewer.build_compile_parser().format_help()
 
 
 def test_robotwin_gallery_migrates_complete_pinned_catalog() -> None:

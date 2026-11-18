@@ -1,0 +1,36 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "finish_episode",
+  "description": "End the policy lifecycle. Success requires a prior check_task=true result; failure requires a reason and exhausted attempts.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "outcome": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failure",
+          "abort"
+        ]
+      },
+      "reason": {
+        "type": "string",
+        "default": ""
+      },
+      "attempts": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "outcome"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

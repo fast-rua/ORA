@@ -9,6 +9,8 @@ its own explicit interpreter.
 | LIBERO / LIBERO-Pro | Panda tasks and source-paired robustness cases | [Install and run one task](libero.md) |
 | RoboTwin | Dual-arm manipulation in clean or randomized scenes | [Install and run one task](robotwin.md) |
 | RoboDojo | Isaac Sim manipulation tasks | [Install and run one task](robodojo.md) |
+| RoboCasa365 | Kitchen tasks for a mobile manipulator (PandaOmron), MuJoCo on the CPU | [Install and run one task](robocasa.md) |
+| RoboLab | Isaac Sim tabletop tasks for a DROID Franka with a Robotiq gripper | [Install and run one task](robolab.md) |
 
 On a single-GPU Linux machine, `ora setup --env` and `ora run --env` do the
 whole sequence below for one task; see [Run ORA on one GPU](../getting-started/single-gpu.md).

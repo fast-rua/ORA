@@ -74,8 +74,16 @@ def plan_alignment(
     pinned embodiment-descriptor sources) has to change to serve them.
     """
 
+    from ora.contracts.kinematics import REQUEST_SCHEMA as KINEMATICS_SCHEMA, unsupported
     from ora.contracts.reach_check import REQUEST_SCHEMA as REACH_CHECK_SCHEMA
 
+    if request.get("schema") == KINEMATICS_SCHEMA:
+        # The read-only kinematics query (``contracts/kinematics.py``) rides
+        # the same bridge; only a backend whose adapter answers it serves it.
+        kinematics = getattr(adapter, "kinematics", None)
+        if not callable(kinematics):
+            raise unsupported(type(adapter).__name__)
+        return kinematics(request)
     if request.get("schema") == REACH_CHECK_SCHEMA:
         from .reach_check import check_reach
 

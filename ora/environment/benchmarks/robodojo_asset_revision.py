@@ -1,33 +1,22 @@
-"""Reviewed task-specific asset selection; host-side, no simulator imports.
+"""The reviewed RoboDojo Assets revision of a card; host-side, no simulator imports.
 
-The upstream replacement swap_T layouts are reviewed and selected here.
-All other Assets blobs are identical. Old task records and installations stay
-intact; only fresh swap_T runs select the successor asset checkout.
+User decision 2026-11-14: every task reads one Assets checkout, at
+``REVISIONS["assets"]`` (1127bda, pinned with RoboDojo f57e163). It serves the
+regenerated swap_T layouts the previous pin a14409d7 no longer served, so the
+swap_T-only successor checkout (35efbc7d, ``ROBODOJO_SWAP_T_ASSET_ROOT``) is
+retired. From 35efbc7d to 1127bda only
+``Object/RoboDojo/Rigid/mug/00014/metadata.json`` changed, a mug that only
+``hang_mugs_random`` layouts hold. Records, cards and installations made at the
+older revisions stay as they were written; none is reused at this pin.
 """
 from __future__ import annotations
 
-OLD_ASSET_REVISION = "a14409d7fae673c00499e01fd88b4457df6351b1"
-SWAP_T_ASSET_REVISION = "35efbc7dedfdbeeb6e95fb749bd885d73d483e41"
-SWAP_T_ASSET_ROOT_ENV = "ROBODOJO_SWAP_T_ASSET_ROOT"
-
-
-def asset_revision_for(task: str) -> str:
-    return SWAP_T_ASSET_REVISION if task == "swap_T" else OLD_ASSET_REVISION
-
 
 def unchanged_card_assets(original: dict, current: dict, *, measured_task: str) -> bool:
-    """The one reviewed revision transition; it cannot reuse a swap_T card.
+    """A card is reused only on exactly the source revisions it was measured on.
 
-The exact Git tree comparison is recorded in the v8 compatibility review:
-165 changed blobs, exclusively swap_T layouts, no added/deleted Asset paths.
-The card's measured task must therefore be different. Scene/layout reuse is
-separately required by revalidation and is never granted by this predicate.
-"""
-    if original == current:
-        return True
-    from .robodojo import NATIVE_ACTION_LIMITS
-    return (measured_task in NATIVE_ACTION_LIMITS and measured_task != "swap_T"
-            and original.get("assets") == OLD_ASSET_REVISION
-            and current.get("assets") == SWAP_T_ASSET_REVISION
-            and {k: v for k, v in original.items() if k != "assets"}
-            == {k: v for k, v in current.items() if k != "assets"})
+    The one reviewed cross-revision transition (a14409d7 cards reused by a
+    35efbc7d swap_T lane) ended with the single asset revision; whatever task
+    the card measured, its revisions must equal the runtime's.
+    """
+    return original == current

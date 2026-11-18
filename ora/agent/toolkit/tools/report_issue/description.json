@@ -1,0 +1,40 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "report_issue",
+  "description": "Persist one concise policy-visible note for the maintainers: an interface, tool or evidence defect (kind defect, the default), or a point of confusion (kind confusion). Use when: a concrete inconsistency—such as a malformed result, stale observation binding, contradictory camera evidence or missing capability—prevents reliable action (defect); or the task description, a tool's description or result, or the instructions are unclear or contradict each other, so you are unsure what is expected or how a tool behaves (confusion: name what is unclear and what you assumed in order to continue). Normal task difficulty is neither. Effect: read-only with respect to the robot world and appends one diagnostic record without ending the episode. Returns: an acknowledgement after the diagnostic record is persisted; the Native acknowledgement may contain no additional decision fields.\nDoes not: repair the defect, answer the confusion, move the robot, change task state, consume a robot decision, establish official failure or finish the policy session. On error: Refused: any field other than message and kind, a kind other than defect or confusion, or a message that is empty or only whitespace (invalid_arguments). Reduce the message to one reproducible symptom or one unclear point and retry once; continue only if the remaining evidence is safe and internally consistent.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "message": {
+        "description": "Concise concrete interface or evidence defect, or the point of confusion and what you assumed.",
+        "minLength": 1,
+        "type": "string"
+      },
+      "kind": {
+        "description": "defect (an interface, tool or evidence defect; the default) or confusion (unclear or contradictory task description, tool description, tool result or instructions).",
+        "enum": [
+          "defect",
+          "confusion"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "success": {
+        "const": true,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "success"
+    ],
+    "type": "object"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "_comment": "Inputs to scripts/prepare-content.mjs. externalPages publishes a repository file at a docs path; sourceRepository prefixes links to repository files that are not pages; griffe is the pinned Python reference extractor.",
+  "sourceRepository": "https://github.com/fast-rua/ORA/blob/main/",
+  "griffe": "griffelib==2.3.2",
+  "externalPages": {
+    "developer/contributing.md": "CONTRIBUTING.md",
+    "usage/viewer.md": "viewer/README.md",
+    "usage/examples.md": "examples/README.md",
+    "usage/official-suite.md": "examples/official_suite/README.md",
+    "environments/robodojo-installation.md": "ora/environment/backends/robodojo/installation/INSTALL.md"
+  }
+}

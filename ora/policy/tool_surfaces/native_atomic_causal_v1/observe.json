@@ -1,0 +1,30 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "observe",
+  "description": "Obtain current actual scene evidence from named policy-visible views. This is read-only. Returned images describe the world now; derived point-cloud views contain no hidden state.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "views": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "history_point_ids": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

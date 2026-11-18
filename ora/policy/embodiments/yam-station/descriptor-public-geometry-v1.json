@@ -1,0 +1,415 @@
+{
+  "schema": "ora.embodiment-descriptor.v2",
+  "descriptor_id": "yam_station_public_geometry_v1",
+  "embodiment_id": "yam_station_linear_4310_d405",
+  "display_name": "Dual I2RT YAM on the YAM station",
+  "status": "draft",
+  "identity": {
+    "manufacturer": "I2RT",
+    "model": "YAM",
+    "variant": "two fixed-base YAM v1 arms, 0.61 m apart",
+    "base_mobility": "fixed"
+  },
+  "topology": {
+    "manipulators": [
+      {
+        "id": "left_arm",
+        "kind": "serial_arm",
+        "side": "left",
+        "joint_dof": 6
+      },
+      {
+        "id": "right_arm",
+        "kind": "serial_arm",
+        "side": "right",
+        "joint_dof": 6
+      }
+    ],
+    "end_effectors": [
+      {
+        "id": "left_gripper",
+        "kind": "parallel_jaw_gripper",
+        "manipulator_id": "left_arm",
+        "command_dof": 1
+      },
+      {
+        "id": "right_gripper",
+        "kind": "parallel_jaw_gripper",
+        "manipulator_id": "right_arm",
+        "command_dof": 1
+      }
+    ]
+  },
+  "control": {
+    "controlled_points": [
+      {
+        "id": "left_tcp",
+        "manipulator_id": "left_arm",
+        "source_name": "tcp_left",
+        "description": "grip_center",
+        "offset_from": "manipulator_flange",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.14465
+        ],
+        "local_axes": {
+          "approach": [
+            0,
+            0,
+            1
+          ],
+          "closing": [
+            1,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "right_tcp",
+        "manipulator_id": "right_arm",
+        "source_name": "tcp_right",
+        "description": "grip_center",
+        "offset_from": "manipulator_flange",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.14465
+        ],
+        "local_axes": {
+          "approach": [
+            0,
+            0,
+            1
+          ],
+          "closing": [
+            1,
+            0,
+            0
+          ]
+        }
+      }
+    ],
+    "action_abstraction": "cartesian_target",
+    "position_frame": "world",
+    "position_unit": "metre",
+    "orientation": {
+      "representation": "quaternion",
+      "order": "xyzw",
+      "angle_unit": "radian"
+    },
+    "controller_family": "joint_position",
+    "internal_controller_policy": "tool_surface_owned"
+  },
+  "geometry": {
+    "grippers": [
+      {
+        "end_effector_id": "left_gripper",
+        "opening_mode": "symmetric",
+        "maximum_aperture_m": 0.0939,
+        "aperture_semantics": "jaw_separation",
+        "contact_geometry": {
+          "claim": "robot_geometry_not_contact_or_grasp_guarantee",
+          "controlled_point": "left_tcp",
+          "reference_finger_qpos_m": [
+            0.04695,
+            0.04695
+          ],
+          "unit": "metre",
+          "fingers": [
+            {
+              "id": "finger_1",
+              "opening_direction_local": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  0.047,
+                  -0.0199,
+                  -0.058
+                ],
+                "maximum": [
+                  0.0671,
+                  0.0201,
+                  0.0022
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  0.047,
+                  -0.0199,
+                  -0.0319
+                ],
+                "maximum": [
+                  0.057,
+                  0.0201,
+                  0.0022
+                ]
+              }
+            },
+            {
+              "id": "finger_2",
+              "opening_direction_local": [
+                -1.0,
+                0.0,
+                0.0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  -0.067,
+                  -0.0199,
+                  -0.058
+                ],
+                "maximum": [
+                  -0.0469,
+                  0.0201,
+                  0.0022
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  -0.0569,
+                  -0.0199,
+                  -0.0319
+                ],
+                "maximum": [
+                  -0.0469,
+                  0.0201,
+                  0.0022
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "end_effector_id": "right_gripper",
+        "opening_mode": "symmetric",
+        "maximum_aperture_m": 0.0939,
+        "aperture_semantics": "jaw_separation",
+        "contact_geometry": {
+          "claim": "robot_geometry_not_contact_or_grasp_guarantee",
+          "controlled_point": "right_tcp",
+          "reference_finger_qpos_m": [
+            0.04695,
+            0.04695
+          ],
+          "unit": "metre",
+          "fingers": [
+            {
+              "id": "finger_1",
+              "opening_direction_local": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  0.047,
+                  -0.0199,
+                  -0.058
+                ],
+                "maximum": [
+                  0.0671,
+                  0.0201,
+                  0.0022
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  0.047,
+                  -0.0199,
+                  -0.0319
+                ],
+                "maximum": [
+                  0.057,
+                  0.0201,
+                  0.0022
+                ]
+              }
+            },
+            {
+              "id": "finger_2",
+              "opening_direction_local": [
+                -1.0,
+                0.0,
+                0.0
+              ],
+              "collision_bounds_m": {
+                "minimum": [
+                  -0.067,
+                  -0.0199,
+                  -0.058
+                ],
+                "maximum": [
+                  -0.0469,
+                  0.0201,
+                  0.0022
+                ]
+              },
+              "pad_bounds_m": {
+                "minimum": [
+                  -0.0569,
+                  -0.0199,
+                  -0.0319
+                ],
+                "maximum": [
+                  -0.0469,
+                  0.0201,
+                  0.0022
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "workspace_limits": {
+      "source": "runtime",
+      "projection": "runtime_enforced_bounds"
+    },
+    "collision_model": {
+      "source": "runtime",
+      "projection": "bounded_motion_execution_evidence"
+    }
+  },
+  "sensing": {
+    "cameras": [
+      {
+        "public_name": "overhead",
+        "source_name": "realsense_d435i_overhead",
+        "mounting": "fixed_world",
+        "attached_to": "world",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      },
+      {
+        "public_name": "front",
+        "source_name": "realsense_d435i_front",
+        "mounting": "fixed_world",
+        "attached_to": "world",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      },
+      {
+        "public_name": "wrist_left",
+        "source_name": "realsense_d405_left",
+        "mounting": "manipulator",
+        "attached_to": "left_arm",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      },
+      {
+        "public_name": "wrist_right",
+        "source_name": "realsense_d405_right",
+        "mounting": "manipulator",
+        "attached_to": "right_arm",
+        "modalities": [
+          "rgb",
+          "metric_depth"
+        ],
+        "calibration": "per_observation"
+      }
+    ],
+    "state_fields": [
+      {
+        "name": "eef_pose_xyz_xyzw",
+        "meaning": "controlled_point_pose",
+        "unit": "world_metre_xyzw",
+        "source": "observation"
+      }
+    ]
+  },
+  "dynamic_facts": [
+    {
+      "name": "camera_calibration",
+      "owner": "observation",
+      "reason": "camera_calibration"
+    },
+    {
+      "name": "workspace_bounds",
+      "owner": "runtime",
+      "reason": "workspace_bounds"
+    }
+  ],
+  "evidence_limits": [
+    "motion_completion_not_contact",
+    "gripper_closure_not_contact",
+    "gripper_closure_not_retention",
+    "geometry_not_collision_guarantee"
+  ],
+  "provenance": {
+    "runtime_truth": "compiled_model",
+    "sources": [
+      {
+        "source_id": "yam_station_control_contract",
+        "kind": "controller_config",
+        "uri": "repo://ora/environment/controllers/yam_station.py",
+        "local_path": "ora/environment/controllers/yam_station.py",
+        "supports": [
+          "identity.base_mobility",
+          "embodiment_control.action_abstraction",
+          "embodiment_control.position_frame",
+          "embodiment_control.position_unit",
+          "embodiment_control.orientation",
+          "embodiment_control.internal_controller_policy",
+          "geometry.workspace_limits",
+          "geometry.collision_model",
+          "sensing.state.eef_pose_xyz_xyzw",
+          "dynamic.camera_calibration",
+          "dynamic.workspace_bounds",
+          "sensing.camera.overhead",
+          "sensing.camera.front",
+          "sensing.camera.wrist_left",
+          "sensing.camera.wrist_right",
+          "topology.manipulator.left_arm",
+          "topology.manipulator.right_arm",
+          "topology.end_effector.left_gripper",
+          "topology.end_effector.right_gripper",
+          "embodiment_control.controlled_point.left_tcp",
+          "embodiment_control.controlled_point.right_tcp"
+        ]
+      },
+      {
+        "source_id": "i2rt_yam_station_mjcf",
+        "kind": "robot_mjcf",
+        "uri": "https://raw.githubusercontent.com/i2rt-robotics/i2rt/fe78bae67334b9af0b79833dd8ba141a61767f2a/i2rt/robot_models/station/yam_station_linear_4310_d405/yam_station_linear_4310_d405.xml",
+        "revision": "fe78bae67334b9af0b79833dd8ba141a61767f2a",
+        "sha256": "9d398a8bcc65269b63d0f589b8dc939c81a9228b692f0b4f3cb90801e4731a45",
+        "supports": [
+          "topology.manipulator.left_arm",
+          "topology.manipulator.right_arm",
+          "topology.end_effector.left_gripper",
+          "topology.end_effector.right_gripper",
+          "embodiment_control.controlled_point.left_tcp",
+          "embodiment_control.controlled_point.right_tcp",
+          "geometry.gripper.left_gripper",
+          "geometry.gripper.right_gripper"
+        ]
+      },
+      {
+        "source_id": "i2rt_yam_v1_motor_config",
+        "kind": "controller_config",
+        "uri": "https://raw.githubusercontent.com/i2rt-robotics/i2rt/fe78bae67334b9af0b79833dd8ba141a61767f2a/i2rt/robots/config/yam_v1.yml",
+        "revision": "fe78bae67334b9af0b79833dd8ba141a61767f2a",
+        "sha256": "d4ebd6ea4f0846bb16f40832be80a1ddee988451bc0a71b94d8fff2b72626835",
+        "supports": [
+          "topology.manipulator.left_arm",
+          "topology.manipulator.right_arm"
+        ]
+      }
+    ]
+  }
+}

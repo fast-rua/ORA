@@ -18,7 +18,7 @@ def operator_trace_errors(events: Sequence[Mapping[str, Any]], plan: Mapping[str
             pending_tools.discard(event.get("tool_call_id"))
         elif kind == "action_proposed":
             pending_action = True
-        elif kind == "fresh_observation_published":
+        elif kind in {"fresh_observation_published", "action_discarded"}:
             pending_action = False
         elif kind == "operator_message":
             payload = event.get("payload")
@@ -26,11 +26,14 @@ def operator_trace_errors(events: Sequence[Mapping[str, Any]], plan: Mapping[str
                 errors.append(f"event:{index}:operator_message_contract")
                 continue
             command_id = payload.get("id")
+            # A steered benchmark run delivers steers and plan-bound follow-ups; a free-play
+            # session (ora-play, plan.play) delivers operator instructions (and steers).
+            play = "play" in plan
             if (
                 plan.get("operator_control", {}).get("mode") != "file_inbox_v1"
-                or plan.get("experiment") != "ora-interactive"
+                or plan.get("experiment") != ("ora-play" if play else "ora-interactive")
                 or payload.get("schema") != "ora.ora-operator-command.v1"
-                or payload.get("type") not in {"steer", "follow_up"}
+                or payload.get("type") not in ({"steer", "instruction"} if play else {"steer", "follow_up"})
                 or not isinstance(command_id, str) or not command_id
                 or command_id in commands
                 or payload.get("run_id") != event.get("run_id")

@@ -1,0 +1,59 @@
+{
+  "source_run_id": "e0003-p1final2-r4-robodojo-56da02e7f622--20261024T184554Z",
+  "source_commit": "2c05978ec3e2a2478b05f6a9f85b7263a593e46c",
+  "native_action": 37,
+  "request": {
+    "action": "move_pose",
+    "action_id": "action-6297883f2a36bf62",
+    "arguments": {
+      "interactions": {
+        "left": "free_space"
+      },
+      "targets": {
+        "left": {
+          "orientation_xyzw": [
+            -0.512547530964,
+            0.487129375529,
+            0.512547530964,
+            0.487129375529
+          ],
+          "position_m": [
+            -0.12748,
+            -0.06124,
+            1.05
+          ]
+        }
+      }
+    },
+    "bound_observation_sha256": "c8652012feffa4038d585cc925df12553b010c2ccf8430c72239213f639a7801",
+    "observation_id": "robodojo:arrange_largest_number:layout-0:observation-0011",
+    "schema": "ora-motion-action.v3"
+  },
+  "ledger_action": {
+    "action": "move_pose",
+    "action_id": "action-6297883f2a36bf62",
+    "arguments": {
+      "interactions": {
+        "left": "free_space"
+      },
+      "targets": {
+        "left": {
+          "orientation_xyzw": [
+            -0.5125475309637099,
+            0.48712937552872426,
+            0.5125475309637099,
+            0.48712937552872426
+          ],
+          "position_m": [
+            -0.12748,
+            -0.06124,
+            1.05
+          ]
+        }
+      }
+    },
+    "bound_observation_sha256": "c8652012feffa4038d585cc925df12553b010c2ccf8430c72239213f639a7801",
+    "observation_id": "robodojo:arrange_largest_number:layout-0:observation-0011",
+    "schema": "ora-motion-action.v3"
+  }
+}

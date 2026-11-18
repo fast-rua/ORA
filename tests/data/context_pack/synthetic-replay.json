@@ -1,0 +1,1290 @@
+{
+ "schema": "ora.context-pack-replay-fixture.v1",
+ "pack": "synthetic-pack",
+ "compiled": {
+  "harness_system": "# Test Harness System\n\nUse the advertised tools. Check the task before you finish.",
+  "project_instructions": "# Test Project Rules\n\nKeep evidence and actions distinct.\n\n# Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Controlled points\n\n`grip` is the controlled point.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera.",
+  "episode_task": "{{TASK}}\n\nThat sentence is the objective, in its exact words. Where a separately\nadvertised public completion contract is delivered for this episode, it states\npublicly what those words require; it introduces no private criterion and does\nnot replace the official verdict.\n\nRead the objective as three separate things and keep them separate:\n\n- what the task language itself requires;\n- what the public contract, where one is delivered, makes explicit that the\n  language left implicit;\n- what neither of them specifies.\n\nThe third is real and must stay open. An unspecified detail is a choice you may\nmake on current evidence; it is not a gap to be filled by guessing a hidden\ncriterion, a canonical coordinate or an expert trajectory. Begin from current\npublic evidence.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+ },
+ "task_instruction": "Put the red cube in the bowl.",
+ "episode_task_template": "{{TASK}}\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl.",
+ "tools": [
+  {
+   "type": "function",
+   "function": {
+    "name": "observe",
+    "description": "Read the current camera images and return them.",
+    "parameters": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "views": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "front",
+         "wrist"
+        ]
+       },
+       "description": "Camera names to read."
+      }
+     },
+     "required": [
+      "views"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "move_to",
+    "description": "Move the grip point to a world position and wait for the result.",
+    "parameters": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "position_m": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       },
+       "minItems": 3,
+       "maxItems": 3,
+       "description": "Target position in world metres."
+      },
+      "speed": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": 0.01,
+       "maximum": 1.0,
+       "description": "Fraction of the maximum speed. Null means omitted."
+      }
+     },
+     "required": [
+      "position_m"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "finish_episode",
+    "description": "End the episode with an outcome and a reason.",
+    "parameters": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "outcome": {
+       "type": "string",
+       "enum": [
+        "success",
+        "give_up"
+       ],
+       "description": "How the episode ends."
+      },
+      "reason": {
+       "type": "string",
+       "description": "The visible evidence for the outcome."
+      }
+     },
+     "required": [
+      "outcome",
+      "reason"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "check_task",
+    "description": "Ask whether the task is done.",
+    "parameters": {
+     "type": "object",
+     "properties": {}
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "id": "step-0",
+   "messages": [
+    {
+     "role": "system",
+     "content": "# Test Harness System\n\nUse the advertised tools. Check the task before you finish."
+    },
+    {
+     "role": "user",
+     "content": "# Test Project Rules\n\nKeep evidence and actions distinct.\n\n# Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Controlled points\n\n`grip` is the controlled point.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+    },
+    {
+     "role": "user",
+     "content": "Put the red cube in the bowl.\n\nThat sentence is the objective, in its exact words. Where a separately\nadvertised public completion contract is delivered for this episode, it states\npublicly what those words require; it introduces no private criterion and does\nnot replace the official verdict.\n\nRead the objective as three separate things and keep them separate:\n\n- what the task language itself requires;\n- what the public contract, where one is delivered, makes explicit that the\n  language left implicit;\n- what neither of them specifies.\n\nThe third is real and must stay open. An unspecified detail is a choice you may\nmake on current evidence; it is not a gap to be filled by guessing a hidden\ncriterion, a canonical coordinate or an expert trajectory. Begin from current\npublic evidence.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAIAAABhdOiYAAAAaElEQVR4nO3QsQkAIBAEsBcUCysncP8tnUBsrwhkgrSz26zBS681qngSJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBH1cUXpfiIyJBHQAAAAASUVORK5CYII="
+       }
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nO3NMQ0AIBAEsIPwYcAFQvAvCxOwNenednafqX9GViUfCQQCgUAgEAgEglcu0fIXCTm1jekAAAAASUVORK5CYII="
+       }
+      }
+     ]
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "step-2",
+   "messages": [
+    {
+     "role": "system",
+     "content": "# Test Harness System\n\nUse the advertised tools. Check the task before you finish."
+    },
+    {
+     "role": "user",
+     "content": "# Test Project Rules\n\nKeep evidence and actions distinct.\n\n# Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Controlled points\n\n`grip` is the controlled point.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+    },
+    {
+     "role": "user",
+     "content": "Put the red cube in the bowl.\n\nThat sentence is the objective, in its exact words. Where a separately\nadvertised public completion contract is delivered for this episode, it states\npublicly what those words require; it introduces no private criterion and does\nnot replace the official verdict.\n\nRead the objective as three separate things and keep them separate:\n\n- what the task language itself requires;\n- what the public contract, where one is delivered, makes explicit that the\n  language left implicit;\n- what neither of them specifies.\n\nThe third is real and must stay open. An unspecified detail is a choice you may\nmake on current evidence; it is not a gap to be filled by guessing a hidden\ncriterion, a canonical coordinate or an expert trajectory. Begin from current\npublic evidence.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAIAAABhdOiYAAAAaElEQVR4nO3QsQkAIBAEsBcUCysncP8tnUBsrwhkgrSz26zBS681qngSJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBH1cUXpfiIyJBHQAAAAASUVORK5CYII="
+       }
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nO3NMQ0AIBAEsIPwYcAFQvAvCxOwNenednafqX9GViUfCQQCgUAgEAgEglcu0fIXCTm1jekAAAAASUVORK5CYII="
+       }
+      }
+     ]
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "I read both cameras first.",
+     "tool_calls": [
+      {
+       "id": "c1",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\", \"wrist\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c1",
+     "name": "observe",
+     "content": "{\"status\": \"observed\", \"images\": 2}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c1)."
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAeCAIAAADRv8uKAAAANElEQVR4nO3NsQ0AEAAEwBdEYRzz2H8NI+hoLrn+yl51pL/XMnvygVgsFovFYrFYLBaL7w4AIhrEW2O/jgAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact position — 立方体在碗的左边。",
+     "tool_calls": [
+      {
+       "id": "c2",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.123456789012, -0.0456789012345, 0.210987654321], \"speed\": 0.25, \"note_for_the_log\": \"approach above the cube before descending; keep the wrist camera pointed down\"}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c2",
+     "name": "move_to",
+     "content": "{\"error\": {\"code\": \"unreachable\", \"message\": \"target outside the reach\"}}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 1}, \"last_action_effect\": {\"action_summary\": \"right arm 2.0 mm / 0.4\\u00b0 from target, reached, TCP moved 101 mm\", \"status\": \"reached\"}}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 1 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/1-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMUlEQVR4nO3NsQkAIBAEsBN8LFzLsRzeJfwukD7jnrlSfWZ2JY0EAoFAIBAIBALBLw919RdrO+TnHwAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "step-4",
+   "messages": [
+    {
+     "role": "system",
+     "content": "# Test Harness System\n\nUse the advertised tools. Check the task before you finish."
+    },
+    {
+     "role": "user",
+     "content": "# Test Project Rules\n\nKeep evidence and actions distinct.\n\n# Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Controlled points\n\n`grip` is the controlled point.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+    },
+    {
+     "role": "user",
+     "content": "Put the red cube in the bowl.\n\nThat sentence is the objective, in its exact words. Where a separately\nadvertised public completion contract is delivered for this episode, it states\npublicly what those words require; it introduces no private criterion and does\nnot replace the official verdict.\n\nRead the objective as three separate things and keep them separate:\n\n- what the task language itself requires;\n- what the public contract, where one is delivered, makes explicit that the\n  language left implicit;\n- what neither of them specifies.\n\nThe third is real and must stay open. An unspecified detail is a choice you may\nmake on current evidence; it is not a gap to be filled by guessing a hidden\ncriterion, a canonical coordinate or an expert trajectory. Begin from current\npublic evidence.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAIAAABhdOiYAAAAaElEQVR4nO3QsQkAIBAEsBcUCysncP8tnUBsrwhkgrSz26zBS681qngSJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBH1cUXpfiIyJBHQAAAAASUVORK5CYII="
+       }
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nO3NMQ0AIBAEsIPwYcAFQvAvCxOwNenednafqX9GViUfCQQCgUAgEAgEglcu0fIXCTm1jekAAAAASUVORK5CYII="
+       }
+      }
+     ]
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "I read both cameras first.",
+     "tool_calls": [
+      {
+       "id": "c1",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\", \"wrist\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c1",
+     "name": "observe",
+     "content": "{\"status\": \"observed\", \"images\": 2}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c1)."
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAeCAIAAADRv8uKAAAANElEQVR4nO3NsQ0AEAAEwBdEYRzz2H8NI+hoLrn+yl51pL/XMnvygVgsFovFYrFYLBaL7w4AIhrEW2O/jgAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact position — 立方体在碗的左边。",
+     "tool_calls": [
+      {
+       "id": "c2",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.123456789012, -0.0456789012345, 0.210987654321], \"speed\": 0.25, \"note_for_the_log\": \"approach above the cube before descending; keep the wrist camera pointed down\"}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c2",
+     "name": "move_to",
+     "content": "{\"error\": {\"code\": \"unreachable\", \"message\": \"target outside the reach\"}}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 1}, \"last_action_effect\": {\"action_summary\": \"right arm 2.0 mm / 0.4\\u00b0 from target, reached, TCP moved 101 mm\", \"status\": \"reached\"}}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 1 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/1-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMUlEQVR4nO3NsQkAIBAEsBN8LFzLsRzeJfwukD7jnrlSfWZ2JY0EAoFAIBAIBALBLw919RdrO+TnHwAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "",
+     "tool_calls": [
+      {
+       "id": "c3",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.1, 0.0, 0.2]}"
+       }
+      },
+      {
+       "id": "c3b",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c3",
+     "name": "move_to",
+     "content": "plain text result"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 2}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 2 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/2-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMElEQVR4nO3NsQkAIBAEsBN8LJzP6VzWJfwukD7jnlppNLMraSQQCAQCgUAgEAh+ecfvF5yioEE1AAAAAElFTkSuQmCC"
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "The cube is under the gripper; I read the front view again.",
+     "tool_calls": [
+      {
+       "id": "c4",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c4",
+     "name": "observe",
+     "content": "{\"success\": true, \"rows\": [\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c4)."
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABkCAIAAACemCBBAAAAiklEQVR4nO3PQQ2AQBAAsSXh4IFPRKIOH3NNaqDH9173rH2c86yZjQjXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnX/UwMpVnMDo4/AAAAAElFTkSuQmCC"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "step-5",
+   "messages": [
+    {
+     "role": "system",
+     "content": "# Test Harness System\n\nUse the advertised tools. Check the task before you finish."
+    },
+    {
+     "role": "user",
+     "content": "# Test Project Rules\n\nKeep evidence and actions distinct.\n\n# Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Controlled points\n\n`grip` is the controlled point.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+    },
+    {
+     "role": "user",
+     "content": "Put the red cube in the bowl.\n\nThat sentence is the objective, in its exact words. Where a separately\nadvertised public completion contract is delivered for this episode, it states\npublicly what those words require; it introduces no private criterion and does\nnot replace the official verdict.\n\nRead the objective as three separate things and keep them separate:\n\n- what the task language itself requires;\n- what the public contract, where one is delivered, makes explicit that the\n  language left implicit;\n- what neither of them specifies.\n\nThe third is real and must stay open. An unspecified detail is a choice you may\nmake on current evidence; it is not a gap to be filled by guessing a hidden\ncriterion, a canonical coordinate or an expert trajectory. Begin from current\npublic evidence.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAIAAABhdOiYAAAAaElEQVR4nO3QsQkAIBAEsBcUCysncP8tnUBsrwhkgrSz26zBS681qngSJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBAkSJEhQMEGCBAkSFEyQIEGCBAUTJEiQIEHBBH1cUXpfiIyJBHQAAAAASUVORK5CYII="
+       }
+      },
+      {
+       "type": "text",
+       "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nO3NMQ0AIBAEsIPwYcAFQvAvCxOwNenednafqX9GViUfCQQCgUAgEAgEglcu0fIXCTm1jekAAAAASUVORK5CYII="
+       }
+      }
+     ]
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "I read both cameras first.",
+     "tool_calls": [
+      {
+       "id": "c1",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\", \"wrist\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c1",
+     "name": "observe",
+     "content": "{\"status\": \"observed\", \"images\": 2}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c1)."
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAeCAIAAADRv8uKAAAANElEQVR4nO3NsQ0AEAAEwBdEYRzz2H8NI+hoLrn+yl51pL/XMnvygVgsFovFYrFYLBaL7w4AIhrEW2O/jgAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact position — 立方体在碗的左边。",
+     "tool_calls": [
+      {
+       "id": "c2",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.123456789012, -0.0456789012345, 0.210987654321], \"speed\": 0.25, \"note_for_the_log\": \"approach above the cube before descending; keep the wrist camera pointed down\"}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c2",
+     "name": "move_to",
+     "content": "{\"error\": {\"code\": \"unreachable\", \"message\": \"target outside the reach\"}}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 1}, \"last_action_effect\": {\"action_summary\": \"right arm 2.0 mm / 0.4\\u00b0 from target, reached, TCP moved 101 mm\", \"status\": \"reached\"}}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 1 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/1-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMUlEQVR4nO3NsQkAIBAEsBN8LFzLsRzeJfwukD7jnrlSfWZ2JY0EAoFAIBAIBALBLw919RdrO+TnHwAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "",
+     "tool_calls": [
+      {
+       "id": "c3",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.1, 0.0, 0.2]}"
+       }
+      },
+      {
+       "id": "c3b",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c3",
+     "name": "move_to",
+     "content": "plain text result"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 2}, \"last_action_effect\": null}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 2 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/2-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMElEQVR4nO3NsQkAIBAEsBN8LJzP6VzWJfwukD7jnlppNLMraSQQCAQCgUAgEAh+ecfvF5yioEE1AAAAAElFTkSuQmCC"
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "The cube is under the gripper; I read the front view again.",
+     "tool_calls": [
+      {
+       "id": "c4",
+       "type": "function",
+       "function": {
+        "name": "observe",
+        "arguments": "{\"views\": [\"front\"]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c4",
+     "name": "observe",
+     "content": "{\"success\": true, \"rows\": [\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c4)."
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABkCAIAAACemCBBAAAAiklEQVR4nO3PQQ2AQBAAsSXh4IFPRKIOH3NNaqDH9173rH2c86yZjQjXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnXCdcJ1wnX/UwMpVnMDo4/AAAAAElFTkSuQmCC"
+       }
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "Gripper closed on the cube.",
+     "tool_calls": [
+      {
+       "id": "c5",
+       "type": "function",
+       "function": {
+        "name": "move_to",
+        "arguments": "{\"position_m\": [0.1, 0.0, 0.3]}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "c5",
+     "name": "move_to",
+     "content": "{\"task_success\": false, \"status\": \"submitted\"}"
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 3}, \"last_action_effect\": {\"action_summary\": \"right arm reached, TCP moved 100 mm\", \"status\": \"reached\"}}"
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 3 · front · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/3-front\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMUlEQVR4nO3NsQkAIBAEsBOULxzYWd3GJfwukD7jnqqsPjN7JY0EAoFAIBAIBALBLw9r8hf+LoTGiwAAAABJRU5ErkJggg=="
+       }
+      },
+      {
+       "type": "text",
+       "text": "ACTION RESULT ACTUAL · sequence 3 · wrist · latest at this message"
+      },
+      {
+       "type": "text",
+       "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/3-wrist\"}</recoverable_artifact>"
+      },
+      {
+       "type": "image_url",
+       "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMUlEQVR4nO3NsQkAIBAEsBN8FFzckS1dQrtA+rSz50j907Mq+UggEAgEAoFAIBC8cgG97Bgvi/3p1wAAAABJRU5ErkJggg=="
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "observe",
+     "description": "Read camera images.",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+       "views": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "enum": [
+          "front",
+          "wrist"
+         ]
+        },
+        "description": "views (compact)."
+       }
+      },
+      "required": [
+       "views"
+      ]
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "move_to",
+     "description": "Move the grip point.",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+       "position_m": {
+        "type": "array",
+        "items": {
+         "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "position_m (compact)."
+       },
+       "speed": {
+        "type": [
+         "number",
+         "null"
+        ],
+        "minimum": 0.01,
+        "maximum": 1.0,
+        "description": "speed (compact)."
+       }
+      },
+      "required": [
+       "position_m"
+      ]
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "finish_episode",
+     "description": "End the episode; the environment judges success.",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+       "outcome": {
+        "type": "string",
+        "enum": [
+         "success",
+         "give_up"
+        ],
+        "description": "outcome (compact)."
+       },
+       "reason": {
+        "type": "string",
+        "description": "reason (compact)."
+       }
+      },
+      "required": [
+       "outcome",
+       "reason"
+      ]
+     }
+    }
+   }
+  ],
+  "steps": {
+   "step-0": {
+    "messages": [
+     {
+      "role": "system",
+      "content": "# Compact policy (synthetic test pack)\n\nYou control one simulated test arm through the advertised tools.\n\n## Ending\n\nCall finish_episode when the current observations show the task is complete.\n\n# Embodiment: Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+     },
+     {
+      "role": "user",
+      "content": "Put the red cube in the bowl.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "6e93e819e3ef1b2c3e44bd44aecc36a3f9daa30f66326d94374896b112896749"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "60c562c68cbc3d81cb86cd31151db73c96dda84432556a90dcf6d8a11ee31362"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+       }
+      ]
+     }
+    ],
+    "folded_turns": 0,
+    "omitted_images": 0
+   },
+   "step-2": {
+    "messages": [
+     {
+      "role": "system",
+      "content": "# Compact policy (synthetic test pack)\n\nYou control one simulated test arm through the advertised tools.\n\n## Ending\n\nCall finish_episode when the current observations show the task is complete.\n\n# Embodiment: Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+     },
+     {
+      "role": "user",
+      "content": "Put the red cube in the bowl.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "text",
+        "text": "[image omitted: INITIAL ACTUAL · sequence 0 · front · latest at this message]"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "60c562c68cbc3d81cb86cd31151db73c96dda84432556a90dcf6d8a11ee31362"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": "EARLIER STEPS (condensed; images and full results omitted):\n1. I read both cameras first. -> observe({\"views\":[\"front\",\"wrist\"]}) -> status observed"
+     },
+     {
+      "role": "assistant",
+      "content": "The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact position — 立方体在碗的左边。",
+      "tool_calls": [
+       {
+        "id": "c2",
+        "type": "function",
+        "function": {
+         "name": "move_to",
+         "arguments": "{\"position_m\": [0.123456789012, -0.0456789012345, 0.210987654321], \"speed\": 0.25, \"note_for_the_log\": \"approach above the cube before descending; keep the wrist camera pointed down\"}"
+        }
+       }
+      ]
+     },
+     {
+      "role": "tool",
+      "tool_call_id": "c2",
+      "name": "move_to",
+      "content": "{\"error\": {\"code\": \"unreachable\", \"message\": \"target outside the reach\"}}"
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 1}, \"last_action_effect\": {\"action_summary\": \"right arm 2.0 mm / 0.4\\u00b0 from target, reached, TCP moved 101 mm\", \"status\": \"reached\"}}"
+       },
+       {
+        "type": "text",
+        "text": "ACTION RESULT ACTUAL · sequence 1 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/1-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "eb31f46e038a51adbffe954280a379d60a2345a779f66ea873c798e8c09468d3"
+       }
+      ]
+     }
+    ],
+    "folded_turns": 1,
+    "omitted_images": 1
+   },
+   "step-4": {
+    "messages": [
+     {
+      "role": "system",
+      "content": "# Compact policy (synthetic test pack)\n\nYou control one simulated test arm through the advertised tools.\n\n## Ending\n\nCall finish_episode when the current observations show the task is complete.\n\n# Embodiment: Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+     },
+     {
+      "role": "user",
+      "content": "Put the red cube in the bowl.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "text",
+        "text": "[image omitted: INITIAL ACTUAL · sequence 0 · front · latest at this message]"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "60c562c68cbc3d81cb86cd31151db73c96dda84432556a90dcf6d8a11ee31362"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": "EARLIER STEPS (condensed; images and full results omitted):\n1. I read both cameras first. -> observe({\"views\":[\"front\",\"wrist\"]}) -> status observed\n2. The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact … -> move_to({\"position_m\":[0.123456789012,-0.0456789012345,0.210987654321],\"speed\":0.25,\"note_for_the_log\":\"approach above the cube before descending; keep the wrist camera…) -> error unreachable; effect: right arm 2.0 mm / 0.4° from target, reached, TCP moved 101 mm\n3. move_to({\"position_m\":[0.1,0.0,0.2]}) -> returned text; observe({\"views\":[\"front\"]}) -> no result"
+     },
+     {
+      "role": "assistant",
+      "content": "The cube is under the gripper; I read the front view again.",
+      "tool_calls": [
+       {
+        "id": "c4",
+        "type": "function",
+        "function": {
+         "name": "observe",
+         "arguments": "{\"views\": [\"front\"]}"
+        }
+       }
+      ]
+     },
+     {
+      "role": "tool",
+      "tool_call_id": "c4",
+      "name": "observe",
+      "content": "{\"success\": true, \"rows\": [\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"xx\n…[235 more characters omitted]"
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "READ-ONLY tool feedback: 1 image(s) returned by observe (c4)."
+       },
+       {
+        "type": "image",
+        "sha256": "448c765a4ef511554335e4b9340eb232daf7120b15d54b5f01acfa3dd6c95684"
+       }
+      ]
+     }
+    ],
+    "folded_turns": 3,
+    "omitted_images": 1
+   },
+   "step-5": {
+    "messages": [
+     {
+      "role": "system",
+      "content": "# Compact policy (synthetic test pack)\n\nYou control one simulated test arm through the advertised tools.\n\n## Ending\n\nCall finish_episode when the current observations show the task is complete.\n\n# Embodiment: Test Arm compiled embodiment v1\n\n## Identity\n\nOne fixed test arm with a parallel gripper.\n\n## Frames and units\n\nPositions are world metres; quaternions are [x,y,z,w].\n\n## Cameras\n\n`front`: fixed RGB-D camera."
+     },
+     {
+      "role": "user",
+      "content": "Put the red cube in the bowl.\n\nPublic completion contract for this task:\n\n- The cube rests inside the bowl."
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": false}, \"current_actual\": {\"actual_sequence\": 0}, \"last_action_effect\": null}"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "text",
+        "text": "[image omitted: INITIAL ACTUAL · sequence 0 · front · latest at this message]"
+       },
+       {
+        "type": "text",
+        "text": "INITIAL ACTUAL · sequence 0 · wrist · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/0-wrist\"}</recoverable_artifact>"
+       },
+       {
+        "type": "text",
+        "text": "[image omitted: INITIAL ACTUAL · sequence 0 · wrist · latest at this message]"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"round_static_facts\": {\"current_actual\": {\"camera\": \"front\"}}}"
+       }
+      ]
+     },
+     {
+      "role": "user",
+      "content": "EARLIER STEPS (condensed; images and full results omitted):\n1. I read both cameras first. -> observe({\"views\":[\"front\",\"wrist\"]}) -> status observed\n2. The front view shows the red cube left of the bowl and the gripper open above the table; the cube's top face is fully visible and nothing blocks the path, so I move the grip point above the cube at a safe height first, then descend in a second step after checking the wrist view for the cube's exact … -> move_to({\"position_m\":[0.123456789012,-0.0456789012345,0.210987654321],\"speed\":0.25,\"note_for_the_log\":\"approach above the cube before descending; keep the wrist camera…) -> error unreachable; effect: right arm 2.0 mm / 0.4° from target, reached, TCP moved 101 mm\n3. move_to({\"position_m\":[0.1,0.0,0.2]}) -> returned text; observe({\"views\":[\"front\"]}) -> no result\n4. The cube is under the gripper; I read the front view again. -> observe({\"views\":[\"front\"]}) -> success True"
+     },
+     {
+      "role": "assistant",
+      "content": "Gripper closed on the cube.",
+      "tool_calls": [
+       {
+        "id": "c5",
+        "type": "function",
+        "function": {
+         "name": "move_to",
+         "arguments": "{\"position_m\": [0.1, 0.0, 0.3]}"
+        }
+       }
+      ]
+     },
+     {
+      "role": "tool",
+      "tool_call_id": "c5",
+      "name": "move_to",
+      "content": "{\"task_success\": false, \"status\": \"submitted\"}"
+     },
+     {
+      "role": "user",
+      "content": [
+       {
+        "type": "text",
+        "text": "{\"comparison\": {\"available\": true}, \"current_actual\": {\"actual_sequence\": 3}, \"last_action_effect\": {\"action_summary\": \"right arm reached, TCP moved 100 mm\", \"status\": \"reached\"}}"
+       },
+       {
+        "type": "text",
+        "text": "ACTION RESULT ACTUAL · sequence 3 · front · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/3-front\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "5e84bea9b65dae9df086ee5ed5c2f8600164dda4c8e72f3de980b2bfda31ff12"
+       },
+       {
+        "type": "text",
+        "text": "ACTION RESULT ACTUAL · sequence 3 · wrist · latest at this message"
+       },
+       {
+        "type": "text",
+        "text": "<recoverable_artifact>{\"ref\":\"artifact://synthetic/3-wrist\"}</recoverable_artifact>"
+       },
+       {
+        "type": "image",
+        "sha256": "981a03fa922af75e0ad48ee763ca913506153003bf990e6b8db77605ee284e39"
+       }
+      ]
+     }
+    ],
+    "folded_turns": 4,
+    "omitted_images": 2
+   }
+  }
+ }
+}

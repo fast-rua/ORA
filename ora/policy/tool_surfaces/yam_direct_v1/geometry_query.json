@@ -1,0 +1,95 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "geometry_query",
+  "description": "Compute metric geometry from one policy-visible camera's published RGB-D and calibration: project world points to pixels, back-project pixels to world points, or summarise the valid depth of a rectangle.\nUse when: a geometric quantity must be derived from calibration rather than estimated from the picture. The clearest case is world_points_m, which is the only way to ask where a world coordinate you already hold falls in an image -- for locating the commanded TCP target, a planned waypoint or a proposal's pregrasp point in the view you are looking at, and for reading whether it is in front of the camera and inside the frame. region answers \"how deep is this patch\" over a rectangle without naming a pixel. Near miss against mark_point: if you want a pixel measured, kept under a name and re-checked against a complementary view, call mark_point -- it verifies a repeated name across views (a disagreement beyond 25 mm fails that entry), reports depth-support counts and draws the overlay. This tool's points is the same back-projection without the mark, the name, the cross-view check or the image; prefer it when you want the number now and nothing retained, or when the pixel belongs to a saved step rather than the current observation.\nEffect: read-only. It does not move the robot, change the scene, consume a robot decision, return any image, or persist a mark or reference; it reads the already-published observation artifacts and their calibration and returns numbers. Every result names the step and the source state it was computed from, and world_points_m additionally names the calibration hash it used.\nReturns: exactly one of world_points, points or region_result, alongside step, source_state_sha256 and camera. world_points gives, per requested point, its camera-frame coordinates, in_front, in_frame, and -- when it is in front of the camera -- exact and rounded pixel_uv plus the scene depth already at that pixel and the residual between the two. points gives, per requested pixel, valid plus the median depth, the supporting sample count and world_xyz_m when depth was usable. region_result gives the rectangle, its valid sample count and fraction, and min/median/max depth when any sample was valid.\nDoes not: identify or segment an object, decide visibility or occlusion, or prove reachability, collision clearance, contact, retention or task success. A positive depth_residual_m means the scene surface at that pixel is nearer than your point, which is evidence of occlusion and not a verdict on it; in_frame is image bounds, not line of sight. A single-view depth reading measures a visible surface, never an object centre or its hidden extent, and no returned number is simulator ground truth.\nOn error: send exactly one of points, region or world_points_m -- none or two is refused and the message names all three. Use the named view's own top-left OpenCV pixel frame, keep every pixel and the whole rectangle inside that image, and order the rectangle [x0,y0,x1,y1] with x0<x1 and y0<y1. Missing or invalid depth is reported, never inferred, and does not fail the call: a points entry returns valid false with no depth or world_xyz_m, region_result reports valid_count 0 with no depth_m, and a projected world point carries null scene_depth_m and depth_residual_m. To obtain a reading, move the pixel farther inside the intended surface, widen window_px, or read a complementary view. The camera list is fixed: overhead, front, wrist_left, wrist_right. wrist_left and wrist_right move with their arms, so their calibration is valid only at the pose they were captured at -- after any motion, query the fresh observation instead of reusing an earlier pixel from it. Adjacent calculation: use compute for arithmetic on already supplied world-frame numbers. Keep projection, back-projection and depth sampling here so they bind the selected observation and calibration.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "camera"
+    ],
+    "properties": {
+      "camera": {
+        "type": "string",
+        "enum": [
+          "overhead",
+          "front",
+          "wrist_left",
+          "wrist_right"
+        ],
+        "description": "The policy-visible RGB-D camera whose published depth and calibration bind this query. Pixels and rectangles are in this camera's own top-left OpenCV frame at its published resolution; world coordinates are metres in the world frame."
+      },
+      "world_points_m": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "minItems": 1,
+        "maxItems": 16,
+        "description": "One to sixteen world-frame points to project into this camera's image. Send this to find out where a coordinate you already hold appears in the view. Exactly one of world_points_m, points or region may be sent; window_px does not apply to this operation. Null means omitted.",
+        "items": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "One world-frame point as [x,y,z] in metres.",
+          "items": {
+            "type": "number",
+            "description": "Finite world-frame coordinate in metres."
+          }
+        }
+      },
+      "points": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "minItems": 1,
+        "maxItems": 16,
+        "description": "One to sixteen source pixels to back-project to world points, without persisting a mark or returning an image. Exactly one of world_points_m, points or region may be sent. Null means omitted.",
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "One pixel as [u,v] in integer pixels of this camera's image, top-left OpenCV origin: u from the left edge, v from the top.",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Non-negative pixel coordinate inside this camera's published width and height."
+          }
+        }
+      },
+      "region": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "minItems": 4,
+        "maxItems": 4,
+        "description": "One source-image rectangle [x0,y0,x1,y1] in integer pixels, top-left OpenCV origin, with x0<x1 and y0<y1 and the whole rectangle inside the image, summarised over its valid depth. Exactly one of world_points_m, points or region may be sent; window_px does not apply to this operation. Null means omitted.",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rectangle edge in pixels of this camera's image."
+        }
+      },
+      "window_px": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0,
+        "maximum": 15,
+        "default": 3,
+        "description": "Half-width in pixels of the square depth window whose median is taken when back-projecting each entry of points; 0 reads the single pixel. Default 3. Ignored by world_points_m and region. Null means omitted."
+      },
+      "step": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0,
+        "description": "Saved policy-state step to read. Omit or send null for the current observation; a saved step answers from the artifacts published at that step, not from the world as it is now."
+      }
+    }
+  }
+}

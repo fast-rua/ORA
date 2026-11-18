@@ -5,13 +5,11 @@ from .continuation import (
     PROVIDER_CONTINUATION_STATE_SCHEMA,
     ProviderContinuationState,
 )
-from .native import (
-    AnthropicMessagesProvider,
-    FakeProvider,
-    OpenAICompatibleProvider,
-    build_native_provider,
-    translate_anthropic_request,
-)
+from .anthropic_messages import AnthropicMessagesProvider
+from .fake import FakeProvider
+from .openai_compatible import OpenAICompatibleProvider
+from .factory import build_provider
+from .anthropic_request import translate_anthropic_request
 from .profiles import (
     BUILTIN_PROVIDER_CATALOG,
     NativeProviderProfileError,
@@ -30,7 +28,7 @@ __all__ = [
     "PROVIDER_CONTINUATION_MESSAGE_KEY",
     "PROVIDER_CONTINUATION_STATE_SCHEMA",
     "ProviderContinuationState",
-    "build_native_provider",
+    "build_provider",
     "load_builtin_provider_profiles",
     "load_provider_profiles",
     "probe_native_provider",

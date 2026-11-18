@@ -16,8 +16,9 @@ local joint-jump bound. That ordering never admits a candidate.
 Each admitted candidate's straight joint path is screened with the SDK's own
 collision spheres: against this arm itself, and -- when the other arm holds
 still -- against the other arm at its measured joints (EXP11A g012 E11G12-004a:
-15 of 80 stalls were one arm driving into the other). An arm that moves with
-the other one in the same command is left to ``lockstep_inter_arm``.
+15 of 80 stalls were one arm driving into the other). For a move of both arms
+each is screened against itself here, and the pair in lockstep by
+``kinematics_query.screen_path``.
 """
 from __future__ import annotations
 
@@ -32,6 +33,8 @@ from ora.contracts.planning_diagnostics import SCHEMA, validate_planning_diagnos
 from ora.environment.controllers.joint_path_clearance import (
     INTER_ARM_MINIMUM_CLEARANCE_M, InterArmSphereScreen, JointPathClearanceError, SphereSelfCollisionModel,
 )
+
+from ora.contracts.refusal import EnvironmentRefusal
 
 from .bridge import RobodojoError
 from .common import (
@@ -111,12 +114,123 @@ def articulation_limits(session: Any, arm: str) -> list[list[float]]:
     raise RobodojoError("RoboDojo articulation exposes no joint limits")
 
 
+#: How an SDK IK solve was seeded (``seeding.rule`` in every IK record).
+SEEDING_INTERNAL = "solver_internal_seed_sequence"
+SEEDING_EXPLICIT = "explicit_solver_seed_sequence_v1"
+
+
+def seed_generator(planner: Any) -> tuple[Any, Any, str]:
+    """The sample buffer, index generator and owner a default ``solve_pose`` draws its random seeds from.
+
+    CuRobo's ``IKSolver`` keeps ``use_lm_seed=True`` by default (the SDK
+    leaves it): ``solve_pose`` then hands the current joints to its
+    ``SeedIKSolver``, which completes them with draws from its own Halton
+    buffer (``act_sample_gen``, ``sampler_seed`` 451) and passes its best
+    ``num_seeds`` solutions to the main solver as a full ``seed_config``, so
+    the main solver draws nothing and that buffer's index generator is the
+    one that advances. Without LM seeding the main solver's seed manager
+    draws (``action_sample_generator``, seed 123). ``(None, None, owner)``
+    when the solver exposes neither.
+    """
+    solver = getattr(planner, "ik_solver", None)
+    lm = bool(getattr(getattr(solver, "config", None), "use_lm_seed", False))
+    if lm:
+        buffer = getattr(getattr(solver, "seed_ik_solver", None), "act_sample_gen", None)
+    else:
+        buffer = getattr(getattr(solver, "seed_manager", None), "action_sample_generator", None)
+    generator = getattr(buffer, "_int_gen", None)
+    return buffer, generator, "seed_ik_solver" if lm else "ik_solver"
+
+
+def no_seed_generator(owner: str) -> EnvironmentRefusal:
+    """The typed refusal of a solver whose seed generator cannot be read or set (never an RPC crash)."""
+    return EnvironmentRefusal(
+        f"the SDK IK solver exposes no readable seed generator ({owner}); explicit, reproducible IK seeding "
+        "is unavailable on this runtime (seeding_unavailable)",
+        field="seeding", received=owner, allowed=[])
+
+
+def generator_state(generator: Any) -> str | None:
+    """The index generator's state as hex (CUDA philox: a few bytes), or None when it exposes none."""
+    getter = getattr(generator, "get_state", None)
+    if not callable(getter):
+        return None
+    state = getter()
+    data = state.cpu().numpy() if hasattr(state, "cpu") else np.asarray(state, dtype=np.uint8)
+    return bytes(np.asarray(data, dtype=np.uint8).tobytes()).hex()
+
+
+def restore_generator_state(planner: Any, state_hex: str) -> None:
+    """Set the seed generator back to a recorded state (replay/fork re-solve without the history)."""
+    _, generator, owner = seed_generator(planner)
+    if not callable(getattr(generator, "set_state", None)):
+        raise no_seed_generator(owner)
+    data = bytes.fromhex(state_hex)
+    try:
+        import torch
+        value = torch.tensor(list(data), dtype=torch.uint8)
+    except ImportError:  # a stub generator outside the runtime interpreter
+        value = np.frombuffer(data, dtype=np.uint8).copy()
+    generator.set_state(value)
+
+
+def _concatenate_seeds(first: Any, drawn: Any) -> Any:
+    try:
+        import torch
+    except ImportError:  # stub arrays outside the runtime interpreter
+        torch = None
+    if torch is not None and isinstance(first, torch.Tensor):
+        return torch.cat([first, drawn.to(dtype=first.dtype, device=first.device)], dim=1)
+    return np.concatenate([np.asarray(first, dtype=float), np.asarray(drawn, dtype=float)], axis=1)
+
+
+def _explicit_seed_config(planner: Any, current_state: Any, count: int) -> tuple[Any, dict[str, Any]]:
+    """The seeds a default solve would use -- the current joints, then the next draws of its own
+    generator -- passed explicitly so the solver draws nothing itself.
+
+    LM mode: ``SeedIKSolver._generate_seed_configs`` completes the current
+    joints with ``act_sample_gen.get_samples(batch * (n - 1), bounded=True)``
+    (``n`` the seed solver's ``num_seeds``, ``batch`` the solver's
+    ``max_batch_size``; problem 0 takes the first ``n - 1``). The same draw is
+    made here and ``cat(current, draws)`` passed as ``seed_config``; the seed
+    solver then draws nothing and the main solver receives its full seeds as
+    before. Without LM seeding the main solver's seed manager completes them
+    (``prepare_action_seeds``).
+    """
+    buffer, generator, owner = seed_generator(planner)
+    if buffer is None or generator_state(generator) is None:
+        raise no_seed_generator(owner)
+    before = generator_state(generator)
+    first = current_state.position.reshape(1, 1, -1)
+    if owner == "seed_ik_solver":
+        total = int(planner.ik_solver.seed_ik_solver.config.num_seeds)
+        batch = int(getattr(planner.ik_solver.config, "max_batch_size", 1) or 1)
+        if not callable(getattr(buffer, "get_samples", None)) or total < 1:
+            raise no_seed_generator(owner)
+        drawn = buffer.get_samples(batch * (total - 1), bounded=True).reshape(batch, total - 1, -1)[:1]
+        seeds = _concatenate_seeds(first, drawn)
+    else:
+        manager = getattr(planner.ik_solver, "seed_manager", None)
+        if not callable(getattr(manager, "prepare_action_seeds", None)):
+            raise no_seed_generator(owner)
+        total = max(int(getattr(planner.ik_solver.config, "num_seeds", count)), count)
+        # CuRobo's own completion of a partial seed_config: the provided seed, then
+        # the next draws of this generator -- what the default solve does inside.
+        seeds = manager.prepare_action_seeds(1, total, seed_config=first).reshape(1, total, -1)
+    return seeds, {"rule": SEEDING_EXPLICIT, "generator": owner, "generator_state_before_hex": before,
+                   "seeds_passed": int(total), "seed_config": "current_joints_then_drawn"}
+
+
 def sdk_candidates(planner: Any, current: Sequence[float], pose: Sequence[float],
-                   robot_base_pose: Sequence[float]) -> dict[str, Any]:
+                   robot_base_pose: Sequence[float], *, explicit_seeds: bool = False) -> dict[str, Any]:
     """Use the SDK's own transform/builders, retaining every returned seed.
 
     ``pose`` is public world link6 xyzw. The SDK owns world/base conversion;
     result joint order is name-bound even when locked finger joints appear.
+    ``seeding`` records the seed generator's state before and after the solve; with
+    ``explicit_seeds`` the seeds the default solve would draw are drawn here
+    and passed as ``seed_config`` (same sequence, nothing drawn inside), so a
+    recorded solve can be repeated from its generator state alone.
     """
     from utils.transformer import calculate_target_pose
 
@@ -128,10 +242,23 @@ def sdk_candidates(planner: Any, current: Sequence[float], pose: Sequence[float]
     count = min(MAX_CANDIDATES, int(planner.ik_solver.config.num_seeds))
     if count < 1:
         raise RobodojoError("SDK IK has no configured seeds")
-    result = planner.ik_solver.solve_pose(
-        goal_tool_poses=planner._build_goal_pose(position, quaternion),
-        current_state=planner._build_joint_state(current), return_seeds=count,
-    )
+    current_state = planner._build_joint_state(current)
+    if explicit_seeds:
+        seed_config, seeding = _explicit_seed_config(planner, current_state, count)
+        result = planner.ik_solver.solve_pose(
+            goal_tool_poses=planner._build_goal_pose(position, quaternion),
+            current_state=current_state, seed_config=seed_config, return_seeds=count,
+        )
+    else:
+        _, generator, owner = seed_generator(planner)
+        seeding = {"rule": SEEDING_INTERNAL, "generator": owner,
+                   "generator_state_before_hex": generator_state(generator)}
+        result = planner.ik_solver.solve_pose(
+            goal_tool_poses=planner._build_goal_pose(position, quaternion),
+            current_state=current_state, return_seeds=count,
+        )
+    # The state after the solve: equal to the default solve's when seeds were passed explicitly.
+    seeding["generator_state_after_hex"] = generator_state(seed_generator(planner)[1])
     names = list(result.js_solution.joint_names)
     active = list(planner.active_joints_name)
     if len(set(names)) != len(names) or len(set(active)) != len(active) or not set(active) <= set(names):
@@ -144,7 +271,7 @@ def sdk_candidates(planner: Any, current: Sequence[float], pose: Sequence[float]
     if success.shape != (1, count) or feasible.shape != (1, count):
         raise RobodojoError("SDK IK candidate feasibility dimensions drifted")
     return {"joint_names": active, "solutions": values, "success": success[0].astype(bool),
-            "feasible": feasible[0].astype(bool),
+            "feasible": feasible[0].astype(bool), "seeding": seeding,
             "revolute": [name in ARX_X5_REVOLUTE_JOINT_NAMES for name in active],
             "pitch": [name in ARX_X5_PITCH_JOINT_NAMES for name in active],
             "position_tolerance_m": float(planner.ik_solver.config.position_tolerance),
@@ -414,16 +541,15 @@ def select_candidate_set(*, candidates: Mapping[str, Any], current: Sequence[flo
 def solve_ik(session: Any, arm: str, pose: Sequence[float], *,
              jump_limit_rad: float | None = None,
              current: Sequence[float] | None = None,
-             static_other_arm: bool = True) -> dict[str, Any]:
+             static_other_arm: bool = True, explicit_seeds: bool = False) -> dict[str, Any]:
     """One bounded SDK IK selection from ``current`` (default: the measured joints).
 
-    A read-only reach check passes an earlier solution as ``current`` to answer
-    a chained pose the way the executor would reach it; every write path keeps
-    the measured default. The canonical-interval preference is bounded by the
-    session's local joint-jump bound on every consumer, global moves included.
-    ``static_other_arm`` screens each path against the other arm held at its
-    measured joints; a caller moving both arms passes ``False`` and screens
-    the pair with ``lockstep_inter_arm``.
+    ``kinematics_query`` passes an earlier solution as ``current`` to chain
+    poses; the runtime action v3 ``move_pose`` keeps the measured default. The
+    canonical-interval preference is bounded by the session's local joint-jump
+    bound on every consumer. ``static_other_arm`` screens each path against the
+    other arm held at its measured joints; a caller moving both arms passes
+    ``False`` and screens the pair itself.
     """
     from .reachability import fk_link6
 
@@ -431,11 +557,12 @@ def solve_ik(session: Any, arm: str, pose: Sequence[float], *,
     current = (array(manager.get_joint(robot, env_idx_list=[0])[0]) if current is None
                else np.asarray(current, dtype=float))
     planner = manager.ik_solver[robot.robot_name]
-    candidates = sdk_candidates(planner, current, pose, robot.entity_origin_pose)
+    candidates = sdk_candidates(planner, current, pose, robot.entity_origin_pose,
+                                **({"explicit_seeds": True} if explicit_seeds else {}))
     if candidates["joint_names"] != list(robot.arm_joints_name):
         raise RobodojoError("SDK IK active order differs from the controlled articulation")
     screen, other = path_screen(session, arm, static_other_arm=static_other_arm)
-    return select_candidate_set(
+    return {"seeding": candidates.get("seeding")} | select_candidate_set(
         candidates=candidates, current=current, limits=articulation_limits(session, arm), target=pose,
         fk=lambda q: fk_link6(session, arm, q),
         jump_limit_rad=session.global_joint_jump_limit_rad if jump_limit_rad is None else jump_limit_rad,
@@ -498,20 +625,6 @@ def path_screen(session: Any, arm: str, *, static_other_arm: bool = True,
         return {**evidence, "status": between["status"], "inter_arm": between}
 
     return clearance, other
-
-
-def lockstep_inter_arm(session: Any, starts: Mapping[str, Sequence[float]],
-                       targets: Mapping[str, Sequence[float]]) -> dict[str, Any] | None:
-    """Screen the named arms' straight joint lines in lockstep with every other arm.
-
-    An arm not named moves from its measured joints to the target the plant
-    still applies to it. ``None`` when the embodiment has no second arm.
-    """
-    if set(session.robots) != set(OTHER_ARM):
-        return None
-    first = {arm: list(starts[arm]) if arm in starts else measured_arm_joints(session, arm) for arm in OTHER_ARM}
-    last = {arm: list(targets[arm]) if arm in targets else retained_arm_target(session, arm) for arm in OTHER_ARM}
-    return inter_arm_screen(session).straight_paths(first, last)
 
 
 def inter_arm_screen(session: Any) -> InterArmSphereScreen:

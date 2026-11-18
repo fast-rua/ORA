@@ -1,13 +1,25 @@
 #!/usr/bin/env sh
-# Repository-local wrapper for the canonical Orchestrator CLI.
-# It selects the locked project interpreter when available and adds no commands.
+# Repository-local wrapper for the ora command (python -m ora.app).
+# It selects the locked project interpreter when available and adds no commands:
+# the checkout's .venv, else an explicit $PYTHON, else uv's project environment
+# ($UV_PROJECT_ENVIRONMENT, a shared locked venv), and only then python3 from
+# PATH, which is said on stderr (any python3 on PATH, a conda base for one,
+# would run the Harness outside the locked environment).
+# scripts/lib/python.sh gives the other wrappers this order and, before python3,
+# lets `uv run --locked` create the checkout's .venv; this one keeps its own
+# copy of the order without that step, so that it also works on its own.
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 if [ -x "$ROOT/.venv/bin/python" ]; then
   PYTHON="$ROOT/.venv/bin/python"
+elif [ -n "${PYTHON:-}" ]; then
+  :
+elif [ -n "${UV_PROJECT_ENVIRONMENT:-}" ] && [ -x "$UV_PROJECT_ENVIRONMENT/bin/python" ]; then
+  PYTHON="$UV_PROJECT_ENVIRONMENT/bin/python"
 else
-  PYTHON=${PYTHON:-python3}
+  PYTHON=python3
+  echo "ora: no locked project environment ($ROOT/.venv, \$PYTHON or \$UV_PROJECT_ENVIRONMENT); using $(command -v python3 || echo python3) from PATH (uv sync --locked creates .venv)" >&2
 fi
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
-exec "$PYTHON" -m ora.orchestrator.cli "$@"
+exec "$PYTHON" -m ora.app "$@"

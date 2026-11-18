@@ -1,0 +1,23 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_motion_dispatch_compiles_and_persists/motion[None-left-move_pose]": "a8d1ea8468356b074e861414300597788dd377005c2b9c1f25330e0e82752b69",
+  "test_motion_dispatch_compiles_and_persists/motion[None-left-move_to]": "8eeab3cb512f7c2dc812af5e08d222b5d688e8234c7d77a698a2e258447ddb0e",
+  "test_motion_dispatch_compiles_and_persists/motion[None-right-move_pose]": "d63f4e55ecc606661ff17fba34b566ecd165d16e32bd71ea22170ab3225dd4a0",
+  "test_motion_dispatch_compiles_and_persists/motion[None-right-move_to]": "3709e1114d8e5d7ea2181f2a2ccce361be2e05878e72e9e22bf19ce6ecbcbd37",
+  "test_motion_dispatch_compiles_and_persists/motion[arguments-left-move_pose]": "53809978e5bf4b5d52ea5081bd92595aed0a077a21ed8ca111fde778bff909f5",
+  "test_motion_dispatch_compiles_and_persists/motion[arguments-left-move_to]": "60255b0c3001dc6a5c12919d20cceff15c9903232f78aaba44aa2b8a2a73efd9",
+  "test_motion_dispatch_compiles_and_persists/motion[arguments-right-move_pose]": "d414fd826d88619bc8e98fd04ac2f22f34d4d1559ce9ce069727458722a4e620",
+  "test_motion_dispatch_compiles_and_persists/motion[arguments-right-move_to]": "c44ac33561bc7983a3865158821ecad34b4d4b105491805812af8e21e02799e6",
+  "test_motion_dispatch_compiles_and_persists/motion[workspace-left-move_pose]": "f83303d35d09c51f273f3b1de7d82637c077b77037bb49ba99808d94a6ec5112",
+  "test_motion_dispatch_compiles_and_persists/motion[workspace-left-move_to]": "f83303d35d09c51f273f3b1de7d82637c077b77037bb49ba99808d94a6ec5112",
+  "test_motion_dispatch_compiles_and_persists/motion[workspace-right-move_pose]": "b02a4cf45a90307278fbbaa3f1981302c6e0f8178122abaaa0cd1ee417f2c689",
+  "test_motion_dispatch_compiles_and_persists/motion[workspace-right-move_to]": "b02a4cf45a90307278fbbaa3f1981302c6e0f8178122abaaa0cd1ee417f2c689",
+  "test_motion_orientations_and_ik_references/motion[absolute]": "0df05a153d0f1d74ef9db99c5914c1099b01be1ec022b1fb49a1cc0021a5b731",
+  "test_motion_orientations_and_ik_references/motion[axes]": "1d872b65e9c942c525edf87aebd36fab56ab9ae2a08cdcdf00a7a563f40ed107",
+  "test_motion_orientations_and_ik_references/motion[backend_error]": "530b41a8211785965de63c447de2ea213632b25f156393346b52f5f7cdbc2553",
+  "test_motion_orientations_and_ik_references/motion[both]": "5ff2d74f3163d4216c4437ed2d9e1a0da089e81f0c2d5c6b26eefd3f56178000",
+  "test_motion_orientations_and_ik_references/motion[delta]": "eb66a111459cbf5ea8752963b8a9d3acb07c9fd50ee6dba171d8d09016735a5c",
+  "test_motion_orientations_and_ik_references/motion[unreachable]": "7e2f67d446aae352cb7bee480e305759183d71f85e78d3c326a12c8bcbe44d69"
+ }
+}

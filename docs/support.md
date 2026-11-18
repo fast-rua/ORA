@@ -4,13 +4,15 @@ These are supported integrations, not success-rate claims. A configuration absen
 
 | Environment | Suites / tasks | Status | Runtime |
 |---|---|---|---|
-| Synthetic | One-action infrastructure demonstration; M0 qualification | Supported | CPU, no simulator |
+| Synthetic | One-action infrastructure demonstration | Supported | CPU, no simulator |
 | LIBERO | Spatial, Object, Goal, LIBERO-10 | Supported | Panda; direct LIBERO worker |
 | LIBERO-Pro | Source-paired Obj/Pos/Sem/Task variants | Supported | Panda; authoritative BDDL/init-state data |
 | RoboTwin | 50 tasks, `demo_clean` and `demo_randomized` | Supported | ALOHA; SAPIEN worker |
-| RoboDojo | Tasks in the shipped registry and reviewed layout pool | Supported | ARX; Isaac worker |
+| RoboDojo | Tasks in the shipped registry, on layout 0, a reviewed layout pool or a reviewed portable official layout | Supported | ARX; Isaac worker |
+| RoboCasa365 | OpenDrawer, PickPlaceCounterToCabinet, NavigateKitchen (target split) | Admitted roster | PandaOmron mobile manipulator; MuJoCo worker on Mesa EGL |
+| RoboLab | All 120 RoboLab-120 tasks; a task launches once its completion contract is reviewed (three so far) | Admitted roster | DROID Franka with Robotiq 2F-85; Isaac Sim 5.1 worker |
 
-LIBERO-Pro Env perturbations are not claimed reproducible by the core dataset path. RoboDojo tasks/layouts must be in the source-bound compatibility catalog. A task's presence does not promise that a selected model can solve it.
+LIBERO-Pro Env perturbations are not claimed reproducible by the core dataset path. RoboDojo tasks/layouts must be in the source-bound compatibility catalog, or, for one episode on another official layout, in the reviewed layout-portability table ([seeds and case lists](evaluation/protocol.md#seeds-and-case-lists)). RoboCasa365 admits only the listed tasks ([backends](reference/robocasa-robolab-backends.md)); RoboLab admits all 120 and launches those whose contract review is complete ([RoboLab tasks](reference/robolab-tasks.md)). A task's presence does not promise that a selected model can solve it.
 
 ## Model connections
 
@@ -28,6 +30,6 @@ ORA's canonical environment is Python 3.11 on Linux. Synthetic uses CPU only. Th
 
 The [single-GPU path](getting-started/single-gpu.md) (`ora setup --env`, `ora run --env`) installs Torch 2.7 cu128 in every simulator environment and builds CuRobo for the GPU's compute capability. It was verified end to end, with one official success in each of LIBERO, RoboTwin and RoboDojo, on one RTX PRO 6000 Blackwell (compute capability 12.0) with driver 580.159.04 on Ubuntu 24.04. On one H200 (Hopper, driver 595) the same path passed installation, qualification and every launch preflight check except the model request, which was not run. Ada, Ampere and Turing use the same commands. Its shipped `single-gpu` host requires 20 GB of free GPU memory for a RoboTwin or RoboDojo launch, on top of the ~8 GB the perception services hold.
 
-GPU memory depends on scene assets, renderer, motion planner and perception services. There is no single minimum VRAM claim for all three environments. Declare GPU slots in a host profile and let preflight check capacity and qualification; do not infer readiness from `nvidia-smi` alone.
+GPU memory depends on scene assets, renderer, motion planner and perception services. There is no single minimum VRAM claim for all environments. Declare GPU slots in a host profile and let preflight check capacity and qualification; do not infer readiness from `nvidia-smi` alone.
 
 Benchmarks, simulator SDKs, model weights and assets are downloaded separately and keep their upstream licenses. ORA does not distribute them.

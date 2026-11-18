@@ -339,7 +339,6 @@ pre{white-space:pre-wrap;border:1px solid var(--line);padding:14px;overflow:auto
 .verdict-stamp{align-self:start;min-width:112px;padding:14px 16px;border:1px solid var(--line);text-align:center;}
 
 .verdict-stack{display:grid;gap:8px;justify-items:stretch;}
- .control-validity{min-width:112px;padding:7px 9px;border:1px solid var(--line);text-align:center;}
 
 .episode-meta{display:grid;grid-template-columns:1.1fr 1.6fr 1fr 2.2fr .8fr;border-bottom:1px solid var(--line);}
 
@@ -946,9 +945,9 @@ code{overflow-wrap:anywhere;}
 .episode-meta strong, .composition-facts strong { font-weight: 500; }
 .episode-stat strong, .libero-counts strong, .xview-roster strong,
 .xview-outcomes strong, .metric-primary { font-size: 18px; font-weight: 600; }
-.verdict-stamp, .control-validity, .outcome-mark, .xview-verdict,
+.verdict-stamp, .outcome-mark, .xview-verdict,
 .xview-control, .step-badge { padding: 4px 8px; font-size: 12px; border-radius: var(--radius); }
-.verdict-stamp, .control-validity { min-width: 100px; }
+.verdict-stamp { min-width: 100px; }
 .session-contract { padding: 16px 0; }
 .session-contract h2 { font-size: 18px; }
 .session-contract p, .session-identity { font-size: 12px; color: var(--muted); }
@@ -1049,9 +1048,9 @@ code{overflow-wrap:anywhere;}
 .round-cell strong, .round-summary strong { font: 500 13px var(--sans); }
 .round-cell a { color: inherit; }
 .round-cell.success strong, .ok, .verdict-stamp.success, .round-card strong.success,
-.outcome-mark.success, .xview-verdict.success, .control-validity.control-valid { color: var(--success); }
+.outcome-mark.success, .xview-verdict.success { color: var(--success); }
 .round-cell.failure strong, .bad, .verdict-stamp.failure, .round-card strong.failure,
-.outcome-mark.failure, .xview-verdict.failure, .control-validity.contaminated { color: var(--failure); }
+.outcome-mark.failure, .xview-verdict.failure { color: var(--failure); }
 .round-cell.incomplete strong, .round-cell.running strong { color: var(--warning); }
 .round-cell.not_run, .round-na { color: var(--muted); }
 .xview-head { padding: 16px; }
@@ -1078,7 +1077,3 @@ code{overflow-wrap:anywhere;}
   .process-screen-footer { flex-wrap: wrap; gap: 6px; }
   .libero-field-guide { margin: 0; padding: 0; }
 }
-.live-world-cameras { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.live-world-cameras figure { margin: 0; border: 1px solid var(--line); }
-.live-world-cameras img { display: block; width: 100%; height: auto; object-fit: contain; }
-.live-world-cameras figcaption { padding: 6px 8px; }

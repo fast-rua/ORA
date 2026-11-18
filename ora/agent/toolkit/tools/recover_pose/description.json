@@ -1,0 +1,79 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "recover_pose",
+  "description": "Undo the selected arms' latest arm-moving tool call by backing each arm out the way it came, one call per recover_pose. Limits: only the most recent 5 arm-moving tool calls per arm in this round can be undone, one per call; older moves cannot be retraced, so use return_home (straight back to the start pose, regardless of path) or move_pose instead. Use when: the last move went wrong (a collision, a stall, a bad approach) and the arm should leave the way it entered. Effect: world mutation; each arm retraces the joints measured during that call (where it actually went, also after a stall) backwards to where the call started, at move_pose's normal speed, as one smooth joint trajectory of at most 250 native actions (about 2.4 m of path) with a short settle. It undoes only ARM MOTION, that of the pose-moving tools (move_pose, move_to, rotate_wrist, rotate_pitch, the arm stages of grasp_execute), and never changes the gripper: an undone grasp does not reopen the jaws, and an object held now comes back along the path with the hand. To put it down first, call set_gripper to open, then recover_pose. The path is screened before anything moves against the arm itself, the table top and the other arm (SDK collision spheres; no objects or held payload); omitted arms receive no drive target. A call is undone only when its whole path was retraced; a retrace cut short or stopped by contact continues on the next call from where the arm stands on that path. Returns: the receipt and remaining_budget; arms.<arm>.recovery_progress gives outcome (arrived; arrived_not_settled; cut_short, the budget covered only part of the path, call again; stalled; still_moving_at_window_end; episode_terminal; or unknown when unmeasured), joint_distance_start_deg and joint_distance_end_deg, and undo: undone_call (tool_call_id, tool, ordinal), complete or path_left_fraction, and undoable_calls (newest first); the next observation follows with the current camera images, and every arm-moving tool's receipt gives motion_progress.undo_depth. Does not: reset the episode, restore moved objects or evaluator state, open or close a gripper, redo an undone call, undo physics, act as an emergency stop, model scene or payload collisions, or guarantee escape from contact. On error: Refused: arms empty, repeated or outside left and right; the episode's terminal boundary (episode_terminal). Rejected before anything moves, as plan_rejected with failure_code and use_instead (return_home, move_pose): nothing left to undo (retrace_nothing_to_undo), a run that records no undo paths (retrace_not_recorded), the arm off its latest call's path because it moved since by another route (retrace_arm_off_path); a blocked path (recovery_self_collision_path, recovery_inter_arm_collision_path or recovery_table_collision_path). The previous applied gripper drive target is held, including an intermediate SDK-limited target. Requested close and applied target are separate in current feedback.\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "arms": {
+        "description": "The arms that undo their latest arm-moving tool call, e.g. [\"left\"]. Each arm backs out along that call's measured path to where the call started.",
+        "items": {
+          "enum": [
+            "left",
+            "right"
+          ],
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 1,
+        "type": "array",
+        "uniqueItems": true
+      }
+    },
+    "required": [
+      "arms"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

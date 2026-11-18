@@ -1,0 +1,40 @@
+{
+ "type": "object",
+ "description": "stride_aging (phase age, first): when the age stages move their frontiers, and to where.",
+ "properties": {
+  "stride": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "ActionSteps a frontier must lag its target by before it moves (A4)."
+  },
+  "strided": {
+   "type": "boolean",
+   "default": true,
+   "description": "false: every frontier moves at each fresh observation (v4's unstrided aging); its stride is 1."
+  }
+ },
+ "required": [
+  "stride",
+  "strided"
+ ],
+ "additionalProperties": false,
+ "anyOf": [
+  {
+   "properties": {
+    "strided": {
+     "const": true
+    }
+   }
+  },
+  {
+   "properties": {
+    "strided": {
+     "const": false
+    },
+    "stride": {
+     "const": 1
+    }
+   }
+  }
+ ]
+}

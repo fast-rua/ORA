@@ -1,0 +1,19 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "report_issue",
+  "description": "Record concise feedback about a tool, observation, or context defect. Use when: the policy encounters an interface or evidence problem worth preserving, not merely normal task difficulty. Effect: read-only with respect to the world and appends one diagnostic record without ending the episode. Returns: an acknowledgement after the diagnostic record is persisted; the Native acknowledgement may contain no additional decision fields.\nDoes not: repair the issue, change the robot or environment, consume a robot action, determine task success, or finish the episode. On error: Refused: any field other than message, or a message that is empty or only whitespace (invalid_arguments). Shorten the message to one concrete symptom and continue only if the remaining evidence is safe to use.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "message": {
+        "description": "Concise concrete description of the interface or evidence defect.",
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "type": "object"
+  }
+}

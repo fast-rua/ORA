@@ -1,0 +1,1135 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "vision_segment",
+  "description": "Propose a small mask set from several independent points on one public image.\nUse when: comparing plausible regions around the intended object; give 1–8 source-pixel points, usually 3–5 separated interior points. Every point is queried independently, not jointly as one mask prompt, and every point comes back with its own answer.\nEffect: world-read-only; binds one current or saved same-round RGB-D view, reuses its image encoding, keeps each point's own SAM alternatives and records immutable masks and per-point query outcomes.\nReturns: candidates[] and queries[], one query entry per input point in input order. max_candidates is a PER-POINT budget (default 3, maximum 3): every point's leading mask is admitted before any point's second, so a point that produced a usable mask always keeps one. Each candidate carries its T-index, delivery position, target_ref, score, source queries, geometry and depth/normalization limitations; a mask several points share costs one artifact and is listed under each of them. At most 12 distinct masks and 5 enlarged crops are delivered, and each point reports omitted_over_point_limit and omitted_over_call_cap separately from status no_candidate, which means no mask at that pixel rather than a spent budget. Inspect the proposals and select the intended semantic region.\nDoes not: require position 0 to be the intended object, prove identity, add sensor resolution by enlargement, mutate the world or grant motion permission. Score orders proposals within one point only; scores from different points are not evidence of which point is right. A point on background, boundary or shadow can return the table, robot or a neighbour. Historical pixels never become current geometry after motion.\nOn error: Refused: no point or more than eight; a point outside the source image, which refuses the whole call; max_candidates outside 1 to 3; a camera outside this tool's enum; a step outside the current round's saved steps (invalid_arguments, naming that range); a request the segmentation service rejects (invalid_arguments, with the service's detail). Correct the named input or source. If no candidate matches the intended region, choose better interior points or another public view; a failed or empty point preserves every other point's results. A disconnected mask keeps the prompted component and reports what was removed. Localization also carries a single-view support estimate: support_z_m is the height of the surface the target stands on, fitted to depth pixels just outside its mask and evaluated under it; height_above_support_m is the visible top's height above that surface; mid_height_z_m is the midpoint between them; support_point_count counts the pixels that support the fit, and the three heights are null when no support is visible. center_xyz_m is a visible-surface median, so from an oblique or overhead camera it sits near the top; for a parallel-jaw side grasp, use mid_height_z_m as the height reference instead. The estimate is not ground truth: a neighbouring object, a container wall or a hidden base can bias it. Localization also carries a footprint estimate: footprint_center_xyz_m is the centre of the box that bounds the target's measured outline in its own principal frame (z is the median visible height), footprint_extent_m is that box's two sides, longest first, view_tilt_deg is the angle between the camera-to-target ray and straight down, and footprint_view says whether the view was overhead (at most 20 degrees) or oblique. From an oblique camera only the near side is visible, so center_xyz_m, the AABB and the footprint all sit horizontally toward the camera, by up to half the target's depth; an occluding neighbour can also cut the outline short. From an overhead view the outline is the whole top, and the footprint centre is the target's horizontal centre, handles included. An oblique measurement carries overhead_view_pose: a copyable move_pose target that puts the wrist camera 30 cm above the footprint centre looking straight down, with the current jaw yaw; after that move, run this tool again on the wrist camera and use the overhead footprint_center_xyz_m. Placement: measure the receiving surface from overhead before you grasp, while nothing you hold hides it; measure the object from overhead before grasping and, after the close, keep offset = object footprint centre minus the TCP position; to set the object on the receiver, send the TCP to the receiver's footprint centre minus that offset (horizontal components), holding the yaw. overhead_view_pose is not a reachability or collision check, and the footprint is not ground truth. Fixed texts stated once here and left out of results and effects: the result's claim_boundary is \"independent point-prompt proposals with a per-point mask budget; one point never consumes another point's masks, an empty point means no mask at that pixel rather than an exhausted budget, and omitted_over_* counts every mask withheld; inspect the proposals and choose semantic identity; crops add no sensor detail\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "camera": {
+        "description": "Public RGB-D camera name; all points refer to this one view.",
+        "type": "string",
+        "enum": [
+          "agentview",
+          "wrist"
+        ]
+      },
+      "points_uv": {
+        "description": "Independent positive point queries on one image. Prefer 3–5 separated interior points; these points are not a joint prompt for one mask.",
+        "items": {
+          "description": "One independent positive point [u,v], in integer source-image pixels; OpenCV top-left coordinates.",
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": "array"
+        },
+        "maxItems": 8,
+        "minItems": 1,
+        "type": "array"
+      },
+      "max_candidates": {
+        "default": 3,
+        "description": "Per-point mask budget: at most this many distinct masks for each queried point separately, an integer 1-3, default 3. It is not a total across the call. Every point's leading mask is admitted before any point's second, so this bounds how many alternatives one point may keep, never which points get an answer. A call delivers at most 12 distinct masks and 5 enlarged crops overall, and each point reports what it lost to its own budget and to that shared cap separately. Null means omitted.",
+        "maximum": 3,
+        "minimum": 1,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "step": {
+        "description": "Optional saved observation step in the current round. Omit or null for the current image; historical targets remain historical.",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "camera",
+      "points_uv"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "$defs": {
+      "backend": {
+        "additionalProperties": false,
+        "properties": {
+          "config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "backend_score": {
+            "type": "number"
+          },
+          "bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "localization": {
+            "$ref": "#/$defs/localization"
+          },
+          "mask_summary": {
+            "$ref": "#/$defs/mask_summary"
+          },
+          "overlay_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "rank": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "target_ref": {
+            "pattern": "^target-[0-9a-f]{24}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "target_ref",
+          "backend_score",
+          "bbox_xyxy",
+          "mask_summary",
+          "localization",
+          "overlay_sha256"
+        ],
+        "type": "object"
+      },
+      "candidate_preview": {
+        "additionalProperties": false,
+        "properties": {
+          "crop_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "image_index": {
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "rank": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "render_dimensions": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "resampling": {
+            "const": "bicubic_visual_enlargement_no_new_source_detail",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "source_dimensions": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "target_ref": {
+            "pattern": "^target-[0-9a-f]{24}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_index",
+          "rank",
+          "target_ref",
+          "sha256",
+          "source_dimensions",
+          "source_bbox_xyxy",
+          "crop_xyxy",
+          "render_dimensions",
+          "resampling"
+        ],
+        "type": "object"
+      },
+      "depth_summary": {
+        "additionalProperties": false,
+        "properties": {
+          "max": {
+            "type": "number"
+          },
+          "median": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "median",
+          "max"
+        ],
+        "type": "object"
+      },
+      "diagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "model": {
+            "$ref": "#/$defs/model"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "returned_candidate_count": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "returned_candidate_count"
+        ],
+        "type": "object"
+      },
+      "latency": {
+        "additionalProperties": false,
+        "properties": {
+          "roundtrip": {
+            "type": "number"
+          },
+          "service_inference": {
+            "type": "number"
+          },
+          "service_queue": {
+            "type": "number"
+          },
+          "service_total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "roundtrip",
+          "service_queue",
+          "service_inference",
+          "service_total"
+        ],
+        "type": "object"
+      },
+      "localization": {
+        "additionalProperties": false,
+        "properties": {
+          "aabb_max_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "aabb_min_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "center_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "depth_inlier_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "depth_valid_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "extent_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "frame": {
+            "const": "world",
+            "type": "string"
+          },
+          "inlier_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "largest_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "largest_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mask_pixel_count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "method": {
+            "type": "string"
+          },
+          "middle_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "middle_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "primary_component_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "principal_axes_world": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3,
+              "type": "array"
+            }
+          },
+          "principal_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "principal_extents_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "scope": {
+            "const": "visible_mask_depth",
+            "type": "string"
+          },
+          "smallest_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "smallest_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "localized",
+              "insufficient_depth"
+            ],
+            "type": "string"
+          },
+          "valid_depth_component_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "valid_depth_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "support_z_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "height_above_support_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "mid_height_z_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "support_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "support_height_basis": {
+            "type": "string",
+            "enum": [
+              "single_view_depth_ring_estimate_not_ground_truth"
+            ]
+          },
+          "footprint_center_xyz_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "footprint_extent_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "view_tilt_deg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "footprint_view": {
+            "enum": [
+              "overhead",
+              "oblique",
+              null
+            ]
+          },
+          "overhead_view_pose": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "orientation_xyzw": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "camera": {
+                "type": "string"
+              },
+              "camera_height_m": {
+                "type": "number"
+              },
+              "claim_boundary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "camera",
+              "camera_height_m",
+              "claim_boundary"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "method",
+          "frame",
+          "scope",
+          "mask_pixel_count",
+          "valid_depth_point_count",
+          "valid_depth_component_count",
+          "inlier_point_count",
+          "depth_valid_fraction",
+          "primary_component_fraction",
+          "depth_inlier_fraction",
+          "center_xyz_m",
+          "aabb_min_xyz_m",
+          "aabb_max_xyz_m",
+          "extent_xyz_m",
+          "principal_axis_world"
+        ],
+        "type": "object"
+      },
+      "mask_summary": {
+        "additionalProperties": false,
+        "properties": {
+          "area_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "centroid_uv": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "depth_m": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/depth_summary"
+              }
+            ]
+          },
+          "depth_valid_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "pixel_count": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pixel_count",
+          "area_fraction",
+          "bbox_xyxy",
+          "centroid_uv",
+          "depth_valid_fraction",
+          "depth_m"
+        ],
+        "type": "object"
+      },
+      "model": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_sha256": {
+            "type": "string"
+          },
+          "config_sha256": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "source_commit",
+          "checkpoint_sha256"
+        ],
+        "type": "object"
+      },
+      "nullable_vector3": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          }
+        ]
+      },
+      "overlay": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "image_index": {
+            "const": 0,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sha256",
+          "width",
+          "height",
+          "image_index"
+        ],
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "cache_reused": {
+        "type": "boolean"
+      },
+      "camera": {
+        "type": "string"
+      },
+      "candidate_previews": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "crop_xyxy": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 4,
+              "type": "array"
+            },
+            "image_index": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "position": {
+              "maximum": 11,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "render_dimensions": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "type": "array"
+            },
+            "resampling": {
+              "type": "string"
+            },
+            "source_bbox_xyxy": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 4,
+              "type": "array"
+            },
+            "source_dimensions": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "type": "array"
+            },
+            "target_ref": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "image_index",
+            "target_ref",
+            "source_dimensions",
+            "source_bbox_xyxy",
+            "crop_xyxy",
+            "render_dimensions",
+            "resampling",
+            "position"
+          ],
+          "type": "object"
+        },
+        "maxItems": 5,
+        "type": "array"
+      },
+      "candidates": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "backend_score": {
+              "type": "number"
+            },
+            "bbox_xyxy": {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            "candidate_id": {
+              "type": "string"
+            },
+            "localization": {
+              "$ref": "#/$defs/localization"
+            },
+            "mask_summary": {
+              "$ref": "#/$defs/mask_summary"
+            },
+            "mask_touches_image_boundary": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "const": "positive_prompt_8_connected_component_v1",
+                  "type": "string"
+                },
+                "prompt_component_pixel_count": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "raw_component_count": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "raw_pixel_count": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "retained_fraction": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "method",
+                "raw_component_count",
+                "raw_pixel_count",
+                "prompt_component_pixel_count",
+                "retained_fraction"
+              ],
+              "type": "object"
+            },
+            "overlay_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "position": {
+              "maximum": 11,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "representative_point_uv": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "shared_with_source_indexes": {
+              "items": {
+                "maximum": 7,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 8,
+              "type": "array"
+            },
+            "source_queries": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "query_index": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source_index": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "query_index",
+                  "source_index"
+                ],
+                "type": "object"
+              },
+              "maxItems": 24,
+              "type": "array"
+            },
+            "target_ref": {
+              "pattern": "^target-[0-9a-f]{24}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "target_ref",
+            "backend_score",
+            "bbox_xyxy",
+            "mask_summary",
+            "localization",
+            "overlay_sha256",
+            "candidate_id",
+            "source_queries",
+            "representative_point_uv",
+            "normalization",
+            "mask_touches_image_boundary",
+            "position",
+            "shared_with_source_indexes"
+          ],
+          "type": "object"
+        },
+        "maxItems": 12,
+        "type": "array"
+      },
+      "claim_boundary": {
+        "type": "string"
+      },
+      "image_mapping": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "camera": {
+              "type": "string"
+            },
+            "candidate_id": {
+              "type": "string"
+            },
+            "image_index": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "observation_step": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "role": {
+              "type": "string"
+            },
+            "target_ref": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "image_index",
+            "role",
+            "camera",
+            "candidate_id",
+            "target_ref",
+            "observation_step"
+          ],
+          "type": "object"
+        },
+        "maxItems": 6,
+        "type": "array"
+      },
+      "image_order": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 6,
+        "type": "array"
+      },
+      "observation_id": {
+        "type": "string"
+      },
+      "points_uv": {
+        "items": {
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": "array"
+        },
+        "maxItems": 8,
+        "type": "array"
+      },
+      "queries": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "candidate_count": {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "candidate_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3,
+              "type": "array"
+            },
+            "error_code": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "omitted_over_call_cap": {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "omitted_over_point_limit": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "point_uv": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "preview_image_index": {
+              "maximum": 5,
+              "minimum": 1,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "previews_omitted": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "query_index": {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "raw_candidate_count": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "status": {
+              "enum": [
+                "candidates",
+                "no_candidate",
+                "failed"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "query_index",
+            "point_uv",
+            "status",
+            "error_code",
+            "raw_candidate_count",
+            "candidate_count",
+            "candidate_ids",
+            "omitted_over_point_limit",
+            "omitted_over_call_cap",
+            "preview_image_index",
+            "previews_omitted"
+          ],
+          "type": "object"
+        },
+        "maxItems": 8,
+        "type": "array"
+      },
+      "query_count": {
+        "maximum": 8,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "query_ref": {
+        "type": "string"
+      },
+      "schema": {
+        "const": "ora.point-segmentation-batch.v2",
+        "type": "string"
+      },
+      "selection": {
+        "additionalProperties": false,
+        "properties": {
+          "distinct_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "duplicate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "mask_iou_threshold": {
+            "type": "number"
+          },
+          "max_candidates_per_point": {
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_returned_candidates": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "method": {
+            "const": "per_point_reserved_then_rank_major_v1",
+            "type": "string"
+          },
+          "omitted_over_call_cap_total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "omitted_over_point_limit_total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "raw_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rejected_candidates": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "query_index": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "source_index": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "query_index",
+                "source_index",
+                "reason"
+              ],
+              "type": "object"
+            },
+            "maxItems": 24,
+            "type": "array"
+          },
+          "returned_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "semantic_selection": {
+            "const": "agent",
+            "type": "string"
+          },
+          "usable_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "method",
+          "mask_iou_threshold",
+          "max_candidates_per_point",
+          "max_returned_candidates",
+          "raw_candidate_count",
+          "usable_candidate_count",
+          "distinct_candidate_count",
+          "duplicate_count",
+          "returned_count",
+          "omitted_over_point_limit_total",
+          "omitted_over_call_cap_total",
+          "rejected_candidates",
+          "semantic_selection"
+        ],
+        "type": "object"
+      },
+      "semantic_identity_verified": {
+        "const": false,
+        "type": "boolean"
+      },
+      "status": {
+        "enum": [
+          "candidates",
+          "partial",
+          "no_candidate"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema",
+      "status",
+      "query_ref",
+      "observation_id",
+      "camera",
+      "points_uv",
+      "candidates",
+      "queries",
+      "selection",
+      "candidate_previews",
+      "image_order",
+      "cache_reused",
+      "semantic_identity_verified",
+      "claim_boundary",
+      "query_count"
+    ],
+    "type": "object"
+  }
+}

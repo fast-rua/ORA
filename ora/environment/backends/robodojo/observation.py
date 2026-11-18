@@ -137,4 +137,8 @@ class RobodojoObservationMixin:
                 path.chmod(0o444)
         self.observation_sequence += 1
         self.last_observation_id = observation_id
+        self.last_observation_root, self.last_observation_clock = target, after
+        from . import shared_motion
+
+        shared_motion.prebuild(self)  # both arms' planner scenes, built while the policy decides
         return payload, image_paths

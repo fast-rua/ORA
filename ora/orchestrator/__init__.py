@@ -7,20 +7,20 @@ from typing import Any
 
 
 _EXPORTS = {
-    "EpisodeCoordinator": (".coordinator", "EpisodeCoordinator"),
-    "SupervisorError": (".coordinator", "SupervisorError"),
-    "run_episode": (".coordinator", "run_episode"),
+    "EpisodeCoordinator": (".episode.coordinator", "EpisodeCoordinator"),
+    "SupervisorError": (".faults", "SupervisorError"),
+    "run_episode": (".episode.coordinator", "run_episode"),
     "HarnessFault": (".faults", "HarnessFault"),
     "HarnessFaultError": (".faults", "HarnessFaultError"),
     "classify_harness_fault": (".faults", "classify_harness_fault"),
-    "EpisodeInteractionState": (".interaction", "EpisodeInteractionState"),
-    "InteractionStateError": (".interaction", "InteractionStateError"),
-    "HarnessLiveEvent": (".live", "HarnessLiveEvent"),
-    "LiveInteractionPort": (".live", "LiveInteractionPort"),
-    "NullLiveInteractionPort": (".live", "NullLiveInteractionPort"),
-    "TerminationAuthority": (".termination", "TerminationAuthority"),
-    "TerminationDecision": (".termination", "TerminationDecision"),
-    "policy_outcome_decision": (".termination", "policy_outcome_decision"),
+    "EpisodeInteractionState": (".episode.interaction", "EpisodeInteractionState"),
+    "InteractionStateError": (".episode.interaction", "InteractionStateError"),
+    "HarnessLiveEvent": (".episode.live", "HarnessLiveEvent"),
+    "LiveInteractionPort": (".episode.live", "LiveInteractionPort"),
+    "NullLiveInteractionPort": (".episode.live", "NullLiveInteractionPort"),
+    "TerminationAuthority": (".episode.termination", "TerminationAuthority"),
+    "TerminationDecision": (".episode.termination", "TerminationDecision"),
+    "policy_outcome_decision": (".episode.termination", "policy_outcome_decision"),
 }
 
 __all__ = sorted(_EXPORTS)

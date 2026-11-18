@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from ora.environment.controllers import motion_timing
 from ora.environment.controllers.motion_transaction import (
     validate_motion_backend_adapter,
 )
@@ -16,6 +17,7 @@ from ora.environment.controllers.profile_capabilities import (
     loaded_control_profile_version,
 )
 
+from . import shared_motion
 from .common import RoboTwinLiveError, _atomic_json, _jsonable, _wxyz_to_xyzw
 
 
@@ -36,6 +38,13 @@ class RoboTwinRoundMixin:
         """
 
         self.environment = environment
+        # Once per process, at the first round: session.py feeds the seed scans' hash, so this hook binds it.
+        if not getattr(self, "_motion_timing_bound", False):
+            motion_timing.bind_preflight(self.output_root)
+            self._motion_timing_bound = True
+            shared_motion.start(self, environment)
+        elif shared_motion.active(self) is not None:
+            shared_motion.bind_round(self, environment, shared_motion.active(self))
         self.official_terminal = None
         self.terminal_observation = None
         self.terminal_public_poses = None
@@ -161,7 +170,7 @@ class RoboTwinRoundMixin:
             "actual_seed": self.actual_seed,
             "seed": self.actual_seed,
             "round_index": round_index,
-            "official_predicate_at_reset": False,
+            "official_predicate_at_reset": None if self.play_scene else False,
             "source_manifest": self.source_manifest,
             "workspace_bounds_m": _jsonable(self.workspace_bounds_m),
             "action_codec": self.action_codec,

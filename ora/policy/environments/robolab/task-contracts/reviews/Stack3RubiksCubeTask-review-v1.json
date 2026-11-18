@@ -1,0 +1,200 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "Stack3RubiksCubeTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab Stack3RubiksCubeTask at the pinned revision; generated per predicate family (stacked); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Stack the rubiks cubes in a tower",
+ "family": "stacked",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/rubiks_cube_stacking_task.py",
+   "sha256": "7c4e011d75015d1df1d0dd3da7ed2dc94736b31f88bd2e737aa7dfda9108f865"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/rubiks_cube_3.usda",
+   "sha256": "8eb2e45277448de02a24ecdbaa9c02f9dbadc33b7b7afdbfadd7a702caf3720d"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/Stack3RubiksCubeTask-s0-witness.json",
+   "sha256": "eec140e2b3aa4c3a985fe15e18aa682e2259d57107a2c28032eae5d42b3860d7"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read Stack3RubiksCubeTask terminations: success = stacked(objects=['rubiks_cube', 'rubiks_cube_1', 'rubiks_cube_2'], order='None'), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene rubiks_cube_3.usda: rubiks_cube, rubiks_cube_1, rubiks_cube_2 among 4 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "World-frame oriented boxes of each pair and their contact sensor (check_stacked)."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (3) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 eec140e2b3aa)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 eec140e2b3aa): stacked -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 eec140e2b3aa): reset_state -> False; beside -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = stacked(objects=['rubiks_cube', 'rubiks_cube_1', 'rubiks_cube_2'], order='None'): check_stacked: contact with the lower object and the upper one's box above the lower one's top (or bottom) face.",
+   "interpretation": "One tower, any order.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "scoring_gap",
+   "source_basis": "The success term is stacked only; it has no gripper_detached term, and check_stacked also accepts an upper object whose box is above the lower object's bottom face (nesting).",
+   "interpretation": "The termination does not require releasing the top object.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "A predicate weakness is documented for review, not delivered as an exploit; the instruction's intent (a stack) is unchanged."
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.stacked and its predicate_logic helpers.",
+   "interpretation": "Contact force bar and bounding-box slack withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "All three Rubik's cubes must form a single tower, each one on top of another and touching it, in any order."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "beside: false.",
+   "expected": "witness case beside"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": false,
+  "subtasks": "stack_any_2_cubes(groups=['cube_0_and_1', 'cube_0_and_2', 'cube_1_and_2'], logical=any) score=0.5; stack_all_3_cubes(groups=['conditions'], logical=all) score=0.5",
+  "notes": []
+ },
+ "compatibility": {
+  "status": "ready_with_note",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "scoring_gap",
+    "detail": "the stack term does not require releasing the top object"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "beside",
+    "expected": false,
+    "ops": [
+     {
+      "op": "place",
+      "object": "rubiks_cube_1",
+      "beside": "rubiks_cube"
+     }
+    ],
+    "ticks": 40
+   },
+   {
+    "case": "stacked",
+    "expected": true,
+    "ops": [
+     {
+      "op": "stack",
+      "objects": [
+       "rubiks_cube",
+       "rubiks_cube_1",
+       "rubiks_cube_2"
+      ]
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "rubiks_cube",
+   "rubiks_cube_1",
+   "rubiks_cube_2"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793864037.2536054,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/Stack3RubiksCubeTask-s0-witness.json",
+  "sha256": "eec140e2b3aa4c3a985fe15e18aa682e2259d57107a2c28032eae5d42b3860d7",
+  "plan_sha256": "5049dd42d9f29187dcea6d58a56907552859a86628dacc95a584fd83126e7e16"
+ }
+}

@@ -16,7 +16,10 @@ from typing import Any, Callable, Mapping
 
 from ora.environment.controllers.hybrid_motion import (
     bounded_joint_position_command,
+    lead_joint_targets,
     libero_global_endpoint_tolerances,
+    libero_joint_controller,
+    libero_settle_at_rest,
     motion_stop_reason,
     precision_force_stop_enabled,
     validate_hybrid_motion_profile,
@@ -27,6 +30,74 @@ from ora.environment.controllers.force_feedback import (
 
 from .execution_capture import LiberoWorkerCaptureMixin
 from .common import LiberoProError, _quaternion_error_rotvec
+from .motion_settle import LIBERO_CONTROL_PERIOD_S
+
+
+def joint_position_controller_config(load_controller_config: Callable[..., Any],
+                                     gains: Mapping[str, Any] | None) -> dict[str, Any]:
+    """RoboSuite's JOINT_POSITION config with a profile's gains (``libero_joint_controller``).
+
+    ``None`` keeps RoboSuite's file unchanged (kp 50, reach 0.05 rad): every run
+    bound to motion profile v1 or v2, live and replayed. Live execution and replay
+    both build their controller here, so they cannot load different gains.
+    """
+
+    config = load_controller_config(default_controller="JOINT_POSITION")
+    if gains is not None:
+        reach = float(gains["output_max_rad"])
+        config.update(kp=float(gains["kp"]), damping_ratio=float(gains["damping_ratio"]),
+                      output_max=reach, output_min=-reach)
+    return config
+
+
+class _TorqueMonitor:
+    """The peak unclipped JOINT_POSITION torque of one joint segment, against the arm's actuator range.
+
+    It wraps the loaded controller's ``run_controller``, which RoboSuite calls on every
+    physics substep before it clips the torques to ``torque_limits``.
+    """
+
+    def __init__(self, low: Any, high: Any) -> None:
+        import numpy as np
+
+        self.low, self.high = np.asarray(low, dtype=np.float64), np.asarray(high, dtype=np.float64)
+        self.peak = np.zeros_like(self.high)
+        self.substeps = self.clipped_substeps = 0
+
+    def observe(self, torques: Any) -> None:
+        import numpy as np
+
+        values = np.asarray(torques, dtype=np.float64)
+        self.peak = np.maximum(self.peak, np.abs(values))
+        self.substeps += 1
+        self.clipped_substeps += int(bool(np.any(values > self.high) or np.any(values < self.low)))
+
+    def report(self) -> dict[str, Any]:
+        return {"source": "robosuite_joint_position_unclipped", "peak_abs_nm": self.peak.tolist(),
+                "limit_nm": self.high.tolist(), "substeps": self.substeps,
+                "clipped_substeps": self.clipped_substeps}
+
+
+def _monitor_joint_torques(robot: Any) -> _TorqueMonitor | None:
+    """Watch the loaded controller's torques, or None when this plant exposes no controller (a test double)."""
+
+    controller = getattr(robot, "controller", None)
+    run = getattr(controller, "run_controller", None)
+    try:
+        low, high = robot.torque_limits
+    except Exception:
+        return None
+    if not callable(run):
+        return None
+    monitor = _TorqueMonitor(low, high)
+
+    def monitored() -> Any:
+        torques = run()
+        monitor.observe(torques)
+        return torques
+
+    controller.run_controller = monitored
+    return monitor
 
 
 class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
@@ -36,9 +107,11 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
         self._delegate = delegate
         self._hybrid_motion_profile: dict[str, Any] | None = None
         self._replay_controller_mode = "OSC_POSE"
+        self._replay_joint_gains: dict[str, Any] | None = None
         self._replay_step_result: dict[str, Any] | None = None
         self._joint_execution_observation: dict[str, Any] | None = None
         self._joint_execution_status: dict[str, Any] | None = None
+        self._grip_site_fk_result: dict[str, Any] | None = None
         self._init_execution_capture()
 
 
@@ -138,6 +211,50 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
             "position_m": position,
             "orientation_xyzw": orientation,
         }
+
+    @property
+    def harness_grip_site_fk(self) -> dict[str, Any]:
+        """The last grip-site forward-kinematics answer (set ``{"joints": rows}`` to ask).
+
+        The poses of the same ``grip_site`` the OSC controller and
+        ``harness_grip_site_pose`` use, at hypothetical arm joints, read from a
+        scratch copy of the measured state (``panda_poses_at_joints``), so the
+        plant never moves; and the arm's joint limits from the loaded model.
+        The pacing of a global route measures its controlled point with it.
+        """
+
+        if self._grip_site_fk_result is None:
+            raise LiberoProError("grip-site kinematics has not been requested")
+        return dict(self._grip_site_fk_result)
+
+    @harness_grip_site_fk.setter
+    def harness_grip_site_fk(self, value: Any) -> None:
+        from .robot_asset_geometry import panda_poses_at_joints
+
+        self._grip_site_fk_result = None
+        rows = value.get("joints") if isinstance(value, Mapping) else None
+        if not isinstance(rows, list) or not rows:
+            raise LiberoProError("grip-site kinematics needs joint rows")
+        robots = getattr(self._delegate, "robots", None)
+        if not isinstance(robots, (list, tuple)) or len(robots) != 1:
+            raise LiberoProError("LIBERO environment must expose one robot")
+        robot = robots[0]
+        sites = getattr(getattr(robot, "gripper", None), "important_sites", None)
+        site_name = sites.get("grip_site") if isinstance(sites, Mapping) else None
+        joint_names = list(getattr(robot, "robot_joints", None) or ())
+        indexes = list(getattr(robot, "_ref_joint_pos_indexes", None) or ())
+        if not isinstance(site_name, str) or len(joint_names) != 7 or len(indexes) != 7:
+            raise LiberoProError("Panda grip site or arm joints are unavailable")
+        sim = self._delegate.sim
+        model = getattr(sim.model, "_model", sim.model)
+        limits = [[float(bound) for bound in model.jnt_range[int(sim.model.joint_name2id(name))]]
+                  for name in joint_names]
+        try:
+            poses = panda_poses_at_joints(model, getattr(sim.data, "_data", sim.data), site_name=site_name,
+                                          qpos_indexes=indexes, rows=rows)
+        except ValueError as exc:
+            raise LiberoProError(str(exc)) from exc
+        self._grip_site_fk_result = {"poses": poses, "joint_limits_rad": limits}
 
     @property
     def harness_gripper_hold_directive(self) -> float:
@@ -307,21 +424,30 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
 
     @harness_replay_controller_mode.setter
     def harness_replay_controller_mode(self, value: Any) -> None:
-        """Switch only the isolated derived-replay controller boundary."""
+        """Switch only the isolated derived-replay controller boundary.
 
+        ``value`` is ``"OSC_POSE"``, ``"JOINT_POSITION"`` (RoboSuite's defaults, every
+        run before motion profile v3) or the ``joint_controller`` mapping a v3 run's
+        joint segment recorded (``libero_joint_controller``), loaded as live
+        execution loaded it.
+        """
+
+        gains = dict(value) if isinstance(value, Mapping) else None
+        mode = gains.get("mode") if gains is not None else value
+        if mode not in {"OSC_POSE", "JOINT_POSITION"} or (gains is not None and mode != "JOINT_POSITION"):
+            raise LiberoProError("replay controller mode is invalid")
         from robosuite.controllers import load_controller_config
 
-        if value not in {"OSC_POSE", "JOINT_POSITION"}:
-            raise LiberoProError("replay controller mode is invalid")
         # Ordinary live OSC actions retain their controller between actions.
         # Reloading the same mode here resets hidden controller goal state.
-        if value == self._replay_controller_mode:
+        if mode == self._replay_controller_mode and gains == self._replay_joint_gains:
             return
         robots = getattr(self._delegate, "robots", None)
         if not isinstance(robots, (list, tuple)) or len(robots) != 1:
             raise LiberoProError("LIBERO environment must expose one robot")
         robot = robots[0]
-        robot.controller_config = load_controller_config(default_controller=value)
+        robot.controller_config = (joint_position_controller_config(load_controller_config, gains)
+                                   if mode == "JOINT_POSITION" else load_controller_config(default_controller=mode))
         robot._load_controller()
         owner = self._delegate
         while not hasattr(owner, "_action_dim") and hasattr(owner, "env"):
@@ -329,7 +455,8 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
         if not hasattr(owner, "_action_dim"):
             raise LiberoProError("RoboSuite action dimension owner is unavailable")
         owner._action_dim = int(robot.action_dim)
-        self._replay_controller_mode = str(value)
+        self._replay_controller_mode = str(mode)
+        self._replay_joint_gains = gains
 
     @property
     def harness_replay_step_result(self) -> dict[str, Any] | None:
@@ -382,7 +509,13 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
 
     @harness_joint_trajectory_command.setter
     def harness_joint_trajectory_command(self, value: Any) -> None:
-        """Execute a frozen CuRobo trajectory through RoboSuite JOINT_POSITION."""
+        """Execute a frozen CuRobo trajectory through RoboSuite JOINT_POSITION.
+
+        ``timed`` (a paced route, one knot per control tick) gives every
+        waypoint at least one tick, so a slow knot is never skipped as already
+        within tolerance; the tolerance and the per-waypoint tick limit still
+        bound the lag.
+        """
 
         import numpy as np
         from robosuite.controllers import load_controller_config
@@ -397,6 +530,9 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
             "steps_used": 0, "terminated": False, "truncated": False,
         }
         positions = np.asarray(value.get("positions"), dtype=np.float64)
+        timed = value.get("timed", False)
+        if not isinstance(timed, bool):
+            raise LiberoProError("joint trajectory timed must be a boolean")
         profile = self._hybrid_motion_profile
         if profile is None:
             raise LiberoProError("joint execution requires a bound motion profile")
@@ -440,12 +576,18 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
             global_motion["joint_tracking_error_limit_rad"]
         )
         settle_joint_tolerance = global_motion.get("terminal_settle_joint_tolerance_rad")
+        settle_rest_step = global_motion.get("terminal_settle_rest_step_rad")
+        settle_trace: list[dict[str, Any]] = []
+        settled_by: str | None = None
         target_pose = value.get("target_pose_world_xyzw")
         if settle_joint_tolerance is not None:
             target_pose = np.asarray(target_pose, dtype=np.float64)
             if (target_pose.shape != (7,) or not np.isfinite(target_pose).all()
                     or not math.isclose(float(np.linalg.norm(target_pose[3:])), 1.0, abs_tol=1e-6)):
                 raise LiberoProError("v2 joint settling requires its source-bound TCP target")
+        gains = libero_joint_controller(profile)
+        if gains is not None and not math.isclose(gains["output_max_rad"], command_step, abs_tol=1e-12):
+            raise LiberoProError("joint controller reach must equal the command step")
         execution_phase = "waypoint_tracking"
         settle_ticks = 0
         settle_endpoint_error = None
@@ -456,12 +598,16 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
         if not hasattr(action_owner, "_action_dim"):
             raise LiberoProError("RoboSuite action dimension owner is unavailable")
         previous_action_dim = int(action_owner._action_dim)
+        torque: _TorqueMonitor | None = None
         try:
-            robot.controller_config = load_controller_config(
-                default_controller="JOINT_POSITION"
-            )
+            robot.controller_config = joint_position_controller_config(load_controller_config, gains)
             robot._load_controller()
             action_owner._action_dim = int(robot.action_dim)
+            torque = _monitor_joint_torques(robot)
+            # A v3 profile aims each knot ahead by its own speed (``lead_joint_targets``);
+            # the knot itself still gates progress and the settle aims at the goal.
+            aims = (lead_joint_targets(positions, robot._joint_positions, tick_s=LIBERO_CONTROL_PERIOD_S,
+                                       lead_s=gains["lead_s"]) if gains is not None and timed else positions)
 
             def execute_tick(target: Any) -> bool:
                 nonlocal terminal, truncated, stop_reason
@@ -514,6 +660,7 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
                 return True
 
             for index, target in enumerate(positions):
+                aim = aims[index]
                 active_goal_index = index
                 # Poll trusted interruption even when the next frozen waypoint
                 # is already inside tolerance and would require zero plant ticks.
@@ -523,14 +670,16 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
                 if stop_reason is not None:
                     break
                 ticks = 0
-                while float(np.max(np.abs(
+                while (timed and ticks == 0) or float(np.max(np.abs(
                     target - np.asarray(robot._joint_positions, dtype=np.float64)
                 ))) > waypoint_tolerance:
                     if ticks >= max_ticks_per_waypoint:
                         stop_reason = "waypoint_tracking_timeout"
                         break
                     before_ticks = len(measured)
-                    continuing = execute_tick(target)
+                    # The lead belongs to the tick that advances the knot; a knot the arm
+                    # has not met holds the path there, so another tick aims at the knot.
+                    continuing = execute_tick(aim if ticks == 0 else target)
                     ticks += len(measured) - before_ticks
                     if not continuing:
                         break
@@ -544,7 +693,7 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
                 final_goal = positions[-1]
 
                 def terminal_settled() -> bool:
-                    nonlocal settle_endpoint_error
+                    nonlocal settle_endpoint_error, settled_by
                     joint_delta = final_goal - np.asarray(robot._joint_positions, dtype=np.float64)
                     if settle_joint_tolerance is None:
                         return float(np.linalg.norm(joint_delta)) <= terminal_tracking_limit
@@ -555,8 +704,19 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
                     )))
                     position_bound, orientation_bound = libero_global_endpoint_tolerances()
                     settle_endpoint_error = {"position_m": position_error, "orientation_rad": orientation_error}
-                    return (float(np.max(np.abs(joint_delta))) <= settle_joint_tolerance
-                            and position_error <= position_bound and orientation_error <= orientation_bound)
+                    joint_error = float(np.max(np.abs(joint_delta)))
+                    last_step = (float(np.max(np.abs(np.subtract(measured[-1], measured[-2]))))
+                                 if len(measured) >= 2 else None)
+                    settle_trace.append({"joint_error_max_abs_rad": joint_error, "position_m": position_error,
+                                         "orientation_rad": orientation_error, "last_tick_step_rad": last_step})
+                    if (joint_error <= settle_joint_tolerance
+                            and position_error <= position_bound and orientation_error <= orientation_bound):
+                        settled_by = "joint_tolerance"
+                    elif libero_settle_at_rest(rest_step_rad=settle_rest_step, last_step_rad=last_step,
+                                               position_error_m=position_error,
+                                               orientation_error_rad=orientation_error):
+                        settled_by = "at_rest_in_local_bound"
+                    return settled_by is not None
 
                 while not terminal_settled():
                     if settle_ticks >= max_terminal_ticks:
@@ -588,6 +748,7 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
             "tracking_error_l2_rad": float(np.linalg.norm(final - goal)),
             "tracking_error_max_abs_rad": float(np.max(np.abs(final - goal))),
             "execution_phase": execution_phase,
+            "timed": timed,
             "waypoints_total": len(positions),
             "waypoints_reached": reached_waypoints,
             "waypoint_ticks": waypoint_ticks,
@@ -597,8 +758,11 @@ class _CameraMetadataEnvironment(LiberoWorkerCaptureMixin):
             "terminal_tick": len(measured) if terminal or truncated else None,
             "samples": measured,
             "commands": issued_commands,
+            "controller_gains": gains,
+            "torque": None if torque is None else torque.report(),
             **({"terminal_settle": {
                 "ticks": settle_ticks, "joint_tolerance_rad": settle_joint_tolerance,
+                "rest_step_rad": settle_rest_step, "settled_by": settled_by, "trace": settle_trace,
                 "max_ticks": max_terminal_ticks, "exhausted": settle_exhausted,
                 "endpoint_error": settle_endpoint_error,
                 "endpoint_tolerance": dict(zip(("position_m", "orientation_rad"), libero_global_endpoint_tolerances())),

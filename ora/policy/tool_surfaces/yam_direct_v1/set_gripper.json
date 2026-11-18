@@ -1,0 +1,94 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "set_gripper",
+  "description": "Set one or both grippers to a named directive in a single call.\nUse when: you are opening to release or approach, or closing on something already between the jaws, and you know which directive each gripper should hold. Naming both grippers in one call is the way to change them together.\nEffect: submits one directive per named gripper through the Supervisor and consumes one robot decision; the jaws drive until they reach the directive or stop moving. An omitted gripper holds its current directive. Arm poses are held.\nReturns: a submitted acknowledgement, then a receipt with each gripper's outcome (reached_target, or stopped before the target) and a fresh observation.\nDoes not: prove anything was grasped, held or released; a jaw that stops before closing fully is evidence of something between the fingers, not proof of a secure grasp.\nOn error: invalid_motion_arguments names the wrong field; re-read this schema rather than resubmitting the same shape. gripper_stalled_before_target: the jaws stopped on something. dry_run_read_only and operator_declined moved nothing; a decline carries detail.operator.reason.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "targets"
+    ],
+    "properties": {
+      "targets": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Which grippers change and to what. Name only the grippers you intend to change; an omitted one holds its current directive. Dimensionless named directives, not apertures.",
+        "properties": {
+          "left": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "open",
+              "close",
+              null
+            ],
+            "description": "Directive for the left gripper. Omit to hold. Null means omitted."
+          },
+          "right": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "open",
+              "close",
+              null
+            ],
+            "description": "Directive for the right gripper. Omit to hold. Null means omitted."
+          }
+        }
+      },
+      "target_ref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Optional annotation naming the target you believe you are closing on, from the current observation. Dimensionless reference; recorded and echoed, never treated as evidence that anything was grasped. Meaningless when only opening."
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "action"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "set_gripper"
+      },
+      "intent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_ref",
+          "role"
+        ],
+        "description": "Present only when a gripper was closed. Echoes the annotation you supplied and labels what it is.",
+        "properties": {
+          "target_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The reference you supplied, or null if you supplied none."
+          },
+          "role": {
+            "type": "string",
+            "const": "agent_annotation_only",
+            "description": "States that this reference is your annotation and not a measurement that anything was grasped."
+          }
+        }
+      }
+    }
+  }
+}

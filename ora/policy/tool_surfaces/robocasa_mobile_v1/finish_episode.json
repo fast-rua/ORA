@@ -1,0 +1,43 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "finish_episode",
+  "description": "End this round's policy lifecycle with success, give_up or abort; every outcome needs a reason. Use when: check_task has returned true at the same valid state boundary (success), or the policy concludes that this round's task cannot be completed (give_up, with a category), or this round's Harness record holds an infrastructure failure (abort): a tool, sensor, bridge or model-service error the Harness classifies as infrastructure, or a controller execution fault. A round otherwise ends at official success or when an allowance in remaining_budget is spent; the task's official step limit does not end it. Effect: lifecycle mutation; persists the outcome, reason and category, ends this round and prevents further robot proposals in it. The round's official verdict is still recorded, and give_up is recorded as a behavioural failure sample. An admitted abort ends only this round, records no official verdict for it and marks the round invalid as a behavioural sample. Planner and IK refusals, stalls, unreached targets, refused or stale inputs and check_task false are not infrastructure failures. Returns: the accepted outcome after lifecycle finalization is admitted; it is not a new official task verdict.\nDoes not: move the physical world, create official task success, accept success without same-boundary check_task=true, accept an empty, placeholder or token reason, or accept abort without a recorded infrastructure failure. On error: Refused: an action still waiting for its fresh observation (action_pending_fresh_observation); an outcome other than success, give_up and abort, or an unknown field (invalid_arguments); a reason that breaks the Reason rule below (finish_reason_insufficient, naming reason); give_up without a category (finish_category_required) or a category with another outcome (invalid_arguments); success without check_task true at the current boundary (task_success_not_confirmed); any outcome but success after check_task confirmed success (task_success_latched); abort while this round's Harness record holds no infrastructure failure (abort_without_infrastructure_evidence). Resolve pending action and fresh-observation boundaries first, call check_task before retrying success, and correct the field the refusal names.\nReason rule: at least 24 characters and 4 words (a CJK character counts as two characters and half a word), not a placeholder; a success reason cites the observable evidence and names its source (check_task, an observation, a camera image, depth, or a visible or measured value); a give_up reason states what was observed and attempted; an abort reason names the recorded infrastructure failure. give_up categories: unreachable (a pose the task needs cannot be reached by the arm); object_lost (a task object left the workspace or is no longer visible in any camera); scene_damaged (the scene changed so that the task can no longer be completed); repeated_failure (the same step failed repeatedly from the current state); other (none of the above; the reason names the obstacle).\nInfrastructure failures the abort gate counts (generated from its own table; every tool error reports infrastructure true or false by the same table): tool errors with code artifact_hash_mismatch, artifact_integrity_fault, embodiment_binding, environment_contract, environment_unavailable, grounding_unavailable, internal_tool_error, invalid_camera_calibration, pose_state_unavailable, tool_capability_unavailable, tool_surface_capability_mismatch; environment receipts with execution_fault, execution_uncertain, invalid_measured_state or a planner stage failing with planner_error, planner_internal_error, planner_timeout; skill sequences stopped by stage_driver_fault, trusted_execution_fault.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "outcome",
+      "reason"
+    ],
+    "properties": {
+      "outcome": {
+        "type": "string",
+        "enum": [
+          "success",
+          "give_up",
+          "abort"
+        ],
+        "description": "success requires same-boundary check_task=true; give_up requires category; abort requires an infrastructure failure the Harness recorded in this round."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Required for every outcome: at least 24 characters and 4 words, not a placeholder. success: the observable evidence and its source; give_up: what was observed and attempted; abort: the recorded infrastructure failure."
+      },
+      "category": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "unreachable",
+          "object_lost",
+          "scene_damaged",
+          "repeated_failure",
+          "other",
+          null
+        ],
+        "description": "Required with give_up and refused with any other outcome; the categories are defined in this tool's description. Null means omitted."
+      }
+    }
+  }
+}

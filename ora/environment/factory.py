@@ -72,6 +72,8 @@ def _synthetic(context: _BuildContext) -> object:
         public_controller=(
             str(configured_controller) if configured_controller else None
         ),
+        execution_capture=runtime.get("execution_capture"),
+        workspace_bounds_m=runtime.get("workspace_bounds_m"),
     )
 
 
@@ -220,6 +222,10 @@ def _robotwin(context: _BuildContext) -> object:
             # it only for a surface that declares the screen, so every other
             # worker config keeps its keys.
             **{field: runtime[field] for field in ROBOTWIN_REACH_SCREEN_FIELDS if field in runtime},
+            # A free-play scene of ORA's own scene sets (``play_scenes.bind_play_runtime``
+            # binds it); every other worker config keeps its keys.
+            **({"play_scene_set": runtime["play_scene_set"]}
+               if runtime.get("play_scene_set") is not None else {}),
         },
     )
 
@@ -365,6 +371,13 @@ def build_robodojo_worker_session(
         "max_sim_steps": max_sim_steps, "action_codec": action_codec,
         "qualification_binding": qualified_runtime_binding,
     })
+    planner = runtime.get("motion_planner")
+    if isinstance(planner, Mapping):
+        worker["motion_planner"] = {
+            **dict(planner),
+            "python_executable": str(_required_environment_path(planner, "python_env", preserve_symlink=True)),
+            "root": str(_required_environment_path(planner, "root_env")),
+        }
     return LocalRpcEnvironmentSession(
         python_executable=python, project_root=PROJECT_ROOT,
         output_root=output_root,
@@ -388,11 +401,181 @@ def _robodojo(context: _BuildContext) -> object:
     )
 
 
+ROBOCASA_HEADLESS_ENVIRONMENT = {
+    # Mesa llvmpipe EGL: MuJoCo renders on the CPU, so RoboCasa lanes take no
+    # GPU memory; MUJOCO_EGL_DEVICE_ID must still name a CUDA-visible device for
+    # robosuite's import check, and the worker then points it at Mesa's software
+    # device (construction.build_environment).
+    "MUJOCO_GL": "egl",
+    "PYOPENGL_PLATFORM": "egl",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2",
+}
+
+
+def _robocasa_worker_environment(runtime: Mapping[str, Any]) -> dict[str, str]:
+    """The headless render environment of one RoboCasa lane.
+
+    A formal run carries the host profile's slot binding; scripted
+    qualification may pass ``runtime.worker_environment`` directly.
+    """
+
+    binding = runtime.get("resource_binding")
+    bound = binding.get("worker_environment") if isinstance(binding, Mapping) else None
+    if bound is None:
+        bound = runtime.get("worker_environment")
+    environment = dict(ROBOCASA_HEADLESS_ENVIRONMENT)
+    if isinstance(bound, Mapping):
+        environment.update({str(key): str(value) for key, value in bound.items()})
+    environment.setdefault("CUDA_VISIBLE_DEVICES", "0")
+    environment.setdefault("MUJOCO_EGL_DEVICE_ID", environment["CUDA_VISIBLE_DEVICES"].split(",")[0])
+    return environment
+
+
+def build_robocasa_worker_session(
+    *, runtime: Mapping[str, Any], output_root: Path, task: str, seed: int,
+    action_codec: str | None, redacted_environment_names: Sequence[str] = (),
+) -> LocalRpcEnvironmentSession:
+    """Start the isolated RoboCasa365 worker under ``runtime.python_env``.
+
+    Reachable without the descriptor gate so scripted motion qualification
+    can run before the codec's admission row exists.
+    """
+
+    python = _required_environment_path(runtime, "python_env", preserve_symlink=True)
+    worker = dict(runtime)
+    worker.update(_public_geometry_config(runtime))
+    worker.update({
+        "backend": "robocasa",
+        "output_root": str(output_root.resolve()),
+        "task": task, "seed": seed,
+        "action_codec": action_codec or "motion_action_v3",
+    })
+    return LocalRpcEnvironmentSession(
+        python_executable=python, project_root=PROJECT_ROOT,
+        output_root=output_root,
+        socket_root=PROJECT_ROOT / ".harness-runtime/env",
+        startup_timeout_s=float(runtime.get("startup_timeout_s", 300)),
+        request_timeout_s=float(runtime.get("request_timeout_s", 600)),
+        close_timeout_s=float(runtime.get("close_timeout_s", 60)),
+        redacted_environment_names=redacted_environment_names,
+        worker_environment=_robocasa_worker_environment(runtime),
+        worker_config=worker,
+    )
+
+
+def _robocasa(context: _BuildContext) -> object:
+    return build_robocasa_worker_session(
+        runtime=context.runtime, output_root=context.output_root, task=context.task,
+        seed=context.seed, action_codec=context.action_codec,
+        redacted_environment_names=context.redacted_environment_names,
+    )
+
+
+def build_robolab_worker_session(
+    *, runtime: Mapping[str, Any], output_root: Path, task: str, seed: int,
+    action_codec: str | None, redacted_environment_names: Sequence[str] = (),
+) -> LocalRpcEnvironmentSession:
+    """Start the isolated RoboLab (Isaac Sim 5.1) worker on one bound device.
+
+    As for RoboDojo, ``CUDA_VISIBLE_DEVICES`` masks the CUDA side while the
+    Kit renderer takes the unmasked ``renderer_gpu``; a formal run's slot
+    binding must name the same device.
+    """
+
+    root = _required_environment_path(runtime, "root_env")
+    python = _required_environment_path(runtime, "python_env", preserve_symlink=True)
+    graphics = _required_environment_path(runtime, "graphics_runtime_env")
+    device = str(runtime["renderer_gpu"])
+    environment = {"CUDA_VISIBLE_DEVICES": device}
+    binding = runtime.get("resource_binding")
+    if isinstance(binding, Mapping):
+        bound = binding.get("worker_environment")
+        if not isinstance(bound, Mapping) or bound.get("CUDA_VISIBLE_DEVICES") != device:
+            raise EnvironmentFactoryError("RoboLab resource slot and runtime.renderer_gpu select different devices")
+        environment.update({str(key): str(value) for key, value in bound.items()})
+    library = os.environ.get("ROBOLAB_LD_LIBRARY_PATH")
+    if library:
+        environment["LD_LIBRARY_PATH"] = library
+    worker = dict(runtime)
+    worker.update(_public_geometry_config(runtime))
+    worker.update({
+        "backend": "robolab", "robolab_root": str(root), "graphics_runtime_root": str(graphics),
+        "output_root": str(output_root.resolve()), "task": task, "seed": seed,
+        "action_codec": action_codec or "motion_action_v3",
+        "runtime_directory": str(output_root.resolve() / "runtime"),
+    })
+    return LocalRpcEnvironmentSession(
+        python_executable=python, project_root=PROJECT_ROOT, output_root=output_root,
+        socket_root=PROJECT_ROOT / ".harness-runtime/env",
+        startup_timeout_s=float(runtime.get("startup_timeout_s", 900)),
+        request_timeout_s=float(runtime.get("request_timeout_s", 600)),
+        close_timeout_s=float(runtime.get("close_timeout_s", 120)),
+        redacted_environment_names=redacted_environment_names,
+        worker_environment=environment, worker_config=worker,
+    )
+
+
+def _robolab(context: _BuildContext) -> object:
+    return build_robolab_worker_session(
+        runtime=context.runtime, output_root=context.output_root, task=context.task,
+        seed=context.seed, action_codec=context.action_codec,
+        redacted_environment_names=context.redacted_environment_names,
+    )
+
+
+def build_yam_worker_session(
+    *, runtime: Mapping[str, Any], output_root: Path, task: str, seed: int,
+    action_codec: str | None, redacted_environment_names: Sequence[str] = (),
+) -> LocalRpcEnvironmentSession:
+    """Start the isolated YAM worker: the simulated station, or the real arms and cameras.
+
+    A real rig in ``on`` mode waits for the operator to approve each motion, so its
+    request timeout is long; MuJoCo renders the simulated cameras offscreen with EGL.
+    """
+
+    from .benchmarks.yam import task_instruction, validate_runtime_extension
+
+    python = _required_environment_path(runtime, "python_env", preserve_symlink=True)
+    extension = validate_runtime_extension({**runtime, "task": task, "seed": seed,
+                                            "action_codec": action_codec or "motion_action_v3"})
+    mode = extension["rig_mode"]
+    worker = dict(runtime)
+    worker.update({
+        "backend": "yam", "output_root": str(output_root.resolve()), "task": task, "seed": seed,
+        "action_codec": extension["action_codec"], "rig_mode": mode,
+        "task_instruction": task_instruction(task, runtime),
+        "control_tick_limit": extension["native_action_limit"],
+    })
+    worker.update(_public_geometry_config(runtime))
+    return LocalRpcEnvironmentSession(
+        python_executable=python, project_root=PROJECT_ROOT, output_root=output_root,
+        socket_root=PROJECT_ROOT / ".harness-runtime/env",
+        startup_timeout_s=float(runtime.get("startup_timeout_s", 180)),
+        request_timeout_s=float(runtime.get("request_timeout_s", 3600 if mode == "on" else 600)),
+        close_timeout_s=float(runtime.get("close_timeout_s", 120)),
+        redacted_environment_names=redacted_environment_names,
+        worker_environment={"MUJOCO_GL": "egl"}, worker_config=worker,
+    )
+
+
+def _yam(context: _BuildContext) -> object:
+    return build_yam_worker_session(
+        runtime=context.runtime, output_root=context.output_root, task=context.task,
+        seed=context.seed, action_codec=context.action_codec,
+        redacted_environment_names=context.redacted_environment_names,
+    )
+
+
 _BUILDERS: dict[tuple[str, str], Callable[[_BuildContext], object]] = {
     ("synthetic", "in_process_direct"): _synthetic,
     ("robotwin", "local_rpc"): _robotwin,
     ("libero_pro", "local_rpc"): _libero,
     ("robodojo", "local_rpc"): _robodojo,
+    ("robocasa", "local_rpc"): _robocasa,
+    ("robolab", "local_rpc"): _robolab,
+    ("yam", "local_rpc"): _yam,
 }
 
 

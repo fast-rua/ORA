@@ -1,0 +1,230 @@
+{
+  "cameras": {
+    "head": {
+      "calibration_dynamic": false,
+      "files": {
+        "calibration": {
+          "bytes": 3319,
+          "path": "head/calibration.json",
+          "sha256": "a8840af5504951a788a43f21d808762418c330bd87b63252e89838f1b412949e"
+        },
+        "depth_numpy_m_f32": {
+          "bytes": 1228928,
+          "path": "head/depth-m.npy",
+          "sha256": "276e152950ea66ccd858ce917e876a1e4fdd2a68211cabd60ccaff10985b5411"
+        },
+        "rgb_lossless_png": {
+          "bytes": 437799,
+          "path": "head/rgb.png",
+          "sha256": "8819205a8240b4d2893f63561101acbb0cd0d6bd6549bc48e772f6706b74666e"
+        }
+      },
+      "height": 480,
+      "modalities": [
+        "rgb",
+        "depth",
+        "calibration"
+      ],
+      "mount": "fixed_world",
+      "source_camera": "cam_head",
+      "width": 640
+    },
+    "left_wrist": {
+      "calibration_dynamic": true,
+      "files": {
+        "calibration": {
+          "bytes": 3787,
+          "path": "left_wrist/calibration.json",
+          "sha256": "4bfcafe7877bf03d79fc9fbf7901ed282d90aa27d16f9d18a2782beb31282fba"
+        },
+        "depth_numpy_m_f32": {
+          "bytes": 1228928,
+          "path": "left_wrist/depth-m.npy",
+          "sha256": "1350bdeef74e2d96b307e3b123ffacbba87ea094938236064c190950fea5f28d"
+        },
+        "rgb_lossless_png": {
+          "bytes": 414140,
+          "path": "left_wrist/rgb.png",
+          "sha256": "1cd2f420364eaad3cd45d0af51f95e19b997a309bc153e048ef40e9cbbdc11a6"
+        }
+      },
+      "height": 480,
+      "modalities": [
+        "rgb",
+        "depth",
+        "calibration"
+      ],
+      "mount": "left_wrist",
+      "source_camera": "cam_left_wrist",
+      "width": 640
+    },
+    "right_wrist": {
+      "calibration_dynamic": true,
+      "files": {
+        "calibration": {
+          "bytes": 3789,
+          "path": "right_wrist/calibration.json",
+          "sha256": "3c0210d6b93947860a831b028a3b074ce000ee14e9db21060415c7646cdc5e15"
+        },
+        "depth_numpy_m_f32": {
+          "bytes": 1228928,
+          "path": "right_wrist/depth-m.npy",
+          "sha256": "9d63bcb675008baed62ab9ae77139eff3dd9f82543f6f66870e8f3177e9144a3"
+        },
+        "rgb_lossless_png": {
+          "bytes": 399264,
+          "path": "right_wrist/rgb.png",
+          "sha256": "f66e71333d82db9c0601d0899cb28d55c62755849aae10a79429e1ac9d74b2b7"
+        }
+      },
+      "height": 480,
+      "modalities": [
+        "rgb",
+        "depth",
+        "calibration"
+      ],
+      "mount": "right_wrist",
+      "source_camera": "cam_right_wrist",
+      "width": 640
+    }
+  },
+  "captured_unix_s": 1792721482.5004637,
+  "controller_feedback": {
+    "arrival_comparison": "<=",
+    "gripper_drive_limit": {
+      "applies_to": "explicit_gripper_commands",
+      "coupling": "both_drive_targets_from_limited_primary_target",
+      "kind": "measured_primary_relative",
+      "maximum_normalized_offset": 0.2,
+      "pose_hold": "preserve_last_applied_drive_target",
+      "reference": "current_primary_finger_encoder"
+    },
+    "gripper_tolerance_normalized": 0.03,
+    "native_actions_per_command": 20,
+    "orientation_tolerance_rad": 0.1,
+    "position_tolerance_m": 0.01,
+    "schema": "ora.controller-feedback.v1"
+  },
+  "encoding": "metric_rgbd_v1",
+  "forbidden_modalities_absent": [
+    "actor_state",
+    "object_gt_pose",
+    "segmentation",
+    "contact",
+    "success_predicate",
+    "expert_program",
+    "task_source"
+  ],
+  "main_camera": "head",
+  "observation_id": "robodojo:general_pickup:layout-0:observation-0000",
+  "previous_execution_receipt": null,
+  "proprioception": {
+    "end_effectors": {
+      "left": {
+        "arm_joint_qpos": [
+          5.115578100012286e-13,
+          -1.156115904982105e-15,
+          1.767066072491508e-17,
+          7.853062682560905e-16,
+          -9.987136985467604e-13,
+          2.5006576670483227e-12
+        ],
+        "gripper": 0.9999944421428222,
+        "gripper_command": 1.0,
+        "gripper_command_target": "open",
+        "gripper_feedback": {
+          "arrival_check": {
+            "comparison": "<=",
+            "residual_normalized": 5.557857177818093e-06,
+            "tolerance_normalized": 0.03,
+            "within_tolerance": true
+          },
+          "drive_target_opening_normalized": 1.0,
+          "drive_target_source": "resolved_sdk_joint_position_target",
+          "effective_target_opening_normalized": 1.0,
+          "finger_lateral_offset_m": -1.862645149230957e-09,
+          "measured_opening_normalized": 0.9999944421428222,
+          "measurement_source": "two_finger_encoder_mean_v1",
+          "pose_hold_semantics": "preserve_last_applied_drive_target",
+          "requested_command": "open",
+          "requested_opening_normalized": 1.0,
+          "schema": "ora.gripper-feedback.v2"
+        },
+        "gripper_finger_qpos": [
+          0.043999698013067245,
+          0.043999701738357544
+        ],
+        "pose_frame": "robodojo_episode_local_ee_link",
+        "pose_xyz_xyzw": [
+          -0.2995290756225586,
+          -0.35229986906051636,
+          0.921500027179718,
+          -4.327419134142474e-08,
+          -6.000607299938565e-08,
+          0.7072135210037231,
+          0.7069999575614929
+        ]
+      },
+      "right": {
+        "arm_joint_qpos": [
+          5.115569426394906e-13,
+          -1.1561103992679478e-15,
+          1.7667572032507807e-17,
+          7.853009213606109e-16,
+          -9.98713048025457e-13,
+          2.5006572333674537e-12
+        ],
+        "gripper": 0.9999944421428222,
+        "gripper_command": 1.0,
+        "gripper_command_target": "open",
+        "gripper_feedback": {
+          "arrival_check": {
+            "comparison": "<=",
+            "residual_normalized": 5.557857177818093e-06,
+            "tolerance_normalized": 0.03,
+            "within_tolerance": true
+          },
+          "drive_target_opening_normalized": 1.0,
+          "drive_target_source": "resolved_sdk_joint_position_target",
+          "effective_target_opening_normalized": 1.0,
+          "finger_lateral_offset_m": -1.862645149230957e-09,
+          "measured_opening_normalized": 0.9999944421428222,
+          "measurement_source": "two_finger_encoder_mean_v1",
+          "pose_hold_semantics": "preserve_last_applied_drive_target",
+          "requested_command": "open",
+          "requested_opening_normalized": 1.0,
+          "schema": "ora.gripper-feedback.v2"
+        },
+        "gripper_finger_qpos": [
+          0.043999698013067245,
+          0.043999701738357544
+        ],
+        "pose_frame": "robodojo_episode_local_ee_link",
+        "pose_xyz_xyzw": [
+          0.3004709482192993,
+          -0.35229986906051636,
+          0.921500027179718,
+          -4.327419134142474e-08,
+          -6.000607299938565e-08,
+          0.7072135210037231,
+          0.7069999575614929
+        ]
+      }
+    },
+    "single_arm": false
+  },
+  "robot_geometry_verification": {
+    "comparison_tolerance_m": 1e-06,
+    "controller_writes": 0,
+    "descriptor_sha256": "a463bca69953466303192f1d787fc706ecc2753986cdf95e29f305896fbe583f",
+    "observed_geometry_sha256": "e6ed9bc9894e91ad5c75a949134be2e52b7e8935414992dca35e40603c696f08",
+    "passed": true,
+    "schema": "ora.loaded-robot-geometry-verification.v1",
+    "scope": "loaded_robot_geometry_only",
+    "simulation_steps": 0
+  },
+  "round_index": 0,
+  "schema": "ora-observation.v1",
+  "sequence": 0,
+  "task": "general_pickup"
+}

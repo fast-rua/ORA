@@ -47,44 +47,40 @@ OUTSIDE_WORKSPACE = "outside_workspace"
 START_UNREACHABLE = "start_unreachable"
 SHARED_REASONS = (OUTSIDE_WORKSPACE, START_UNREACHABLE)
 
-#: RoboTwin damped-least-squares reachability (``controllers/reachability.py``).
-ROBOTWIN_REASONS = ("joint_limit", "singular", "not_converged")
-#: RoboTwin's other-arm screen (``backends/robotwin/reach_inter_arm.py``), which a
-#: surface opts into per capability (integration 0059, M6). ``endpoint`` screens the
-#: configuration the descent reached against the other arm held at its measured
-#: joints, refuses with its own reason and names its own ``ik_model`` because it
-#: is a different answer set from the unscreened one. ``ROBOTWIN_REASONS`` stays
-#: the unscreened set, so a surface without the screen publishes the same reason
-#: enum as before.
+#: The other arm in RoboTwin's reach check (``contracts/robotwin_reach.py``).
 INTER_ARM_COLLISION_ENDPOINT = "inter_arm_collision_endpoint"
 #: A path that meets the other arm held at its measured joints (RoboDojo below).
 INTER_ARM_COLLISION_PATH = "inter_arm_collision_path"
-ROBOTWIN_INTER_ARM_REASONS = {
-    "endpoint": (*ROBOTWIN_REASONS, INTER_ARM_COLLISION_ENDPOINT),
-}
-ROBOTWIN_INTER_ARM_IK_MODELS = {
-    "endpoint": "robotwin_single_seed_damped_least_squares_inter_arm_endpoint_v1",
-}
-#: RoboDojo SDK IK plus endpoint selection on the modelled move_pose route
-#: (``backends/robodojo/ik.py`` and ``sparse_motion.py``); ``inter_arm_collision_path``
-#: is a path that meets the other arm held at its measured joints. The last one means
-#: the measured link6 pose disagrees with FK of the measured joints (the arm is
-#: still settling or the model is off); asking again after it settles is valid.
+#: RoboDojo: the shared planner's IK in the world a plan to the pose would see
+#: (``backends/robodojo/reach_check.py``). ``fk_calibration_mismatch`` means the measured
+#: link6 pose disagrees with FK of the measured joints (the arm is still settling or the
+#: model is off); that and ``stale_observation`` are worth asking again after the next
+#: observation. ``no_planner`` and ``planner_error`` leave the pose unanswered.
 ROBODOJO_REASONS = (
-    "ik_failed", "joint_limit", "ik_branch_jump", "local_ik_branch_jump",
-    "self_collision_path", INTER_ARM_COLLISION_PATH, "fk_residual_exceeded",
-    "route_contact_approach_exceeds_local_bound", "fk_calibration_mismatch",
+    "ik_failed", "goal_below_support", "fk_residual_exceeded", "fk_calibration_mismatch",
+    "stale_observation", "no_planner", "planner_error",
 )
-#: LIBERO CuRobo v0.7.8 IK (``backends/libero_pro/reach_check.py``): no seed met
+#: What the SDK route answered before; recorded results of older runs still hold these.
+ROBODOJO_SDK_REASONS = (
+    "joint_limit", "ik_branch_jump", "local_ik_branch_jump", "self_collision_path",
+    INTER_ARM_COLLISION_PATH, "route_contact_approach_exceeds_local_bound",
+)
+IK_MODEL = "robodojo_reach_ik_depth_world_v1"
+CLAIM_BOUNDARY = (
+    "One IK solve per pose by the IK solver of the planner move_pose uses, seeded from the measured "
+    "joints or a chained query's solution, with joint limits, self-collision and a collision world "
+    "built from the current depth images. It plans no path, so a path can still be blocked: "
+    "no payload, arrival, grasp or task-success claim."
+)
+#: LIBERO IK (``backends/libero_pro/reach_check.py``): no seed met
 #: the solver's thresholds within its joint-limit and self-collision constraints;
 #: a solution whose grip site lands outside the arrival tolerance; and, as on
 #: RoboDojo, CuRobo's forward kinematics of the measured joints disagreeing with
 #: the measured panda_hand pose, which voids the frame conversion for every query.
 LIBERO_REASONS = ("ik_failed", "fk_residual_exceeded", "fk_calibration_mismatch")
 BACKEND_REASONS = (
-    frozenset(ROBOTWIN_REASONS) | frozenset(ROBODOJO_REASONS) | frozenset(LIBERO_REASONS)
-    | {START_UNREACHABLE}
-    | frozenset(reason for reasons in ROBOTWIN_INTER_ARM_REASONS.values() for reason in reasons)
+    frozenset(ROBODOJO_REASONS) | frozenset(ROBODOJO_SDK_REASONS) | frozenset(LIBERO_REASONS)
+    | {START_UNREACHABLE, INTER_ARM_COLLISION_ENDPOINT}
 )
 #: RoboDojo names the move_pose route it modelled; the RoboTwin and LIBERO checks model none.
 ROBODOJO_ROUTES = ("global", "local", "global_precontact_then_local")

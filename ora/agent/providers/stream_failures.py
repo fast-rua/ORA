@@ -18,13 +18,16 @@ from ora.agent.contracts import PolicySessionError
 
 
 #: Fresh requests granted to one logical model call after transport breaks
-#: that arrived with response content, under ``same_credential_deadline_v1``.
+#: that arrived with response content, under ``same_credential_deadline_v1``
+#: and ``first_token_deadline_v1`` (where a stalled stream is such a break).
 #: The fourth such break is terminal even with deadline left: every broken
 #: attempt already streamed billable output that is discarded (one recorded
 #: RoboDojo attempt streamed 7,301 events for 35 s before its socket
-#: dropped). Retries still share the 180 s window and its backoff; this only
+#: dropped). Retries keep the policy's deadline and backoff; this only
 #: bounds how many times a partly answered request is asked again. Recorded
 #: as ``stream_break_retry_limit`` on every deadline-policy attempt failure.
+#: Under ``first_token_deadline_v1`` first-token timeouts have a budget of
+#: their own of the same size.
 STREAM_BREAK_RETRIES = 3
 
 

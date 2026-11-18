@@ -3,7 +3,7 @@
 Backend-neutral like ``alignment.py`` beside it: this module takes an adapter
 exposing ``reach_check_batch`` and a control profile, and has no import path to
 a planner. Each backend's adapter answers with its own IK -- RoboTwin the
-damped-least-squares solve ``align_plan`` already uses, RoboDojo the SDK IK
+planner's own 128-seed IK solve, RoboDojo the SDK IK
 selection on the move_pose route the query's interaction selects, LIBERO one
 CuRobo IK solve in its isolated planner worker -- names its model in
 ``ik_model`` and says in ``matches_move_pose_admission`` whether that is the

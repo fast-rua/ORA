@@ -33,7 +33,7 @@ from ora.agent.providers.profiles import load_builtin_provider_profiles, load_pr
 from ora.environment.benchmarks.libero_pro import CORE_VARIANT_ORDER, FAMILY_ORDER, official_core_evaluation
 from ora.environment.benchmarks.robotwin import TASKS as ROBOTWIN_TASKS, TASK_CONFIGS
 from ora.orchestrator import paths
-from ora.orchestrator.resources import HOST_MARKER_ENV
+from ora.orchestrator.preflight.resources import HOST_MARKER_ENV
 
 EXPERIMENT = "official-suite"
 MILESTONE = "OFFICIAL-SUITE"
@@ -236,7 +236,7 @@ def select_cells(args: argparse.Namespace) -> list[Cell]:
     if args.arm == "libero_pro":
         return libero_cells(families=args.families, perturbations=args.perturbations, init_states=args.init_states)
     if args.seed_manifests is None:
-        raise RuntimeError("robotwin cells require --seed-manifests DIR from robotwin_evaluation qualify")
+        raise RuntimeError("robotwin cells require --seed-manifests DIR from `ora qualify robotwin qualify`")
     return robotwin_cells(task_config=args.task_config, manifests=args.seed_manifests, tasks=args.tasks,
                           episode_names=args.episode_names, accepted_limit=args.accepted_limit)
 
@@ -247,7 +247,7 @@ def add_selection_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--perturbations", nargs="+", choices=CORE_VARIANT_ORDER)
     parser.add_argument("--init-states", type=int, help="initial states per LIBERO task (official: 50)")
     parser.add_argument("--task-config", choices=sorted(TASK_CONFIGS), default="demo_randomized")
-    parser.add_argument("--seed-manifests", type=Path, help="seed-manifests directory written by robotwin_evaluation qualify")
+    parser.add_argument("--seed-manifests", type=Path, help="seed-manifests directory written by `ora qualify robotwin qualify`")
     parser.add_argument("--tasks", nargs="+", choices=ROBOTWIN_TASKS)
     parser.add_argument("--accepted-limit", type=int, help="use at most this many accepted seeds per task (pilot)")
     parser.add_argument("--episode-names", type=Path, help="public episode names for seed-named tasks")

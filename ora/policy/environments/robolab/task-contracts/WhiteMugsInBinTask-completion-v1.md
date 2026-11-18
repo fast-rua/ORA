@@ -1,0 +1,4 @@
+Public completion contract for this task:
+
+- The white mugs must end up inside the grey bin.
+- Let go of them there: the task is not complete while the gripper still touches any of them.

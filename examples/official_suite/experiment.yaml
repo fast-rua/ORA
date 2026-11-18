@@ -18,7 +18,7 @@ arms:
   robotwin:
     # Official RoboTwin protocol: per task and scene configuration, the
     # expert-accepted seeds a sealed seed manifest lists
-    # (robotwin_evaluation qualify); high effort.
+    # (ora qualify robotwin qualify); high effort.
     provider_profile: deepseek_flash_openai_high_16k_v1
     budgets:
       max_robot_decisions: 80

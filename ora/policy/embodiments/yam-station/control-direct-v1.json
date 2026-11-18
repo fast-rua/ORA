@@ -1,0 +1,13 @@
+{
+  "schema": "ora.embodiment-control-profile.v1",
+  "profile_id": "yam_station_ik_joint_schedule_v1",
+  "embodiment_id": "yam_station_linear_4310_d405",
+  "action_codec": "motion_action_v3",
+  "controller": "YAM_IK_JOINT_SCHEDULE",
+  "source_owners": {
+    "controller_units": "ora/environment/controllers/yam_station.py",
+    "pose_compilation": "ora/agent/tools/runtime/move_pose.py",
+    "execution": "ora/environment/backends/yam/motion.py",
+    "official_termination": "ora/environment/backends/yam/session.py"
+  }
+}

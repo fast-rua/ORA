@@ -1,0 +1,23 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_a_cached_grounding_still_shows_in_its_step/viewer[libero]": "a2dedad443d3ddb0705bca6b45ab06d79611b43b48774de3d0226b547a015ed7",
+  "test_a_cached_grounding_still_shows_in_its_step/viewer[robocasa]": "a2dedad443d3ddb0705bca6b45ab06d79611b43b48774de3d0226b547a015ed7",
+  "test_a_cached_grounding_still_shows_in_its_step/viewer[robolab]": "a2dedad443d3ddb0705bca6b45ab06d79611b43b48774de3d0226b547a015ed7",
+  "test_a_cached_grounding_still_shows_in_its_step/viewer[robotwin]": "c3978af7f8db9e3cc27e9ad8a4459a32e01b9f998fba591f06585b9098707282",
+  "test_a_grasp_plan_shows_its_contact_sheet_and_its_review/viewer[libero]": "f4bc8963f6e122045b33f4ac6962f640d5fbe5cf017cc2a8cb15c17704aef6c6",
+  "test_a_grasp_plan_shows_its_contact_sheet_and_its_review/viewer[robocasa]": "726fb2b50cb3f35e58444b39240078c868f43c4ba20f4871f3c5ba91f44cfc14",
+  "test_a_grasp_plan_shows_its_contact_sheet_and_its_review/viewer[robolab]": "ac6a865b5a4a4de7967dd94f07250ae81bdf76e60c5a464ba68e0d39a667cacf",
+  "test_a_grasp_plan_shows_its_contact_sheet_and_its_review/viewer[robotwin]": "6b81dd59adf75a5f692ee76d4262e97be4b96aec85698709e75b1a1700609d99",
+  "test_a_repeated_grasp_plan_still_shows_in_its_step/viewer": "4eaade0f3a7ecfad2643c167f4cc80a789953011c9d2d11c782aadbfc1ec89ad",
+  "test_grounding_shows_its_overview_and_candidate_cards/viewer[libero]": "ae864cf5e282c66e21ef33e757063fcb7d8855bcc2634fd53473f0ab9b9ba5ab",
+  "test_grounding_shows_its_overview_and_candidate_cards/viewer[robocasa]": "ae864cf5e282c66e21ef33e757063fcb7d8855bcc2634fd53473f0ab9b9ba5ab",
+  "test_grounding_shows_its_overview_and_candidate_cards/viewer[robolab]": "ae864cf5e282c66e21ef33e757063fcb7d8855bcc2634fd53473f0ab9b9ba5ab",
+  "test_grounding_shows_its_overview_and_candidate_cards/viewer[robotwin]": "1fd16fadd05385badfd8654f5eed3141d30b288284d351165bf1c576d7b4d92b",
+  "test_marks_show_their_annotated_view_and_their_sheet/viewer[libero]": "af7ba5d14475cb8121474bec7b9b7832dffd1da392f969d413b261fd0a655dcb",
+  "test_marks_show_their_annotated_view_and_their_sheet/viewer[robocasa]": "af7ba5d14475cb8121474bec7b9b7832dffd1da392f969d413b261fd0a655dcb",
+  "test_marks_show_their_annotated_view_and_their_sheet/viewer[robolab]": "af7ba5d14475cb8121474bec7b9b7832dffd1da392f969d413b261fd0a655dcb",
+  "test_marks_show_their_annotated_view_and_their_sheet/viewer[robotwin]": "78996ab4a992037348b6b2d134440edb34fa357fe7baaa798cad495ad7448e17",
+  "test_marks_show_their_annotated_view_and_their_sheet/viewer[yam]": "4549f881893d9eddfcd3463d63f32fcd0a418402d68e5693f6806502cb85693c"
+ }
+}

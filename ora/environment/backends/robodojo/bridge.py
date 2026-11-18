@@ -1,6 +1,6 @@
 """Policy-neutral extraction of the pinned RoboDojo EvalEnv lifecycle.
 
-The reference is RoboDojo ee67a1468510da7624a089164402359f2afc72c8,
+The reference is RoboDojo f57e1633ffed59761bc8e568cfe7530c4b33381c,
 src/eval_client/eval_env.py. Task classes and reward predicates stay upstream.
 No websocket client, policy loop, abandoned-seed replacement or process restart
 is imported. Isaac-dependent imports occur only inside ``build_environment``.
@@ -27,16 +27,17 @@ class RobodojoError(RuntimeError):
     """A failed source, sensor, controller or environment qualification."""
 
 
-def _fixed_meta_control(meta_control: Any, robot_manager: Any,
-                        previous: Mapping[str, Any], requested: Mapping[str, Any]) -> tuple[Any, dict[str, Any]]:
+def _fixed_meta_control(meta_control: Any, robot_manager: Any, previous: Mapping[str, Any],
+                        requested: Mapping[str, Any], action: Any = None) -> tuple[Any, dict[str, Any]]:
     """Resolve one SDK command, preserving dimensions absent from the proposal.
 
     ControlManager.pop fills missing dimensions and runs MetaControl's
     measurement-dependent gripper limiter on them. Restore those held targets
     and freeze this instance's resolved action before RobotManager reads it
-    again. Explicit gripper commands retain the original limiter.
+    again. Explicit gripper commands retain the original limiter. ``action``
+    is that instance's ``get_action`` result when the caller already has it.
     """
-    resolved = deepcopy(meta_control.get_action(robot_manager, env_idx=0))
+    resolved = deepcopy(meta_control.get_action(robot_manager, env_idx=0) if action is None else action)
     for key, target in previous.items():
         if key not in requested:
             resolved[key] = deepcopy(target)
@@ -224,7 +225,7 @@ def manifest_bindings(config: Mapping[str, Any], task: str) -> dict[str, Any]:
     """
 
     from ora.environment.benchmarks.robodojo import (
-        ACTION_CODECS, CONTROL_HZ, NATIVE_ACTION_LIMITS, PHYSICS_DT_S,
+        ACTION_CODECS, CONTROL_HZ, EVAL_SEEDS, NATIVE_ACTION_LIMITS, PHYSICS_DT_S,
         SENSOR_PROFILE,
     )
 
@@ -241,7 +242,10 @@ def manifest_bindings(config: Mapping[str, Any], task: str) -> dict[str, Any]:
     first = config.get("layout_id", 0) if schedule is None else schedule["rounds"][0]["layout_id"]
     if type(first) is not int or first < 0:
         raise RobodojoError("unsupported RoboDojo first-stage binding: layout_id")
-    selected = {"eval_seed": 0, "layout_id": first, "num_envs": 1, "sensor_profile": SENSOR_PROFILE}
+    eval_seed = config.get("eval_seed", 0)
+    if type(eval_seed) is not int or eval_seed not in EVAL_SEEDS:
+        raise RobodojoError("unsupported RoboDojo first-stage binding: eval_seed")
+    selected = {"eval_seed": eval_seed, "layout_id": first, "num_envs": 1, "sensor_profile": SENSOR_PROFILE}
     for field, pinned in selected.items():
         if config.get(field, pinned) != pinned:
             raise RobodojoError(f"unsupported RoboDojo first-stage binding: {field}")
@@ -263,6 +267,11 @@ def manifest_bindings(config: Mapping[str, Any], task: str) -> dict[str, Any]:
 def source_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
     import hashlib
 
+    from .source_identity import SourceIdentityAudit
+
+    audit = SourceIdentityAudit(config, RobodojoError)
+    diagnostic, warnings, mismatch = audit.diagnostic, audit.warnings, audit.mismatch
+
     root = Path(config["robodojo_root"]).resolve()
     assets = Path(config["asset_root"]).resolve()
     roots = {
@@ -275,32 +284,20 @@ def source_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
         "curobo": "required_curobo_revision", "xpolicylab": "required_xpolicylab_revision",
         "assets": "required_asset_revision",
     }
-    actual, required = {}, {}
-    for name, path in roots.items():
-        expected = str(config.get(required_keys[name], ""))
-        if len(expected) != 40 or any(char not in "0123456789abcdef" for char in expected):
-            raise RobodojoError(f"missing exact source pin: {required_keys[name]}")
-        actual[name], required[name] = revision(path), expected
-        if actual[name] != expected:
-            raise RobodojoError(f"source revision mismatch: {name}")
-        # Ignore untracked caches/assets; tracked source modifications alter semantics.
-        dirty = subprocess.run(
-            ["git", "-C", str(path), "diff", "HEAD", "--", "."],
-            capture_output=True, check=True,
-        )
-        if dirty.stdout:
-            raise RobodojoError(f"tracked source is modified: {name}")
+    actual, required = audit.sources(roots, required_keys, revision)
     from ora.environment.benchmarks.robodojo import selected_layout
     task = config.get("task", "arrange_largest_number")
     bindings = manifest_bindings(config, task)
-    layout = selected_layout(assets, task=task, eval_seed=0, layout_id=bindings["layout_id"])
+    layout = selected_layout(assets, task=task, eval_seed=bindings["eval_seed"], layout_id=bindings["layout_id"])
     layout_hash = hashlib.sha256(layout.read_bytes()).hexdigest()
     if config.get("layout_sha256") is not None and layout_hash != config["layout_sha256"]:
-        raise RobodojoError("selected layout content differs from the RunPlan")
+        mismatch("selected layout content differs from the RunPlan", "layout_sha256",
+                 config["layout_sha256"], layout_hash)
     # Every scheduled round's file is hashed now, so a drifted later layout
     # fails before round 0 rather than at its own round boundary.
     from .layout_rounds import scheduled_layout_files
-    scheduled = scheduled_layout_files(assets, task, config.get("layout_schedule"))
+    scheduled = scheduled_layout_files(assets, task, config.get("layout_schedule"),
+                                       identity_warnings=warnings if diagnostic else None)
     loaded_files = {}
     for relative in ("Robots/x5/robot_config.yml", "Robots/x5/curobo_tmp.yml", "Robots/x5/curobo.yml"):
         path = assets / relative
@@ -310,7 +307,9 @@ def source_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
     template = (assets / "Robots/x5/curobo_tmp.yml").read_text()
     expected_curobo = template.replace("${ASSETS_PATH}", str(root)).replace("$ASSETS_PATH", str(root))
     if (assets / "Robots/x5/curobo.yml").read_text() != expected_curobo:
-        raise RobodojoError("derived CuRobo configuration differs from exact path-template expansion")
+        mismatch("derived CuRobo configuration differs from exact path-template expansion",
+                 "curobo_template_sha256", hashlib.sha256(expected_curobo.encode()).hexdigest(),
+                 loaded_files["Assets/Robots/x5/curobo.yml"])
     for relative in ("env_cfg/arx_x5.yml", "env_cfg/sim/sim_config.yml", "env_cfg/scene/default.yml",
                      "env_cfg/robot/dual_x5.yml", "env_cfg/camera/camera_config.yml",
                      f"task/RoboDojo/config/{task}.yml", "task/RoboDojo/config/_task.yml",
@@ -323,9 +322,12 @@ def source_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
         except importlib.metadata.PackageNotFoundError:
             packages[package] = None
     if not str(packages["isaacsim"]).startswith("5.1.") or sys.version_info[:2] != (3, 11):
-        raise RobodojoError("the isolated worker requires Python 3.11 and Isaac Sim 5.1")
+        mismatch("the isolated worker requires Python 3.11 and Isaac Sim 5.1", "worker_versions",
+                 {"python": [3, 11], "isaacsim": "5.1.*"},
+                 {"python": list(sys.version_info[:2]), "isaacsim": packages["isaacsim"]})
     return {
         "schema": "ora.robodojo-source-manifest.v1",
+        **({"warnings": warnings} if diagnostic else {}),
         "task": task, **bindings,
         "source_revisions": actual, "required_revisions": required,
         "layout_file": {"path": str(layout), "sha256": layout_hash},
@@ -377,6 +379,11 @@ def _prepare_cuda_garments(manager: Any, num_envs: int) -> None:
 
 
 class EvaluationLifecycle:
+    #: How far past ``step_lim`` the RunPlan lets the episode run
+    #: (``contracts/official_limit.py``); the session sets it before the first reset.
+    harness_official_limit_multiple: int = 1
+    #: The official result once ``step_lim`` passed without one; the episode then runs on.
+    official_limit_snapshot: dict[str, Any] | None = None
     """Mixin placed before the original task class in the worker's MRO."""
 
     def setup_sim_cfg(self, config: Any) -> None:
@@ -416,7 +423,7 @@ class EvaluationLifecycle:
 
     def _post_setup_scene(self, sim: Any) -> None:
         super()._post_setup_scene(sim)
-        if self.task_name == "fold_clothes":
+        if self.task_name in ("fold_clothes", "fold_clothes_random"):
             _prepare_cuda_garments(self.scene_manager, self.num_envs)
         self.obs_manager.initialize(self)
 
@@ -509,6 +516,7 @@ class EvaluationLifecycle:
         self.reward_registered = False
         self.scene_registration = None
         self._official_terminal = None
+        self.official_limit_snapshot = None
         self.env_seeds = list(seed)
         self.harness_loaded_layout_id = seed[0]
         self.scene_manager.layout_manager.set_saved_layout(0, self.seed_manager.get_seed_scene_info(seed[0]))
@@ -559,16 +567,16 @@ class EvaluationLifecycle:
         -- and reset on the layout, which launches a new simulation context
         whose scene manager loads that saved layout. The robot manager and its
         CuRobo planners survive; cameras and render products are rebuilt.
-        fold_clothes is refused: its garment preparation wraps scene-manager
-        and garment methods in ``_post_setup_scene`` and is not relaunch-safe.
+        fold_clothes and fold_clothes_random are refused: their garment preparation
+        wraps scene-manager and garment methods in ``_post_setup_scene``, not relaunch-safe.
         """
         import time
 
         layouts = tuple(getattr(self, "harness_layout_ids", ()))
         if type(layout_id) is not int or layout_id not in layouts:
             raise RobodojoError("relaunch_for_layout accepts only a scheduled layout")
-        if getattr(self, "task_name", None) == "fold_clothes":
-            raise RobodojoError("fold_clothes garment preparation is not relaunch-safe")
+        if getattr(self, "task_name", None) in ("fold_clothes", "fold_clothes_random"):
+            raise RobodojoError(f"{self.task_name} garment preparation is not relaunch-safe")
         if getattr(self, "sim", None) is None:
             raise RobodojoError("there is no live simulation to relaunch")
         started = time.monotonic()
@@ -678,27 +686,21 @@ class EvaluationLifecycle:
     def mark_env_unstable(self, env_idx: int) -> None:
         self.unstable_envs.add(env_idx)
 
+    @property
+    def native_action_ceiling(self) -> int:
+        """Where the episode stops: ``step_lim``, or past it under an extended RunPlan."""
+        return int(self.step_lim) * int(self.harness_official_limit_multiple)
+
     def advance_official_terminal(self) -> dict[str, Any] | None:
-        if not self.reward_registered:
-            raise RobodojoError("official reward lifecycle has not been initialized")
-        if self._official_terminal is not None:
-            return deepcopy(self._official_terminal)
-        final = self.take_action_cnt[0] >= self.step_lim or not self.success[0]
-        reward = self.reward_manager.get_reward(final_check=final)[0]
-        if reward > 1 - 1e-3:
-            self.end_flag[0], self.success[0] = True, True
-        elif final:
-            self.end_flag[0], self.success[0] = True, False
-        if self.end_flag[0]:
-            self._official_terminal = {"official_success": bool(self.success[0]), "native_actions": self.take_action_cnt[0]}
-        return deepcopy(self._official_terminal)
+        from .official_terminal import advance_official_terminal
+        return advance_official_terminal(self)
 
     def native_tick(self, control: Mapping[str, Any]) -> dict[str, Any] | None:
         if self._official_terminal is not None or self.end_flag[0]:
             raise RobodojoError("an officially terminated episode cannot accept an action")
         if not self.reward_registered:
             raise RobodojoError("reward registration is required before action execution")
-        if self.take_action_cnt[0] >= self.step_lim:
+        if self.take_action_cnt[0] >= self.native_action_ceiling:
             raise RobodojoError("native action limit was reached without a terminal transition")
         self.take_action_cnt[0] += 1
         sequence = self.interpolate(control)
@@ -728,6 +730,11 @@ class EvaluationLifecycle:
         if self.unstable_envs:
             raise RobodojoError("official environment became unstable")
         return self.advance_official_terminal()
+
+    def native_tick_sequence(self, requested: Any) -> dict[str, Any] | None:
+        """One native tick fed a target per physics step (``tick_sequence``); ``native_tick`` stays as recorded."""
+        from .tick_sequence import run_native_tick_sequence
+        return run_native_tick_sequence(self, requested, super().step)
 
     def interpolate(self, control: Mapping[str, Any]) -> list[dict[str, Any]]:
         count = int(self.obs_manager.collect_interval)

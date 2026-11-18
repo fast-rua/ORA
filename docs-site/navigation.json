@@ -1,0 +1,482 @@
+[
+  {
+    "label": "Welcome",
+    "href": "/",
+    "icon": "house"
+  },
+  {
+    "label": "How ORA works",
+    "href": "/how-ora-works",
+    "icon": "workflow"
+  },
+  {
+    "label": "Get started",
+    "icon": "rocket",
+    "items": [
+      {
+        "label": "Installation",
+        "href": "/getting-started/installation"
+      },
+      {
+        "label": "First episode",
+        "href": "/quickstart"
+      },
+      {
+        "label": "Model APIs",
+        "href": "/getting-started/model-apis"
+      },
+      {
+        "label": "Run on one GPU",
+        "href": "/getting-started/single-gpu"
+      },
+      {
+        "label": "Run on your computer (CPU)",
+        "href": "/getting-started/local"
+      },
+      {
+        "label": "LIBERO / LIBERO-Pro quick run",
+        "href": "/getting-started/libero"
+      },
+      {
+        "label": "RoboTwin quick run",
+        "href": "/getting-started/robotwin"
+      },
+      {
+        "label": "RoboDojo quick run",
+        "href": "/getting-started/robodojo"
+      },
+      {
+        "label": "RoboCasa365 quick run",
+        "href": "/getting-started/robocasa"
+      },
+      {
+        "label": "RoboLab quick run",
+        "href": "/getting-started/robolab"
+      },
+      {
+        "label": "Official suites on a cluster",
+        "href": "/getting-started/official-suite"
+      },
+      {
+        "label": "Supported setups",
+        "href": "/support"
+      },
+      {
+        "label": "Troubleshooting",
+        "href": "/getting-started/troubleshooting"
+      }
+    ]
+  },
+  {
+    "label": "Use ORA",
+    "icon": "play",
+    "items": [
+      {
+        "label": "Run and inspect",
+        "href": "/usage/runs"
+      },
+      {
+        "label": "Free play",
+        "href": "/usage/play"
+      },
+      {
+        "label": "Run a real robot cell",
+        "href": "/usage/real-cells"
+      },
+      {
+        "label": "Interactive sessions",
+        "href": "/usage/interactive"
+      },
+      {
+        "label": "Remote GPU server and web view",
+        "href": "/usage/remote"
+      },
+      {
+        "label": "Run ORA safely",
+        "href": "/usage/safety"
+      },
+      {
+        "label": "Connect a training loop",
+        "href": "/usage/rl-interface"
+      },
+      {
+        "label": "Evidence viewer",
+        "href": "/usage/viewer"
+      },
+      {
+        "label": "Examples",
+        "href": "/usage/examples"
+      },
+      {
+        "label": "Official-suite cookbook",
+        "href": "/usage/official-suite"
+      },
+      {
+        "label": "Compute tool",
+        "href": "/usage/compute-usage"
+      },
+      {
+        "label": "Commands and what they write",
+        "href": "/usage/commands"
+      },
+      {
+        "label": "Command-line reference",
+        "href": "/usage/cli-reference"
+      }
+    ]
+  },
+  {
+    "label": "Environments",
+    "icon": "boxes",
+    "items": [
+      {
+        "label": "Overview",
+        "href": "/environments"
+      },
+      {
+        "label": "Host and perception setup",
+        "href": "/environments/common"
+      },
+      {
+        "label": "LIBERO / LIBERO-Pro",
+        "href": "/environments/libero"
+      },
+      {
+        "label": "RoboTwin",
+        "href": "/environments/robotwin"
+      },
+      {
+        "label": "RoboDojo",
+        "href": "/environments/robodojo"
+      },
+      {
+        "label": "RoboDojo installation reference",
+        "href": "/environments/robodojo-installation"
+      },
+      {
+        "label": "RoboCasa365",
+        "href": "/environments/robocasa"
+      },
+      {
+        "label": "RoboLab",
+        "href": "/environments/robolab"
+      }
+    ]
+  },
+  {
+    "label": "Robots and tasks",
+    "icon": "bot",
+    "items": [
+      {
+        "label": "Frames and units",
+        "href": "/robots/frames-and-units"
+      },
+      {
+        "label": "Franka Panda (LIBERO)",
+        "href": "/robots/embodiments/franka-panda"
+      },
+      {
+        "label": "ALOHA-AgileX (RoboTwin)",
+        "href": "/robots/embodiments/aloha-agilex"
+      },
+      {
+        "label": "ARX X5 (RoboDojo)",
+        "href": "/robots/embodiments/arx-x5"
+      },
+      {
+        "label": "PandaOmron (RoboCasa365)",
+        "href": "/robots/embodiments/panda-omron"
+      },
+      {
+        "label": "DROID Franka with Robotiq (RoboLab)",
+        "href": "/robots/embodiments/droid-franka-robotiq"
+      },
+      {
+        "label": "Dual I2RT YAM (real cell)",
+        "href": "/robots/embodiments/yam-station"
+      },
+      {
+        "label": "LIBERO / LIBERO-Pro tasks",
+        "href": "/robots/tasks/libero"
+      },
+      {
+        "label": "RoboTwin tasks",
+        "href": "/robots/tasks/robotwin"
+      },
+      {
+        "label": "RoboDojo tasks",
+        "href": "/robots/tasks/robodojo"
+      },
+      {
+        "label": "RoboCasa365 tasks",
+        "href": "/robots/tasks/robocasa"
+      },
+      {
+        "label": "RoboLab tasks",
+        "href": "/robots/tasks/robolab"
+      }
+    ]
+  },
+  {
+    "label": "Evaluation",
+    "icon": "chart-column",
+    "items": [
+      {
+        "label": "Evaluation protocol",
+        "href": "/evaluation/protocol"
+      }
+    ]
+  },
+  {
+    "label": "Concepts",
+    "icon": "lightbulb",
+    "items": [
+      {
+        "label": "Architecture",
+        "href": "/architecture"
+      },
+      {
+        "label": "Context assembly",
+        "href": "/context-assembly"
+      },
+      {
+        "label": "Runtime lifecycle",
+        "href": "/reference/runtime-lifecycle"
+      },
+      {
+        "label": "Glossary",
+        "href": "/glossary"
+      }
+    ]
+  },
+  {
+    "label": "Reference",
+    "icon": "book-open",
+    "items": [
+      {
+        "label": "Overview",
+        "href": "/reference"
+      },
+      {
+        "label": "Public interfaces",
+        "href": "/reference/public-interfaces"
+      },
+      {
+        "label": "Toolkit I/O evidence",
+        "href": "/reference/toolkit-io"
+      },
+      {
+        "label": "Toolkit protocol and replay compatibility",
+        "href": "/reference/toolkit-protocol"
+      },
+      {
+        "label": "Toolkit data API",
+        "href": "/reference/toolkit-data"
+      },
+      {
+        "label": "Toolkit synchronous execution",
+        "href": "/reference/toolkit-execution"
+      },
+      {
+        "label": "Toolkit state and admission",
+        "href": "/reference/toolkit-state"
+      },
+      {
+        "label": "File-backed toolkit surfaces",
+        "href": "/reference/toolkit-surface"
+      },
+      {
+        "label": "Context schemes and policy selection",
+        "href": "/reference/context-schemes"
+      },
+      {
+        "label": "Append-only context (management v8)",
+        "href": "/reference/append-only-context"
+      },
+      {
+        "label": "Exchange aging (management v9)",
+        "href": "/reference/exchange-aging-context"
+      },
+      {
+        "label": "Keep what the model wrote (management v10)",
+        "href": "/reference/keep-written-context"
+      },
+      {
+        "label": "Task files",
+        "href": "/reference/tasks"
+      },
+      {
+        "label": "Source overlays",
+        "href": "/reference/source-overlay"
+      },
+      {
+        "label": "Policy I/O",
+        "href": "/reference/policy-io"
+      },
+      {
+        "label": "Configuration and evidence",
+        "href": "/reference/configuration-and-evidence"
+      },
+      {
+        "label": "Context packs",
+        "href": "/reference/context-packs"
+      },
+      {
+        "label": "Experiment identity",
+        "href": "/reference/experiment-identity"
+      },
+      {
+        "label": "RoboTwin contact recovery",
+        "href": "/reference/robotwin-contact-recovery"
+      },
+      {
+        "label": "RoboTwin seed and scene qualification",
+        "href": "/reference/robotwin-qualification"
+      },
+      {
+        "label": "Motion speed and wrist checks",
+        "href": "/reference/motion-speed"
+      },
+      {
+        "label": "Latency profile",
+        "href": "/reference/latency-profile"
+      },
+      {
+        "label": "RoboDojo motion qualification",
+        "href": "/reference/robodojo-motion-qualification"
+      },
+      {
+        "label": "Recorded-provider tape replay",
+        "href": "/reference/provider-replay"
+      },
+      {
+        "label": "RoboDojo reset crash diagnostics",
+        "href": "/reference/robodojo-reset-diagnostics"
+      },
+      {
+        "label": "Local CPU compatibility",
+        "href": "/reference/ora-local-cpu-compatibility"
+      },
+      {
+        "label": "RoboCasa365 and RoboLab",
+        "href": "/reference/robocasa-robolab-backends"
+      },
+      {
+        "label": "RoboLab tasks and contracts",
+        "href": "/reference/robolab-tasks"
+      }
+    ]
+  },
+  {
+    "label": "Python API",
+    "icon": "code",
+    "items": [
+      {
+        "label": "Overview",
+        "href": "/api"
+      },
+      {
+        "label": "Plans and benchmark cells",
+        "href": "/api/plans"
+      },
+      {
+        "label": "Policy sessions",
+        "href": "/api/policy"
+      },
+      {
+        "label": "Environment sessions",
+        "href": "/api/environment"
+      },
+      {
+        "label": "Action contracts",
+        "href": "/api/actions"
+      }
+    ]
+  },
+  {
+    "label": "Contribute",
+    "icon": "git-pull-request",
+    "items": [
+      {
+        "label": "Start contributing",
+        "href": "/developer/onboarding"
+      },
+      {
+        "label": "Contributing",
+        "href": "/developer/contributing"
+      },
+      {
+        "label": "Code map",
+        "href": "/code-map"
+      },
+      {
+        "label": "Repository structure",
+        "href": "/developer/repository-structure"
+      },
+      {
+        "label": "Documentation",
+        "href": "/developer/documentation"
+      },
+      {
+        "label": "Docs style guide",
+        "href": "/developer/docs-style"
+      },
+      {
+        "label": "Testing",
+        "href": "/developer/testing"
+      },
+      {
+        "label": "Authoring guides",
+        "collapsed": true,
+        "items": [
+          {
+            "label": "Add an environment",
+            "href": "/developer/add-backend"
+          },
+          {
+            "label": "Environment compatibility",
+            "href": "/developer/authoring/environment-compatibility"
+          },
+          {
+            "label": "Tool surfaces",
+            "href": "/developer/authoring/tool-surface"
+          },
+          {
+            "label": "Prompt bundles",
+            "href": "/developer/authoring/prompt-bundle"
+          },
+          {
+            "label": "Task contracts",
+            "href": "/developer/authoring/task-contract"
+          },
+          {
+            "label": "Qualification",
+            "href": "/developer/authoring/qualification"
+          },
+          {
+            "label": "Trajectory and viewer integration",
+            "href": "/developer/authoring/trajectory-capture"
+          },
+          {
+            "label": "Viewer style",
+            "href": "/developer/authoring/frontend-style"
+          }
+        ]
+      },
+      {
+        "label": "Templates",
+        "collapsed": true,
+        "items": [
+          {
+            "label": "Environment compatibility record",
+            "href": "/templates/environment-compatibility-record"
+          },
+          {
+            "label": "Task contract review",
+            "href": "/templates/task-contract-review"
+          }
+        ]
+      }
+    ]
+  }
+]

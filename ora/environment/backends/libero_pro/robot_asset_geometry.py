@@ -111,10 +111,6 @@ def main() -> None:
     print(text)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def panda_arm_joint_limits(model) -> list[list[float]]:
     """Arm joint limits from the loaded model, gripper fingers excluded.
 
@@ -145,23 +141,46 @@ def panda_pose_at_joints(model, data, *, prefix: str, joints) -> list[float]:
     robot or disturb the observation the policy is reasoning about.
     """
 
+    return panda_poses_at_joints(model, data, site_name=prefix + "grip_site", qpos_indexes=range(7),
+                                 rows=[joints])[0]
+
+
+def panda_poses_at_joints(model, data, *, site_name: str, qpos_indexes, rows) -> list[list[float]]:
+    """Grip-site poses (x, y, z, qx, qy, qz, qw) at several arm configurations, without writing the plant.
+
+    One scratch ``MjData`` holds the measured state; each row sets the arm joints at ``qpos_indexes`` and
+    runs kinematics only. The pacing of a global route measures its controlled point this way.
+    """
+
     import mujoco
     import numpy as np
 
-    values = [float(value) for value in joints]
-    if len(values) != 7 or not all(np.isfinite(values)):
-        raise ValueError("Panda forward kinematics requires seven finite arm joints")
+    indexes = [int(index) for index in qpos_indexes]
+    if len(indexes) != 7:
+        raise ValueError("Panda forward kinematics requires seven arm joint addresses")
     scratch = mujoco.MjData(model)
     scratch.qpos[:] = data.qpos
     scratch.mocap_pos[:] = data.mocap_pos
     scratch.mocap_quat[:] = data.mocap_quat
-    scratch.qpos[:7] = values
-    mujoco.mj_kinematics(model, scratch)
-    site = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, prefix + "grip_site")
+    site = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, site_name)
     if site < 0:
         raise ValueError("loaded Panda does not expose its declared grip site")
-    position = np.asarray(scratch.site_xpos[site], dtype=np.float64)
-    rotation = np.asarray(scratch.site_xmat[site], dtype=np.float64).reshape(3, 3)
+    poses = []
+    for joints in rows:
+        values = [float(value) for value in joints]
+        if len(values) != 7 or not all(np.isfinite(values)):
+            raise ValueError("Panda forward kinematics requires seven finite arm joints")
+        scratch.qpos[indexes] = values
+        mujoco.mj_kinematics(model, scratch)
+        position = np.asarray(scratch.site_xpos[site], dtype=np.float64)
+        rotation = np.asarray(scratch.site_xmat[site], dtype=np.float64).reshape(3, 3)
+        poses.append([*(float(value) for value in position), *_matrix_xyzw(rotation)])
+    return poses
+
+
+def _matrix_xyzw(rotation) -> list[float]:
+    import numpy as np
+
     trace = float(np.trace(rotation))
     if trace > 0.0:
         scale = math.sqrt(trace + 1.0) * 2.0
@@ -180,4 +199,4 @@ def panda_pose_at_joints(model, data, *, prefix: str, joints) -> list[float]:
         values_xyz[j] = (rotation[j, i] + rotation[i, j]) / scale
         values_xyz[k] = (rotation[k, i] + rotation[i, k]) / scale
         x, y, z = values_xyz
-    return [*(float(value) for value in position), float(x), float(y), float(z), float(w)]
+    return [float(x), float(y), float(z), float(w)]

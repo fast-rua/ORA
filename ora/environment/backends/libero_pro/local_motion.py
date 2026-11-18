@@ -21,12 +21,14 @@ from ora.contracts import (
     compile_absolute_pose,
 )
 from ora.environment.backends.libero_pro.motion_settle import (
-    GRIPPER_STALL_REASON, gripper_stalled,
+    GRIPPER_STALL_REASON, LIBERO_CONTROL_PERIOD_S, gripper_stalled,
 )
 from ora.environment.controllers.hybrid_motion import (
     precision_force_stop_enabled,
 )
+from ora.environment.controllers.motion_pace import StepCaps, step_caps
 from ora.environment.controllers.force_feedback import (
+    contact_divergence_stop_reason, contact_force_stop_reason,
     precision_force_stop_reason, public_force_direction,
 )
 from ora.contracts.action import validate_runtime_action
@@ -75,6 +77,11 @@ class _LocalMotion:
     last_position: Any
     last_orientation: Any
     last_gripper: float
+    # The active speed request's per-tick caps (``motion_pace.step_caps``); None runs uncapped.
+    step_caps: StepCaps | None = None
+    # A planned free-space move's straight OSC line (``controllers/osc_transit.py``): one aim per
+    # tick, then ``settle_ticks`` aimed at the target. None: every tick aims at the target.
+    transit: Mapping[str, Any] | None = None
     steps_used: int = 0
     tracking_samples: list[dict[str, Any]] = field(default_factory=list)
     issued_commands: list[list[float]] = field(default_factory=list)
@@ -89,6 +96,11 @@ class _LocalMotion:
     force_threshold_first_tick: int | None = None
     force_stop_reason: str | None = None
     force_stopped_tick: int | None = None
+    # One reading per tick of a contact move, and the stop they called.
+    contact_forces_n: list[float] = field(default_factory=list)
+    contact_errors_m: list[float] = field(default_factory=list)
+    divergence_stop_reason: str | None = None
+    divergence_stopped_tick: int | None = None
     terminal_tracking_reason: str | None = None
     tracking_stopped_tick: int | None = None
     gripper_trace: list[float] = field(default_factory=list)
@@ -244,6 +256,16 @@ class LiberoLocalMotionMixin:
         target_orientation_error_before_rad = float(np.linalg.norm(
             _quaternion_error_rotvec(target_orientation, before_orientation)
         ))
+        # A move_pose's requested speed caps the commanded step per tick, and the
+        # loop gets the ticks those caps need on top of its own budget.
+        transit = getattr(self, "_active_osc_transit", None) if action["action"] == "move_pose" else None
+        caps = (step_caps(getattr(self, "_active_motion_speed", None), tick_s=LIBERO_CONTROL_PERIOD_S)
+                if pose_action and transit is None else None)
+        if caps is not None:
+            loop_limit += caps.min_ticks(target_error_before_m, target_orientation_error_before_rad)
+        if transit is not None:
+            # The line is paced already: its ticks, then the settle onto the target.
+            loop_limit = int(transit["ticks"]) + int(transit["settle_ticks"])
         compiled_pose = (
             compile_absolute_pose(
                 current_pose_xyz_xyzw=(
@@ -279,6 +301,8 @@ class LiberoLocalMotionMixin:
             last_position=before_position.copy(),
             last_orientation=before_orientation.copy(),
             last_gripper=before_gripper,
+            step_caps=caps,
+            transit=transit,
         )
 
     def _sample_local_tick(self, run: _LocalMotion) -> _LocalTick | None:
@@ -331,11 +355,27 @@ class LiberoLocalMotionMixin:
                 run.force_threshold_exceeded = True
                 if run.force_threshold_first_tick is None:
                     run.force_threshold_first_tick = run.steps_used
+            threshold_n = float(self.motion_profile["sensing"]["force_telemetry_threshold_n"])
             run.force_stop_reason = precision_force_stop_reason(
                 interaction=run.active_interaction, magnitude_n=_force_magnitude,
-                threshold_n=float(self.motion_profile["sensing"]["force_telemetry_threshold_n"]),
-                enabled=run.force_stop_enabled,
+                threshold_n=threshold_n, enabled=run.force_stop_enabled,
             )
+            if run.transit is not None and _force_magnitude is not None and _force_magnitude > threshold_n:
+                # The planner checked the gripper's path, not the arm's posture on the line:
+                # a contact the wrist measures ends the line where it stands.
+                run.force_stop_reason = run.force_stop_reason or "osc_transit_force_limit"
+            if _force_magnitude is not None:
+                run.contact_forces_n.append(_force_magnitude)
+                run.contact_errors_m.append(float(sample["target_position_error_m"]))
+                run.force_stop_reason = run.force_stop_reason or contact_force_stop_reason(
+                    interaction=run.active_interaction, forces_n=run.contact_forces_n,
+                    errors_m=run.contact_errors_m, threshold_n=threshold_n,
+                    enabled=run.force_stop_enabled,
+                )
+                run.divergence_stop_reason = contact_divergence_stop_reason(
+                    interaction=run.active_interaction, errors_m=run.contact_errors_m,
+                    enabled=run.force_stop_enabled,
+                )
         return _LocalTick(
             position=position, orientation=orientation, gripper=gripper,
             actuator_target=actuator_target, delta=delta, rotvec=rotvec,
@@ -344,7 +384,7 @@ class LiberoLocalMotionMixin:
 
     @staticmethod
     def _local_tick_stops(run: _LocalMotion, tick: _LocalTick) -> bool:
-        """Apply the terminal tracking guard and the precision force stop."""
+        """Apply the terminal tracking guard and the precision and contact stops."""
 
         if (
             not all(math.isfinite(float(value)) for value in (
@@ -375,6 +415,9 @@ class LiberoLocalMotionMixin:
             return True
         if run.force_stop_reason is not None:
             run.force_stopped_tick = run.steps_used
+            return True
+        if run.divergence_stop_reason is not None:
+            run.divergence_stopped_tick = run.steps_used
             return True
         return False
 
@@ -409,10 +452,21 @@ class LiberoLocalMotionMixin:
         import numpy as np
 
         command = np.zeros(7, dtype=np.float32)
-        physical_delta = np.concatenate([
-            np.clip(tick.delta, -0.025, 0.025),
-            np.clip(tick.rotvec, -0.10, 0.10),
-        ])
+        translation = np.clip(tick.delta, -0.025, 0.025)
+        rotation = np.clip(tick.rotvec, -0.10, 0.10)
+        if run.transit is not None:
+            # Aim at the line's pose for this tick (its lead included), within the controller's reach.
+            aims = run.transit["aims"]
+            aim = (np.asarray(aims[run.steps_used], dtype=np.float64) if run.steps_used < len(aims)
+                   else np.concatenate([run.target, run.target_orientation]))
+            reach = np.abs(np.asarray(self.controller_action_contract["output_max"], dtype=np.float64))
+            translation = np.clip(aim[:3] - tick.position, -reach[:3], reach[:3])
+            rotation = np.clip(_quaternion_error_rotvec(aim[3:], tick.orientation), -reach[3:], reach[3:])
+        if run.step_caps is not None:
+            translation, rotation = run.step_caps.apply(
+                translation, rotation, float(np.linalg.norm(tick.delta)),
+            )
+        physical_delta = np.concatenate([translation, rotation])
         command[:6] = _inverse_controller_scale(
             physical_delta, self.controller_action_contract,
         )

@@ -17,6 +17,7 @@ Positions are world metres; measured quaternions are [x,y,z,w]. Transform local 
 
 `left_link6` local approach [1, 0, 0]; jaw-closing line [0, 1, 0]. Local Z is perpendicular to both. Current world directions are supplied with measured state.
 `right_link6` local approach [1, 0, 0]; jaw-closing line [0, 1, 0]. Local Z is perpendicular to both. Current world directions are supplied with measured state.
+Local +approach points out of the gripper, from the palm toward the fingertips.
 
 ## Motion capabilities
 
@@ -25,13 +26,13 @@ The ToolSurface owns motion, workspace, window and acceptance limits. Holding a 
 ## Gripper semantics
 
 `left_gripper`: no single aperture is asserted across the tapered fingers.
-At reference finger qpos [0, 0] m, finger collision extent along local approach from the controlled point is [71.57, 157.57] mm.
+At reference finger qpos [0, 0] m, the fingertips end 157.57 mm beyond the controlled point along +approach; the fingers begin 71.57 mm beyond it.
 `finger_1` collision bounds in that controlled-point frame are {"X":[71.57,157.57],"Y":[0.4016,37.7516],"Z":[-30.6401,30.3599]} mm; opening direction is [0.0, 1.0, 0.0]. These are bounds at the stated reference opening, not current contact surfaces.
 `finger_2` collision bounds in that controlled-point frame are {"X":[71.57,157.57],"Y":[-37.7556,-0.4056],"Z":[-30.6401,30.3599]} mm; opening direction is [0.0, -1.0, 0.0]. These are bounds at the stated reference opening, not current contact surfaces.
 Nominal inner pad region in the controlled-point frame: 142.6–157.6 mm along the approach axis and -10.4–8 mm along local Z. The jaw contact centre is +0.1501 m along the approach axis from `left_link6`. Both are nominal source geometry, not a calibrated physical contact point.
 Nominal full-open pad separation is 88.8 mm. Physical pad aperture remains uncalibrated. The public encoder reading is the mean of both finger joints on the normalized command scale (empty-close reference about 0.185, full-open 1); it is not measured pad separation, and a pair shifted to one side is no evidence of holding or release. A close directive is not a request for a measured zero, and reaching the encoder floor proves neither contact nor retention.
 `right_gripper`: no single aperture is asserted across the tapered fingers.
-At reference finger qpos [0, 0] m, finger collision extent along local approach from the controlled point is [71.57, 157.57] mm.
+At reference finger qpos [0, 0] m, the fingertips end 157.57 mm beyond the controlled point along +approach; the fingers begin 71.57 mm beyond it.
 `finger_1` collision bounds in that controlled-point frame are {"X":[71.57,157.57],"Y":[0.4016,37.7516],"Z":[-30.6401,30.3599]} mm; opening direction is [0.0, 1.0, 0.0]. These are bounds at the stated reference opening, not current contact surfaces.
 `finger_2` collision bounds in that controlled-point frame are {"X":[71.57,157.57],"Y":[-37.7556,-0.4056],"Z":[-30.6401,30.3599]} mm; opening direction is [0.0, -1.0, 0.0]. These are bounds at the stated reference opening, not current contact surfaces.
 Nominal inner pad region in the controlled-point frame: 142.6–157.6 mm along the approach axis and -10.4–8 mm along local Z. The jaw contact centre is +0.1501 m along the approach axis from `right_link6`. Both are nominal source geometry, not a calibrated physical contact point.

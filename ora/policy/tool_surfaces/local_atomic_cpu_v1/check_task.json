@@ -1,0 +1,50 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "check_task",
+  "description": "Read the environment-owned official task result from current public state. Use when: verifying possible completion from actual evidence or confirming the required success latch before finishing. Effect: read-only; no simulation step or robot mutation. Returns: success and task_success Boolean when the checker is available, otherwise an unavailable reason and retryable state. Does not: reveal the predicate, hidden object states or a solution, and unavailable is not a measured false verdict. On error: wait for a valid current observation; do not substitute motion arrival or your own judgment for the checker.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "task_success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "task_success"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success",
+          "reason"
+        ],
+        "type": "object"
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+ "type": "object",
+ "description": "pressure_externalize (phase age, L4).",
+ "properties": {
+  "inline_images": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "More inline images than this is pressure."
+  },
+  "estimated_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The estimate watermark's floor, in tokens."
+  },
+  "window_share": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "default": 0.24248302618816683,
+   "description": "The estimate watermark as a share of the hard input limit (48,000 of the 197,952 usable tokens of the 200K window it was chosen for)."
+  },
+  "provider_input_ratio": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "description": "Provider-reported input at or above this share of the hard input limit is pressure."
+  },
+  "enabled": {
+   "type": "boolean",
+   "default": true,
+   "description": "false only when a context pack turns L4 off."
+  }
+ },
+ "required": [
+  "enabled",
+  "estimated_tokens",
+  "inline_images",
+  "provider_input_ratio",
+  "window_share"
+ ],
+ "additionalProperties": false
+}

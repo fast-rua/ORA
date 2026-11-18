@@ -1,0 +1,71 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "wait_ticks",
+  "description": "Hold every current command and let simulated time pass.\nUse when: the scene has to change without a robot command -- a scripted demonstration or task animation is running, a released object is still settling, or the task says to wait. It is not a correction: a pose residual needs move_pose, a stalled jaw needs set_gripper.\nEffect: world mutation by elapsed time only. Every applied drive target and gripper directive is held unchanged; nothing is planned, re-ramped or re-limited. ticks control ticks elapse, one tick being 10 physics steps (40 ms of simulated time), at most 20 per call. One call is one robot decision.\nReturns: the receipt and remaining_budget once the ticks have elapsed; the receipt reports wait.ticks_used, wait.physics_steps and each arm's inactive_arm_drift while held, and the next observation shows what changed.\nDoes not: move toward any target, open or close a gripper, restore a drifted pose, or establish that the scene changed or that a demonstration finished.\nOn error: Refused: any field other than ticks, or ticks that is not an integer from 1 to 20 (invalid_arguments, naming the ticks bound); the episode's terminal boundary (episode_terminal). For more time call wait_ticks again; act once a fresh observation shows the scene you need. On this backend one tick is one native action, the unit the task's native-action limit counts. A scripted demonstrator or support arm in the scene advances only while native actions are consumed, so wait_ticks is how it runs without moving the robot. Fixed texts stated once here and left out of results and effects: last_action_effect.detail.wait.claim_boundary is \"time passed with commands held; drift, settling, slip or scripted scene motion are measured evidence in the fresh observation, not effects of this action\".\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "ticks": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "description": "Control ticks to hold every current command. One tick is 10 physics steps (40 ms of simulated time); 20 ticks is 0.8 s. Required."
+      }
+    },
+    "required": [
+      "ticks"
+    ]
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

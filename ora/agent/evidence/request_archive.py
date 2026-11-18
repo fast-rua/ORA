@@ -165,6 +165,11 @@ def _members(archive: Path) -> Iterator[tuple[str, bytes]]:
                 if member.isfile():
                     handle = stream.extractfile(member)
                     yield member.name, handle.read() if handle is not None else b""
+        # tarfile stops at the end-of-archive marker; read the record padding
+        # after it too, or zstd can still be writing it when the pipe closes
+        # and exit on SIGPIPE.
+        while process.stdout.read(1 << 20):
+            pass
     finally:
         process.stdout.close()
         if process.wait() != 0:
@@ -336,7 +341,3 @@ def main(argv: list[str] | None = None) -> int:
 __all__ = ["ARCHIVE", "LEGACY_ARCHIVE", "LEGACY_MANIFEST", "MANIFEST", "REQUEST_KINDS", "RequestArchiveError",
            "SCHEMA", "archived_bytes", "available", "compact", "compact_after_seal", "convert_legacy", "exists",
            "inventory_record_present", "main", "read_bytes", "request_paths", "verified_bytes"]
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

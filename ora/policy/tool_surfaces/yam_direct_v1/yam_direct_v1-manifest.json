@@ -1,0 +1,103 @@
+{
+  "schema": "ora.toolkit-surface.v1",
+  "profile_id": "yam_direct_v1",
+  "revision": 1,
+  "runtime_id": "native_atomic_causal",
+  "provenance": {
+    "change": "Bimanual I2RT YAM station (2026-10-28): the dual-arm sparse-target direct tools without the perception services (segmentation, grounding, grasp proposals), the RoboDojo-only worker callbacks (align_plan, IK probes and reach annotations) and the wrist rotation primitives, with yam_rgbd_v1 for the overhead, front and two wrist cameras. Camera images and both arms' measured poses are delivered with each observation; per-camera calibration stays query-based (mark_point, geometry_query). The YAM layers come last and replace the inherited planner, recovery, wait and finish wording with what the YAM executor does.",
+    "derived_from": "../robodojo_closed_skills_v1/robodojo_placement_closed_skills_v2-manifest.json",
+    "source_profile": "robodojo_placement_closed_skills_v2",
+    "source_revision": 2,
+    "flattened_from": "2086a93bc2e1f4850679d33346b86e7f2465c9a2"
+  },
+  "tools": [
+    "observe",
+    "mark_point",
+    "geometry_query",
+    "compute",
+    "set_gripper",
+    "move_to",
+    "move_pose",
+    "recover_pose",
+    "wait_ticks",
+    "report_issue",
+    "finish_episode"
+  ],
+  "mutation_tools": [
+    "move_pose",
+    "move_to",
+    "recover_pose",
+    "set_gripper",
+    "wait_ticks"
+  ],
+  "lifecycle_tools": [
+    "finish_episode"
+  ],
+  "observation_tools": [
+    "observe"
+  ],
+  "call_effect_profile": "robotwin_sparse_dual_arm_effects_v1",
+  "capabilities": [
+    "action_dry_run_v1",
+    "canonical_tool_names_v1",
+    "canonical_tool_order_v1",
+    "compute_grammar_from_evaluator_v1",
+    "contact_motion_feedback_v1",
+    "direct_pose_submission_v1",
+    "dual_arm_sparse_targets_v1",
+    "enhanced_move_pose_v1",
+    "flat_motion_arguments_v1",
+    "full_current_visual_v1",
+    "last_action_summary_v1",
+    "mark_point_batch_v1",
+    "motion_action_v3",
+    "motion_intent_router_v1",
+    "motion_mode_companion_help_v1",
+    "optional_argument_null_as_omitted_v1",
+    "per_arm_realized_translation_v1",
+    "policy_angles_degrees_v1",
+    "policy_restricted_geometry_compute_v1",
+    "policy_tool_help_v1",
+    "public_motion_effect_v1",
+    "rgbd",
+    "shared_hold_wait_action_v1",
+    "toolkit_only_v1",
+    "within_payload_deduplication_v1",
+    "yam_rgbd_v1"
+  ],
+  "view_config": {
+    "schema": "ora.policy-view-config.v1",
+    "automatic_actual_views": [
+      "overhead",
+      "front",
+      "wrist_left",
+      "wrist_right"
+    ],
+    "default_observe_views": [
+      "overhead",
+      "front",
+      "wrist_left",
+      "wrist_right"
+    ],
+    "coordinate_convention": "opencv_top_left_xy",
+    "current_visual_delivery": "full_rgb_v1",
+    "derived_resolution": [
+      256,
+      256
+    ],
+    "rgb_resolution": "native"
+  },
+  "tool_descriptions": {
+    "observe": "observe.json",
+    "mark_point": "mark_point.json",
+    "geometry_query": "geometry_query.json",
+    "compute": "compute.json",
+    "set_gripper": "set_gripper.json",
+    "move_to": "move_to.json",
+    "move_pose": "move_pose.json",
+    "recover_pose": "recover_pose.json",
+    "wait_ticks": "wait_ticks.json",
+    "report_issue": "report_issue.json",
+    "finish_episode": "finish_episode.json"
+  }
+}

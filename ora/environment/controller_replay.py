@@ -111,7 +111,7 @@ class ControllerReplayRecorder:
 
     def __post_init__(self) -> None:
         self.output_root = self.output_root.resolve()
-        if self.backend not in {"robotwin", "libero_pro"}:
+        if self.backend not in {"robotwin", "libero_pro", "robocasa", "robolab"}:
             raise ControllerReplayError(f"unsupported replay backend: {self.backend}")
         if not self.camera_panels or not all(
             isinstance(item, str) and item for item in self.camera_panels

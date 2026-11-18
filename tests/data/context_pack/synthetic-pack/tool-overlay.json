@@ -1,0 +1,127 @@
+[
+ {
+  "key": "0f1d681dec3a",
+  "name": "observe",
+  "passed": true,
+  "spec": {
+   "name": "observe",
+   "description": "Read camera images.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "views": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "front",
+        "wrist"
+       ]
+      },
+      "description": "views (compact)."
+     }
+    },
+    "required": [
+     "views"
+    ]
+   }
+  }
+ },
+ {
+  "key": "905ae3122137",
+  "name": "move_to",
+  "passed": true,
+  "spec": {
+   "name": "move_to",
+   "description": "Move the grip point.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "position_m": {
+      "type": "array",
+      "items": {
+       "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "position_m (compact)."
+     },
+     "speed": {
+      "type": [
+       "number",
+       "null"
+      ],
+      "minimum": 0.01,
+      "maximum": 1.0,
+      "description": "speed (compact)."
+     }
+    },
+    "required": [
+     "position_m"
+    ]
+   }
+  }
+ },
+ {
+  "key": "aef89e017f20",
+  "name": "finish_episode",
+  "passed": true,
+  "spec": {
+   "name": "finish_episode",
+   "description": "End the episode; the environment judges success.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "success",
+       "give_up"
+      ],
+      "description": "outcome (compact)."
+     },
+     "reason": {
+      "type": "string",
+      "description": "reason (compact)."
+     }
+    },
+    "required": [
+     "outcome",
+     "reason"
+    ]
+   }
+  }
+ },
+ {
+  "key": "000000000000",
+  "name": "observe",
+  "passed": false,
+  "spec": {
+   "name": "observe",
+   "description": "A failed rewrite the loader skips.",
+   "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "views": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "front",
+        "wrist"
+       ]
+      },
+      "description": "views (compact)."
+     }
+    },
+    "required": [
+     "views"
+    ]
+   }
+  }
+ }
+]

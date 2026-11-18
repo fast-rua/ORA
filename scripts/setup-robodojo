@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 # Prepare the isolated, source-pinned RoboDojo simulator installation.
+# The installer needs only the standard library, so python3 from PATH serves too.
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-exec python3 "$ROOT/ora/environment/backends/robodojo/installation/setup_runtime.py" "$@"
+. "$ROOT/scripts/lib/python.sh"
+ora_python --stdlib setup-robodojo
+exec "$PYTHON" "$ROOT/ora/environment/backends/robodojo/installation/setup_runtime.py" "$@"

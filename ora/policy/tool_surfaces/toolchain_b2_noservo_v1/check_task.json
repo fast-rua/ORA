@@ -1,0 +1,10 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "check_task",
+  "description": "Query the environment-owned official RoboTwin Boolean verdict at the current valid state boundary. Use when: fresh physical evidence suggests the requested arrangement may be complete, and always before finish_episode(outcome=success); a planner success, closed gripper or visually plausible placement is not a substitute. Effect: read-only call to the trusted RoboTwin checker and no world advance. Returns: task_success Boolean when available, or an explicit retryable unavailable result. Does not: explain the predicate, expose numerical tolerances, actor handles, target coordinates, task source or expert trajectory, change the world, or validate infrastructure quality. On error: Refused: any argument (invalid_arguments). Wait for a valid state boundary and retry; never infer official success from action submission or visual appearance alone.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  }
+}

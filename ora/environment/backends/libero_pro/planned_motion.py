@@ -10,14 +10,20 @@ import math
 import time
 from typing import Any, Mapping
 
-from ora.environment.controllers.curobo_motion import _curobo_failure_reason
+from ora.environment.controllers import jaw_flip_retry
+from ora.environment.controllers.motion_pace import PacedPath, PaceRefusal, pace_path, paces, speed_report
 from ora.environment.controllers.hybrid_motion import (
     LIBERO_ENDPOINT_ROUTE_GLOBAL,
     libero_endpoint_contract,
     libero_global_endpoint_tolerances,
+    libero_global_joint_ceilings,
+    libero_joint_controller,
+    libero_osc_transit,
     precision_force_stop_enabled,
 )
+from ora.contracts.action import RUNTIME_ACTION_SCHEMA
 from ora.contracts.workspace import workspace_state
+from ora.environment.controllers import osc_transit
 
 from .common import (
     HYBRID_RECEIPT_SCHEMA,
@@ -25,6 +31,11 @@ from .common import (
     LiberoProError,
     _quaternion_error_rotvec,
 )
+from .motion_settle import LIBERO_CONTROL_PERIOD_S
+from .planner_request import failure_reason
+
+#: The Panda's last wrist joint (panda_joint7), whose turns the pacing reports and checks.
+WRIST_JOINT_INDEX = 6
 
 
 class LiberoPlannedMotionMixin:
@@ -154,6 +165,89 @@ class LiberoPlannedMotionMixin:
             self._matrix_pose(np.linalg.inv(world_from_base) @ world_from_hand),
         )
 
+    def _grip_site_kinematics(self, rows: list[list[float]]) -> dict[str, Any]:
+        """Grip-site poses at hypothetical arm joints and the arm's joint limits, without moving the plant."""
+
+        environment = self._require_environment()
+        setter = getattr(getattr(environment, "env", None), "set_env_attr", None)
+        if not callable(setter):
+            raise LiberoProError("grip-site kinematics transport is unavailable")
+        setter("harness_grip_site_fk", {"joints": [list(map(float, row)) for row in rows]})
+        answer = self._worker_attr("harness_grip_site_fk")
+        if (not isinstance(answer, Mapping) or len(answer.get("poses") or ()) != len(rows)
+                or len(answer.get("joint_limits_rad") or ()) != 7):
+            raise LiberoProError("grip-site kinematics answer is malformed")
+        return dict(answer)
+
+    def _pace_global_route(self, positions: Any) -> PacedPath:
+        """Time a planner's joint path for the active speed request and check its wrist (``motion_pace``).
+
+        One knot per 50 ms control tick; every joint at most what the executor's
+        controller follows (``hybrid_motion.libero_global_joint_ceilings``: v3's
+        ``joint_follow_speed_rad_s`` and ``joint_follow_accel_rad_s2``, v2's
+        ``joint_command_step_rad`` per tick); the whole path within what one
+        action may spend (``max_waypoints``, and ``max_execution_ticks`` less the
+        terminal settle), refused rather than cut. Raises ``PaceRefusal`` before
+        anything moves.
+        """
+
+        global_motion = self.motion_profile["global_motion"]
+        speed_ceiling, accel_ceiling = libero_global_joint_ceilings(self.motion_profile, tick_s=LIBERO_CONTROL_PERIOD_S)
+        rows = [[float(value) for value in row] for row in positions]
+        limits = self._grip_site_kinematics(rows[:1])["joint_limits_rad"]
+        return pace_path(
+            rows, lambda joints: self._grip_site_kinematics(joints)["poses"],
+            speed=getattr(self, "_active_motion_speed", None), tick_s=LIBERO_CONTROL_PERIOD_S,
+            joint_speed_ceiling_rad_s=speed_ceiling, joint_accel_ceiling_rad_s2=accel_ceiling,
+            wrist_joint_index=WRIST_JOINT_INDEX,
+            wrist_limits_rad=(float(limits[WRIST_JOINT_INDEX][0]), float(limits[WRIST_JOINT_INDEX][1])),
+            budget_ticks=min(int(global_motion["max_waypoints"]), int(global_motion["max_execution_ticks"])
+                             - int(global_motion["max_terminal_settle_ticks"])),
+            slow_approach=bool(getattr(self, "_active_motion_slow_final", True)), arm="right",
+            robot="franka_panda")
+
+    def _jaws_open(self) -> bool:
+        """The jaws are commanded open, so they hold nothing a half-turn would turn.
+
+        The Panda's hold directive opens (negative: the sign the planner's world reads as
+        no load, ``world_inputs.py``) and the last accepted jaw target was not ``close``;
+        the directive ramps, so a close just commanded may still read open on its own.
+        """
+
+        return self.public_gripper_command_target() != "close" and self._gripper_hold_directive() < 0.0
+
+    def _jaw_twin_route(
+        self, refusal: PaceRefusal, request: Mapping[str, Any], motion_state: Mapping[str, Any],
+        goal: list[float], *, persist: bool,
+    ) -> tuple[list[float], dict[str, Any], dict[str, Any] | None, PacedPath] | None:
+        """The route to ``goal`` that ``refusal`` stopped, planned and paced once more to its jaw twin.
+
+        ``controllers/jaw_flip_retry.py`` says when: a wrist refusal, with the jaws open
+        (``_jaws_open``). Returns ``(twin goal, plan, its evidence, paced)``, the pacing's
+        wrist report naming the twin, or None when the refusal stands. ``request`` is the
+        refused plan's own, its world snapshot included, so the twin is asked in the same
+        world; the real call keeps the twin's plan as ``action-NNNN-jaw-twin.json``
+        (``persist``), and its dry run (``action_plan.py``) asks the same question.
+        """
+
+        kept: dict[str, Any] = {"evidence": None}
+
+        def admit(twin: list[float]) -> Any:
+            target_base = self._grip_target_planner_pose(motion_state, twin)[0]
+            planned = self.motion_planner.plan({**request, "target_pose_base_xyzw": target_base})
+            if persist:
+                kept["evidence"] = self._persist_planner_evidence(planned, variant="jaw-twin")
+            if not planned.get("reachable") or not isinstance(planned.get("trajectory"), Mapping):
+                return failure_reason(planned)
+            self._validate_planned_start(planned, motion_state)
+            return planned, self._pace_global_route(planned["trajectory"]["positions"])
+
+        retried = jaw_flip_retry.retry(goal, refusal, admit, jaws_open=self._jaws_open)
+        if retried is None:
+            return None
+        twin, (planned, paced), record = retried
+        return twin, planned, kept["evidence"], jaw_flip_retry.recorded(paced, record)
+
     def _execute_planned_motion(
         self, action: Mapping[str, Any], *,
         preplanned: tuple[Mapping[str, Any], Mapping[str, Any]] | None = None,
@@ -210,6 +304,7 @@ class LiberoPlannedMotionMixin:
                 dict(preplanned[0]), dict(preplanned[1]),
             )
         else:
+            request.update(self._world_input(motion_state, "action"))
             planned = self.motion_planner.plan(request)
             planner_evidence = self._persist_planner_evidence(planned)
         if not planned.get("reachable") or not isinstance(
@@ -217,10 +312,30 @@ class LiberoPlannedMotionMixin:
         ):
             return self._planned_refusal_receipt(
                 action, before_position, before_orientation, before_gripper,
-                _curobo_failure_reason(planned),
+                failure_reason(planned),
                 planner=planner_evidence,
             )
         self._validate_planned_start(planned, motion_state)
+        try:
+            paced = self._pace_global_route(planned["trajectory"]["positions"])
+        except PaceRefusal as refusal:
+            # A pose move may run its jaw twin instead; a recovery's joint goal and a
+            # probe's immutable plan never do.
+            twin = (None if preplanned is not None or action["action"] != "move_free_space"
+                    else self._jaw_twin_route(refusal, request, motion_state, target_pose, persist=True))
+            if twin is None:
+                speed = getattr(self, "_active_motion_speed", None)
+                move_pace, slow_pace = paces(speed)
+                return self._planned_refusal_receipt(
+                    action, before_position, before_orientation, before_gripper,
+                    refusal.code, planner=planner_evidence,
+                    pacing={"speed": speed_report(speed, move_pace, slow_pace),
+                            "refused": {"code": refusal.code, "message": str(refusal), **refusal.constraints}},
+                )
+            target_pose, planned, planner_evidence, paced = twin
+        choice = self._free_space_route_choice(action, preplanned is not None, paced, target_pose)
+        if choice is not None and choice["route"] == osc_transit.ROUTE_OSC:
+            return self._run_osc_transit(action, target_pose, planner_evidence, choice)
         vector_environment = getattr(environment, "env", None)
         setter = getattr(vector_environment, "set_env_attr", None)
         if not callable(setter):
@@ -230,9 +345,12 @@ class LiberoPlannedMotionMixin:
         try:
             setter("harness_joint_trajectory_command", {
                 "execution_id": execution_id,
-                "positions": trajectory["positions"],
+                "positions": paced.rows(),
                 "joint_names": trajectory["joint_names"],
-                "dt_s": trajectory["dt_s"],
+                "dt_s": LIBERO_CONTROL_PERIOD_S,
+                # A path that does not move (a no-op plan) keeps the untimed rule:
+                # its one waypoint is already within tolerance and costs no tick.
+                "timed": bool(float(np.sum(paced.grid.joint_steps())) > 0.0),
                 **({"target_pose_world_xyzw": target_pose}
                    if precision_force_stop_enabled(self.motion_profile) else {}),
                 "stop_request_path": str(
@@ -286,6 +404,11 @@ class LiberoPlannedMotionMixin:
                 "recorded_plan_artifact": planner_evidence.get(
                     "canonical_artifact"
                 ),
+                "paced_ticks": int(paced.knots["ticks"]),
+                # The gains a replay loads (``harness_replay_controller_mode``); a run
+                # bound to v1 or v2 records none and replays on RoboSuite's defaults.
+                **({"joint_controller": gains}
+                   if (gains := libero_joint_controller(self.motion_profile)) is not None else {}),
             },
         )
         self._refresh_joint_observation(steps_used)
@@ -298,7 +421,7 @@ class LiberoPlannedMotionMixin:
         contact_threshold = float(
             self.motion_profile["sensing"]["contact_force_threshold_n"]
         )
-        after_contact = (
+        not_predicted = (
             None if after_wrench is None
             else float(np.linalg.norm(
                 np.asarray(after_wrench[:3], dtype=np.float64)
@@ -375,6 +498,7 @@ class LiberoPlannedMotionMixin:
                if precision_force_stop_enabled(self.motion_profile) and target_pose is not None else {}),
             "planner": planner_evidence,
             "execution": execution_evidence,
+            "pacing": paced.report(),
             "endpoint_contract": endpoint_contract,
             "feedback": {
                 "endpoint_contract": endpoint_contract,
@@ -390,7 +514,7 @@ class LiberoPlannedMotionMixin:
                     "orientation_rad": orientation_tolerance,
                 } if target_pose is not None else None,
                 "endpoint_comparison": "<=",
-                "contact_estimated": after_contact,
+                "contact_estimated": not_predicted,
                 "collision": None,
                 "reflex": False,
                 "external_wrench_clipped": after_wrench,
@@ -429,10 +553,99 @@ class LiberoPlannedMotionMixin:
         )
         return self._persist_receipt(receipt)
 
+    def _free_space_route_choice(
+        self, action: Mapping[str, Any], plan_reference: bool, paced: PacedPath, target_pose: Any,
+    ) -> dict[str, Any] | None:
+        """Which route this planned move runs (``osc_transit.route_choice``); None under v1 to v3.
+
+        The record goes on the move's sparse receipt (``arms.right.route_choice``) whichever route
+        it names. The planner's grip-site path is read at the paced knots, from the measured start.
+        """
+
+        section = libero_osc_transit(self.motion_profile)
+        plan = getattr(self, "_active_sparse_plan", None)
+        if section is None or action["action"] != "move_free_space" or target_pose is None:
+            return None
+        speed = getattr(self, "_active_motion_speed", None) or {}
+        _position, start_orientation, _gripper = self._current_state()
+        rotation = osc_transit.rotation_angle(list(start_orientation), list(target_pose[3:]))
+        interaction = getattr(self, "_active_motion_interaction", None)
+        positions = None
+        if interaction == "free_space" and not speed.get("slow_approaching") and not plan_reference \
+                and rotation <= float(section["max_rotation_rad"]):
+            start_joints = self._motion_state()["joint_positions"]
+            rows = [list(map(float, start_joints)), *paced.rows()]
+            positions = [pose[:3] for pose in self._grip_site_kinematics(rows)["poses"]]
+        choice = osc_transit.route_choice(
+            section, interaction=interaction, slow_approaching=bool(speed.get("slow_approaching")),
+            plan_reference=plan_reference, planner_path_positions=positions, rotation_rad=rotation)
+        if plan is not None:
+            plan.route_choice = choice
+        return choice
+
+    def _osc_line_reference(self, target_pose: list[float]) -> dict[str, Any]:
+        """The straight OSC line from the measured pose to ``target_pose`` (``osc_transit.straight_line_reference``).
+
+        Paced at the request's Cartesian caps, no faster than the OSC controller follows
+        (``osc_transit.follow_*``); each tick aims ahead by the controller's lag (``osc_transit.lead_s``).
+        """
+
+        section = libero_osc_transit(self.motion_profile)
+        position, orientation, _gripper = self._current_state()
+        move, _slow = paces(getattr(self, "_active_motion_speed", None))
+        degrees = math.pi / 180.0
+
+        def cap(value: float | None, ceiling: float) -> float:
+            return ceiling if value is None else min(float(value), ceiling)
+
+        return osc_transit.straight_line_reference(
+            [*map(float, position), *map(float, orientation)], list(map(float, target_pose)),
+            linear_m_s=cap(move.linear_m_s, float(section["follow_speed_m_s"])),
+            angular_rad_s=cap(None if move.angular_deg_s is None else move.angular_deg_s * degrees,
+                              float(section["follow_angular_rad_s"])),
+            linear_accel_m_s2=cap(move.linear_accel_m_s2, float(section["accel_m_s2"])),
+            angular_accel_rad_s2=cap(None if move.angular_accel_deg_s2 is None
+                                     else move.angular_accel_deg_s2 * degrees, float(section["angular_accel_rad_s2"])),
+            tick_s=LIBERO_CONTROL_PERIOD_S, lead_s=osc_transit.lead_s(section))
+
+    def _run_osc_transit(
+        self, action: Mapping[str, Any], target_pose: list[float], planner_evidence: Mapping[str, Any],
+        choice: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Run a clear, nearly straight free-space move as one straight OSC line (``osc_transit``).
+
+        The local OSC loop follows the line (``_osc_line_reference``), then settles onto the target
+        within the local bound. The plan stays the move's collision evidence (``choice['planner']``).
+        """
+
+        section = libero_osc_transit(self.motion_profile)
+        reference = self._osc_line_reference(target_pose)
+        choice.update(planner=dict(planner_evidence), line={
+            "length_m": reference["length_m"], "turn_rad": reference["turn_rad"],
+            "planned_ticks": reference["ticks"], "settle_ticks_budget": int(section["settle_ticks"])})
+        plan = getattr(self, "_active_sparse_plan", None)
+        if plan is not None and plan.routes:
+            plan.routes[-1] = "libero_robosuite_osc_pose"
+        previous = getattr(self, "_active_osc_transit", None)
+        self._active_osc_transit = {**reference, "settle_ticks": int(section["settle_ticks"])}
+        try:
+            # The runtime action whose OSC loop runs toward a pose (``ora-action.v3`` move_pose);
+            # the motion action v1 vocabulary has no unbounded OSC move.
+            return self.execute({
+                "schema": RUNTIME_ACTION_SCHEMA, "observation_id": action["observation_id"],
+                "action_id": action["action_id"], "bound_observation_sha256": action["bound_observation_sha256"],
+                "action": "move_pose",
+                "arguments": {"arm": "right", "position_m": list(target_pose[:3]),
+                              "orientation_xyzw": list(target_pose[3:])},
+            })
+        finally:
+            self._active_osc_transit = previous
+
     def _planned_refusal_receipt(
         self, action: Mapping[str, Any], position: Any, orientation: Any,
         gripper: float, reason: str, *,
         planner: Mapping[str, Any] | None = None,
+        pacing: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         recorder = getattr(self, "replay_recorder", None)
         if recorder is not None:
@@ -451,6 +664,7 @@ class LiberoPlannedMotionMixin:
             "arguments": action["arguments"], "consumed": True,
             "state_changed": False, "motion_status": "refused",
             "planner": None if planner is None else dict(planner),
+            **({"pacing": dict(pacing)} if pacing is not None else {}),
             "feedback": {
                 "measured_pose_xyz_xyzw": position.tolist() + orientation.tolist(),
                 "joint_state": None, "tracking_error_l2_rad": None,

@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Any, Mapping
 
+from ora.contracts.policy_receipt import policy_receipt
+
 from .common import (
     OBSERVATION_SCHEMA,
     RoboTwinLiveError,
@@ -247,14 +249,15 @@ class RoboTwinObservationMixin:
             "proprioception": proprioception,
             **({"robot_geometry_verification": self.robot_geometry_verification}
                if self.robot_geometry_verification is not None else {}),
+            # The policy's copy: a paced move's timing evidence stays in the sealed receipt.
             "previous_execution_receipt": (
                 None
                 if previous_receipt is None
-                else {
+                else policy_receipt({
                     "path": previous_receipt["path"],
                     "sha256": previous_receipt["sha256"],
                     "receipt": previous_receipt["receipt"],
-                }
+                })
             ),
             "forbidden_modalities_absent": [
                 "actor_state",

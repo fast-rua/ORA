@@ -1,0 +1,57 @@
+{
+ "type": "object",
+ "description": "emergency_checkpoint (phase summarize, L6).",
+ "properties": {
+  "trigger_tokens": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 1,
+   "description": "Absolute watermark in Provider input tokens, capped by the ratio; null: ratio-only, the watermark is trigger_ratio of the hard input limit."
+  },
+  "trigger_ratio": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "description": "The watermark as a share of the hard input limit."
+  },
+  "target_ratio": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "description": "Telemetry: the next request's Provider input should stay under this share of the hard limit."
+  },
+  "checkpoint_target_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The checkpoint length asked of the compactor (estimated tokens)."
+  },
+  "checkpoint_max_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The checkpoint's soft maximum (estimated tokens), telemetry."
+  },
+  "enabled": {
+   "type": "boolean",
+   "default": true,
+   "description": "false only when a context pack turns rollout compaction off."
+  },
+  "unit": {
+   "enum": [
+    "action_step",
+    "exchange"
+   ],
+   "description": "What the checkpoint absorbs; absent: action_step. exchange: every exchange before the exact tail, which then counts in exchanges too (segments.exact_tail_unit exchange)."
+  }
+ },
+ "required": [
+  "checkpoint_max_tokens",
+  "checkpoint_target_tokens",
+  "enabled",
+  "target_ratio",
+  "trigger_ratio",
+  "trigger_tokens"
+ ],
+ "additionalProperties": false
+}

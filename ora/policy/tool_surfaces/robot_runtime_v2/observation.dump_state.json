@@ -1,0 +1,19 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "observation.dump_state",
+  "description": "Recover one current or historical policy-state snapshot by numbered step. Returned artifact identities are hash-bound; an older snapshot is evidence about that step and never proves the current scene is unchanged.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "step": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

@@ -55,12 +55,12 @@ The submodule pins are SAM3 `6fe87d64a5beb9084923d7a9e002741178635b09` and Conta
 | GraspNet `checkpoints/contact_graspnet/checkpoints/model.pt` | `39fc3439d5814043ba64e0715c127c2e8aca6ea376c22614e11af1bc89317762` |
 | GraspNet `checkpoints/contact_graspnet/config.yaml` | `7ae6cc15c726e8ec2c46b0c799d58ca95caeb9ce9f261aaaf3e467712df76ac5` |
 
-Copy the `B2_SAM_*` and `B2_GRASP_*` bindings in `.env.example` into your private host environment. Point them to this interpreter, checkout and weights; choose physical GPU indices and unused loopback ports. These environment-variable names are retained by the service operator.
+Copy the `ORA_SAM_*` and `ORA_GRASP_*` bindings in `.env.example` into your private host environment. Point them to this interpreter, checkout and weights; choose physical GPU indices and unused loopback ports. The service operator still reads the names releases before 1.0 used for these settings, with a deprecation warning; rename them (`ora setup --env` does so in `.env`). When a setting is set under both names with different values, the `ORA_` value is used and a warning says the earlier name is ignored.
 
 ```bash
-./scripts/model-services start
-./scripts/model-services status
-./scripts/model-services qualify
+./scripts/ora services start
+./scripts/ora services status
+./scripts/ora services qualify
 ```
 
 `status` remains nonzero during model loading. `qualify` prints a content-addressed readiness report; pass that path to the episode composer. It checks wire/model readiness, not grasp quality, and expires after 24 hours or a service restart. Do not restart services with active leases. Source, weights and configuration hashes must match the current adapter.
@@ -72,17 +72,17 @@ Download size, VRAM and installation time depend on your cache, device and upstr
 Composers print the RunSpec path. Review it before launching:
 
 ```bash
-uv run --locked ora plan PATH_TO_SPEC
-uv run --locked ora preflight PATH_TO_SPEC
+uv run --locked ora plan show PATH_TO_SPEC
+uv run --locked ora plan preflight PATH_TO_SPEC
 uv run --locked ora launch PATH_TO_SPEC
 uv run --locked ora status RUN_ID
 uv run --locked ora watch RUN_ID
-./scripts/open-viewer
+uv run --locked ora-viewer --open-browser
 ```
 
 `plan` and `launch` print the plan's `confirmation code` (the last six hex digits of its `plan sha256`); launch asks you to type it. Evidence lands under `outputs/<experiment>/runs/<run_id>/` (or the selected outputs root). A landed run records `result.json`, evaluation and a seal or seal-refusal reason. Read the official verdict and infrastructure status separately. The robot episode budgets are ceilings, not expected duration; provider speed, task length and retries determine elapsed time and token usage.
 
-`ora launch` and `scripts/model-services start` start detached processes and return. Those processes must outlive the shell that started them. Under a batch scheduler such as Slurm, every process of a job step (`srun`) is killed when the step ends, detached or not: keep the step alive until the run lands (for example, run the launcher in `tmux` inside one long-lived `srun --overlap` step that waits for the supervisor PID in the run's `process.json`), and keep the services' step alive for as long as runs use them. Stop a run with `ora stop RUN_ID` before ending its step; killing the step leaves the run unlanded.
+`ora launch` and `ora services start` start detached processes and return. Those processes must outlive the shell that started them. Under a batch scheduler such as Slurm, every process of a job step (`srun`) is killed when the step ends, detached or not: keep the step alive until the run lands (for example, run the launcher in `tmux` inside one long-lived `srun --overlap` step that waits for the supervisor PID in the run's `process.json`), and keep the services' step alive for as long as runs use them. Stop a run with `ora stop RUN_ID` before ending its step; killing the step leaves the run unlanded.
 
 | Problem | Check |
 |---|---|

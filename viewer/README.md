@@ -1,7 +1,5 @@
 # Viewer, LIBERO Atlas and RoboTwin Gallery
 
-Family navigation is available at `/experiments` and `/experiments/<family>`; the main registry filters family and full generation ID and preserves source/run identities. `/api/experiments/<family>` exposes the same projection. A run relabeled by reviewed migration shows its recorded generation beside the new one, and the recorded family's page counts the runs it shows under another family. See [experiment identity](../docs/reference/experiment-identity.md).
-
 The registry is a local, read-only Flask application for Runtime evidence,
 experiment task sheets, the pinned LIBERO/LIBERO-Pro atlas, and the pinned
 RoboTwin task catalog. ORA also uses a small exact-run world-view service for
@@ -9,7 +7,7 @@ live execution capture. Neither service writes run artifacts or contacts a
 simulator.
 
 For original capture, diagnostic reconstruction, cache verification and new
-backend integration, use the shared [trajectory-to-Viewer procedure](../docs/guides/trajectory-capture-and-viewer.md).
+backend integration, use the shared [trajectory-to-Viewer procedure](../docs/developer/authoring/trajectory-capture.md).
 Reuse the listed modules instead of adding a per-experiment video pipeline.
 
 ## Shared frontend template
@@ -18,12 +16,12 @@ Every page uses the same minimal light shell: system fonts, compact controls,
 thin borders and unfiltered media. Open `/style-guide` for a small example.
 `viewer/templates/base.html` and `viewer/static/base.css` own the reusable
 shell and defaults; `viewer/static/viewer.css` owns component layout. See the
-[frontend style guide](../docs/guides/frontend-style.md) before adding a page.
+[frontend style guide](../docs/developer/authoring/frontend-style.md) before adding a page.
 The installed package includes these HTML and CSS assets.
 
 ## ORA live world view
 
-`viewer/live_world.py` supplies ORA's loopback-only companion window. A human
+`ora/orchestrator/world_view.py` (in `ora`, not this package) supplies ORA's loopback-only companion window. A human
 terminal running `ora interactive` opens it in a waiting state before task
 selection; a live `ora watch RUN` binds it to that exact run. The service
 follows original execution-capture PNG frames and the complete prefix of the
@@ -54,12 +52,16 @@ qualifications; a full Mac CPU/MuJoCo preset is not yet qualified. See the
 From the repository root:
 
 ```bash
-./scripts/open-viewer
-./scripts/open-viewer --page libero
+uv run --locked ora-viewer --open-browser
+uv run --locked ora-viewer --open-browser --page libero
 ```
 
-The script selects `.venv` or the locked `uv` environment, starts the Viewer at
-<http://127.0.0.1:5012>, and opens the default browser. Stop it with `Ctrl-C`.
+`ora-viewer` is the Viewer's console script (`viewer/app.py`); `uv run --locked`
+runs it from the locked environment. It starts the Viewer at
+<http://127.0.0.1:5012> and, with `--open-browser`, opens the default browser.
+Stop it with `Ctrl-C`. `ora-viewer compile videos|previews` builds the Viewer's
+videos and the LIBERO gallery previews offline, outside the web process.
+`ora-viewer dashboard` serves the separate [run dashboard](#run-dashboard).
 The default `runs` page is the evidence registry. `--page libero` opens the
 integrated LIBERO/LIBERO-Pro atlas directly (`libero-pro` remains an alias);
 `--page robotwin` opens the
@@ -69,38 +71,18 @@ process, not separate Viewer implementations.
 The default page is also the global experiment index: evidence class, backend,
 experiment ID, task, seed, lifecycle state and official outcome are composable
 filters. Backend names are rendered as RoboTwin and LIBERO/LIBERO-Pro rather
-than leaking only adapter identifiers. A scoped experiment page links back to
-this registry and never becomes a second evidence index.
+than leaking only adapter identifiers. An experiment name links to this
+registry filtered to that experiment (`/?view=all&experiment=ID`); there is no
+separate experiment page or registry.
 
 Opening the field guide never starts LIBERO or MuJoCo. It reads the current
 preview manifest and shows explicit placeholders when images are unavailable.
 Check or build the independently generated seed-0 preview cache with:
 
 ```bash
-./scripts/dev/compile-libero-previews --status
-./scripts/dev/compile-libero-previews  # only on the pinned LIBERO-Pro host
+uv run --locked ora-viewer compile previews --status
+uv run --locked ora-viewer compile previews  # only on the pinned LIBERO-Pro host
 ```
-
-Validate every optional, tracked experiment view without starting the server:
-
-```bash
-uv run --locked python -m viewer.app --audit-experiment-views
-```
-
-An experiment may declare `experiments/<experiment>/viewer.yaml` with schema
-`ora.viewer-experiment.v1`. The four fixed layouts are
-`single_episode`, `matrix`, `persistent_rounds` and `diagnostic_set`. The
-manifest references `experiment.yaml.accepted_evidence` keys; run identity,
-verdicts, metrics, videos and cost remain derived from immutable local evidence.
-Experiments without a manifest keep the generic run ledger.
-
-Any accepted run that contains persistent-session `rounds` evidence shows its
-per-round official verdict and a direct link to that round's first recorded
-ActionStep, regardless of the surrounding gallery layout. This lets a
-heterogeneous `diagnostic_set` keep five tasks separate while exposing every
-round's model chat and actions through the same Episode Notebook. The gallery
-summary never synthesizes a top-level official verdict for a persistent
-session.
 
 To start without opening a browser, use:
 
@@ -132,10 +114,24 @@ uv run --locked python viewer/app.py \
   --outputs-root /path/to/another-experiment-workspace
 ```
 
-Each target may be an outputs root containing nested `*/runs/*`, an experiment
-workspace containing `runs/*`, or one exact run root containing `plan.json`.
-Run IDs must remain unique across all configured roots. The Viewer header shows
-the shared evidence destination and every active discovery root.
+The Viewer recognizes a run only as a directory with a `plan.json` whose
+parent directory is named `runs`, so each target must be one of:
+
+- an outputs root, holding `<experiment>/runs/<run_id>/` (at any depth);
+- one experiment's directory, holding `runs/<run_id>/`;
+- one run directory, `.../<experiment>/runs/<run_id>`.
+
+The `runs/` directory itself is not a target, and neither is a run copied
+outside a `runs/` directory (`copies/<run_id>/` is never found: `/run/<run_id>`
+answers 404). Copy a run as `<dir>/<experiment>/runs/<run_id>/` and pass
+`<dir>`. Run IDs must remain unique across all configured roots. The Viewer
+header shows the shared evidence destination and every active discovery root.
+
+The Viewer is not strictly read-only on its roots: opening a run's video,
+trajectory or replay writes derived caches into the run's experiment
+directory, `<experiment>/viewer-derived/<run_id>/`, beside `runs/` (never into
+the run). Point `--outputs-root` at a copy rather than at a shared outputs root
+that others own and that you mean only to read.
 
 The run index and cost list read registration metadata without projecting full
 trajectories to inspect video caches. The index labels video availability
@@ -149,16 +145,151 @@ files plus the derived-video directory listing — is unchanged. A newly landed
 or re-derived run therefore appears within one refresh without re-reading
 every sealed run on every filter click.
 
+## Run dashboard
+
+`ora-viewer dashboard` serves a second read-only page over ORA run
+directories, separate from the Viewer above: a run browser for cohorts of runs
+and the conditions they compare, and a 3D replay of runs of every backend. It is
+ported from Shaoxiong Duan's code-vs-tools dashboard (snapshot 2026-10-31) and
+lives in `viewer/dashboard/`: a standard-library HTTP server (`server.py`, run
+parsing in `runs.py` and `agent.py`, the replay bundle in `replay.py` for
+RoboDojo and `replay_receipts.py` for the other backends, robot descriptions in
+`robots.py`, object meshes in `meshes.py`, scene traces in `scene_trace.py`)
+and plain JavaScript pages (`static/`) on the shared light template.
+
+```bash
+uv run --locked ora-viewer dashboard --outputs /path/to/outputs --experiment NAME
+```
+
+| Option | Meaning |
+|---|---|
+| `--outputs ROOT` | An outputs root holding `<experiment>/runs/<run_id>/`, or one experiment directory holding `runs/` |
+| `--experiment NAME` | Show only this experiment (default: every experiment under the root) |
+| `--condition PLAN_PATH` | Label each run by the value at this dotted plan path, for example `policy.tool_surface.profile` or `policy.baseline.id`; default: `code` when the plan has `policy.code_mode`, else `tools` |
+| `--hide-cohorts REGEX` | Cohorts whose name matches stay out of the overview, its recent runs and "all cohorts", with a switch there to show them. Their own pages still open, and nothing is deleted |
+| `--host`, `--port` | Bind address (default `127.0.0.1`, local only) and port (default 5013) |
+| `--robodojo-assets DIR` | RoboDojo's `Assets` directory for the 3D replay: the X5 URDF under `Robots/x5`, object assets under `Object/`; default `$ROBODOJO_ASSET_ROOT` |
+| `--robotwin-root DIR` | A RoboTwin checkout for the 3D replay's aloha-agilex robot (`assets/embodiments/aloha-agilex`: its `config.yml` and URDF); default `$ROBOTWIN_ROOT` |
+| `--scene-traces DIR` | A directory of scene traces (`DIR/<run_id>/`, as `ora replay RUN --scene --scene-traces DIR` writes them); default: `scene-trace/` beside each run's `runs/` directory |
+| `--mesh-python PATH` | An interpreter with usd-core for the object meshes (default: the dashboard's own interpreter) |
+| `--cache DIR` | Derived point clouds and meshes (default `$XDG_CACHE_HOME/ora/dashboard`, else `~/.cache/ora/dashboard`) |
+
+What it shows:
+
+- **Overview**: every experiment's runs together ("all cohorts") and each
+  cohort, with progress, states and successes by condition, then the most
+  recent runs. A run's cohort is its plan's `launch_admission.cohort_id`, else
+  the plan's `config` without the task and what follows it, else the
+  experiment. Launches usually make one cohort per treatment, so conditions
+  meet in an experiment's "all cohorts" view.
+- **Cohort**: a task x seed matrix (task x layout for RoboDojo) with one square
+  per condition (the latest run of the cell; lettered, with a legend, and
+  marked success, fail, running or fault), a per-task table of successes,
+  median wall time, model calls and native actions per condition (each played
+  round of a multi-round session counts), and a filterable table of the runs.
+- **Run**: the verdict, termination, condition, backend, task and seed, host and
+  card (from `launch.json`), wall time, calls, tokens and raw-file links; the
+  **Timeline** of each observation step (every camera the backend recorded,
+  model calls with their reasoning, tool calls with a code-mode script's own
+  calls under the call that ran it, receipts); for code-mode runs **Agent's
+  files**, every version of every file the agent wrote, from the workspace
+  snapshots (`native/code-workspace-objects/`); **Logs** and **Run events**. The
+  compare page puts two runs side by side.
+- **3D replay** of one round of a run on one clock: a strip of every robot
+  command (`native/receipts/`) coloured by interaction mode where the receipt
+  has one, else by action, failures hatched; end-effector paths; the agent's
+  RGB-D at the latest observation as a point cloud; the camera frames; and the
+  agent's trace (reasoning, code or tool arguments, results, the exact images
+  it was shown) placed at the commands each call caused, a skill sequence at
+  all its stages. The clock and what the robot layer shows differ by backend:
+
+  | Backend | Clock | Robot | Paths | Cameras |
+  |---|---|---|---|---|
+  | RoboDojo | native actions (25 Hz) | dual ARX X5 posed per native action from `native/controller/`; FK check vs logged `ee_link` | per native action | execution capture |
+  | RoboTwin | SAPIEN steps (250 Hz) of the execution capture | aloha-agilex posed per SAPIEN step from `native/controller-replay/*.npz` (measured arm joints; fingers from the measured opening and each `set_gripper`'s commanded ramp); FK check vs measured TCP | per SAPIEN step | execution capture |
+  | LIBERO-Pro | MuJoCo steps (500 Hz) of the execution capture | none (its controller replay records commands only) | each command's measured start and end, each observation | execution capture |
+  | RoboCasa365 | native actions, each receipt's `steps_used` accumulated (rate not recorded) | the scene trace's links, when the run has one (end effector and base only otherwise) | as LIBERO-Pro, plus the mobile base's path and pose | observation frames held |
+  | RoboLab | native actions (15 Hz), as RoboCasa365 | the scene trace's links, when the run has one (end effector only otherwise) | as LIBERO-Pro, per native action with a trace | observation frames held |
+
+  An observation sits at the end of the command its `observation.json` names
+  (`previous_execution_receipt`; RoboDojo: `native/observation-clocks.jsonl`).
+  The toolbar names the clock's unit and rate, and for a posed robot the
+  distance between the URDF's forward kinematics of the logged joints and the
+  logged pose, which reads 0.0 mm when the mounts and joint mapping are right.
+  Point clouds are cropped to RoboDojo's workspace, elsewhere to the box of the
+  run's end-effector positions grown by 0.6 m (0.4 m above). A Synthetic run
+  has no 3D replay (`api/replay` answers 422).
+
+  Scene objects are developer-only and never shown to the agent. RoboDojo runs
+  launched with ground-truth capture (`<experiment>/ground-truth/<run_id>/`)
+  draw them at their simulator poses. A RoboTwin, LIBERO-Pro, RoboCasa365 or RoboLab
+  run, and a RoboDojo run with no ground truth, draws them from its **scene trace**, which
+  `ora replay RUN --scene` recovers from a sealed run's replay program: it
+  re-executes the run as `--check` does, on a simulator lane of its own
+  (RoboDojo: `--resource-profile`), and keeps the trace only when the check
+  passes, so the dashboard never starts a simulator and a run that diverges gets
+  none. A RoboCasa365 or RoboLab run sealed before it recorded its per-tick
+  controls has no program, and its objects layer says so. The trace
+  (`<experiment>/scene-trace/<run_id>/`, format in
+  `ora/environment/scene_trace.py`) holds every body's pose on the execution
+  capture's clock, or the receipts' on RoboCasa365 and RoboLab (about 50 Hz on RoboTwin
+  and LIBERO-Pro, every fifth SAPIEN step and every tenth MuJoCo step, every native
+  action on RoboDojo, 25 Hz, RoboCasa365, 20 Hz, 25 MuJoCo steps to the native action,
+  and RoboLab, 15 Hz, plus each action's last step; between rows the page interpolates)
+  and each body's visual mesh. The objects layer draws the task's objects and clutter, and the
+  table goes under the table toggle with any other fixed body (RoboDojo's camera
+  stand, which stands in front of the default view). The wall, the ground and
+  RoboDojo's room are in the trace but not drawn, they would stand between the
+  camera and the scene; a kitchen's walls and floors likewise, while its counters
+  stay, and its doors and drawers are objects, since they move. A RoboDojo trace also gives a run without ground truth
+  its rounds and each command's span. Without a trace the toggle is disabled and
+  says which command makes one, or that the run recorded no controls to replay.
+
+  The robot comes from the trace where the bundle has no URDF for it, which is
+  LIBERO-Pro and RoboCasa365 always (the Omron base is links like the arm's, so
+  the trace poses it) and RoboTwin or RoboDojo without `--robotwin-root` or
+  `--robodojo-assets`: its links are bodies of kind `robot`, drawn under the
+  robot toggle, with no label and not in the Objects table, and the "no robot
+  model" note goes. Where the URDF is posed the links stay undrawn. A MuJoCo
+  trace also names the TCP, so the end-effector path and marker follow the hand
+  between commands instead of joining the receipts' end poses.
+
+Runs of RoboDojo, RoboTwin, LIBERO-Pro, RoboCasa365 and RoboLab all open in the
+run browser; a file a backend does not write (execution capture for RoboCasa365
+and RoboLab, `native/controller/` outside RoboDojo) is simply absent.
+
+The dashboard is read-only. It never writes to a run or to the outputs root;
+derived point clouds and meshes go to `--cache`. `api/file` and `api/ls` read
+only inside the outputs root, after resolving links (403 elsewhere);
+`api/scene-trace` only a trace's `poses.bin` and `meshes/<id>.glb`, inside that
+run's trace directory, after resolving links (404 elsewhere); a robot
+description's files (`robot/x5/...`, `robot/aloha/...`) only inside its
+directory, and visual meshes over 8 MB (decorative cameras and cart bodies)
+are listed in the bundle so the page never requests them (the aloha-agilex's
+two rear master arms, never commanded and at their URDF pose, therefore appear
+without the cart that carries them); every request other than GET or HEAD is
+refused. Parsed files are cached by
+(path, mtime, size), append-only jsonl files are read incrementally, the scan of
+all runs is reused for five seconds, large JSON responses are gzip-compressed,
+and every URL is relative, so the page also works behind a proxy at a sub-path.
+
+The run browser needs only the standard library. The 3D replay's point clouds
+and RoboTwin's controller replay need numpy (and Pillow for the clouds; both in
+ORA's environment), its object meshes usd-core in `--mesh-python`, and the
+browser loads three.js 0.160.0 and urdf-loader 0.12.6 from cdn.jsdelivr.net. Not ported from the original: its round-manager input,
+cluster resource panel, design-review page and feedback endpoint, and its
+code-policy tab, which read conventions of the code-vs-tools workspace.
+
 ## Round Results and Process Videos
 
-Experiment and LIBERO task-cohort pages show a round matrix automatically when
-their visible runs contain session rounds. Each row identifies one exact run,
+The LIBERO task-cohort page shows a round matrix automatically when its
+visible runs contain session rounds. Each row identifies one exact run,
 task, seed, config and source. Cells distinguish official success/failure,
 running, incomplete, unscored and unrun rounds. The summary reports scored and
 completed counts plus the first recorded success; persistent rounds retain
 their session relationship and do not become independent Pass@K trials.
-Experiment and task pages select RunPlan identities before registering traces
-from the selected scope. They omit expensive video-availability inspection,
+The task-cohort page selects RunPlan identities before registering traces
+from the selected scope. It omits expensive video-availability inspection,
 which is represented as uninspected and cached separately from full registry
 rows. Opening a video still performs media verification.
 
@@ -181,10 +312,10 @@ unrecorded model reasoning.
 Compile an optional version explicitly, using an exact discovered run ID:
 
 ```bash
-./scripts/dev/compile-viewer-videos --run-id RUN_ID --video-mode process
-./scripts/dev/compile-viewer-videos --run-id RUN_ID --video-mode process \
+uv run --locked ora-viewer compile videos --run-id RUN_ID --video-mode process
+uv run --locked ora-viewer compile videos --run-id RUN_ID --video-mode process \
   --round 2 --include-reasoning --include-context
-./scripts/dev/compile-viewer-videos --run-id RUN_ID --video-mode execution --round 2
+uv run --locked ora-viewer compile videos --run-id RUN_ID --video-mode execution --round 2
 ```
 
 `--round` is one-based. Omit it for all recorded rounds; `--run-id` may repeat
@@ -211,12 +342,10 @@ separately.
 
 | Route | Purpose | Evidence status |
 |---|---|---|
-| `/` | Index runs newest-first with explicit UTC date/time, experiment ID, config, exact run ID, official behavioral verdict, independent control-validity classification and direct review links. Formal, Behavioral, Qualifications, Diagnostics and All are separate views; experiment, backend, exact LIBERO task and seed filters compose. | Formal means non-Synthetic `behavioral` evidence that is completed, evaluator-valid and sealed; filtering never changes evidence. Control validity is an audit of action/receipt integrity and never replaces the official task verdict. |
+| `/` | Index runs newest-first with explicit UTC date/time, experiment ID, config, exact run ID, official behavioral verdict and direct review links. Formal, Behavioral, Qualifications, Diagnostics and All are separate views; experiment, backend, exact LIBERO task and seed filters compose. | Formal means non-Synthetic `behavioral` evidence that is completed, evaluator-valid and sealed; filtering never changes evidence. |
 | `/costs` | Aggregate formal or all behavioral LIBERO runs by exact task and run, with provider input/cache-read/output tokens, Context Compactor usage and a versioned official API list-price estimate. Qualification and diagnostic probes are excluded. | Sealed rows use `runtime-metrics.json`; live Native rows are explicitly provisional. This is a list-price equivalent, not an account invoice, and never modifies run evidence. |
-| `/experiment/<experiment_id>/runs` | Compare every locally indexed run belonging to one experiment, with date, config, task, seed, evidence type, outcome and direct summary/raw/evidence links. An experiment with a versioned `viewer.yaml` first shows its accepted cells through one of four fixed layouts plus epistemically labelled findings. | Registration, outcomes, source identities, metrics, videos and notebooks are derived from exact run evidence; no second run registry is maintained. Review order and prose are tracked archive claims, source mismatch is prominent, and excluded infrastructure attempts remain outside the accepted comparison. |
 | `/task/libero_pro/<suite>/<task_id>/runs` | Review one exact LIBERO task across every locally indexed experiment/source condition, with completed/formal/all-behavioral views plus seed and outcome filters. Each visible run also projects average/P95/peak request context, images per request, token-weighted cache read and the exact context policy from its deterministic Runtime report. | Identity is the recorded `runtime.kind + suite + task_id`, not experiment naming or instruction text. The page labels non-formal attempts, preserves missing telemetry, and warns that heterogeneous treatments or provider measurement surfaces must not be pooled into a causal success rate. |
-| `/experiment/<experiment_id>/configs` | Read the tracked `experiment.yaml` cell catalog and jump from each config to its newest locally indexed exact composition. Packages that register `inspect-config` also show the non-launching prospective command. | This is a static source declaration, not proof of what a provider received. Recorded RunPlan/context evidence remains authoritative. |
-| `/run/<run_id>` | Read the complete episode as a continuous lab notebook: separate behavioral and control-validity stamps, sticky ActionStep outline, large visibility-labelled observations, recorded model responses, ordered execution details, action/receipt pairs and collapsed post-action frames. Persistent K-session results add one AgentSession ledger, per-round official verdicts and Supervisor-reset boundaries; an optional exact-source `viewer-analysis.json` adds curated incident navigation. | Read-only derived projection over exact run evidence. K-session round success is never collapsed into a synthetic top-level official verdict; control validity and curated incident labels remain separate presentation/analysis and never change canonical or sealed artifacts. |
+| `/run/<run_id>` | Read the complete episode as a continuous lab notebook: the behavioral verdict stamp, sticky ActionStep outline, large visibility-labelled observations, recorded model responses, ordered execution details, action/receipt pairs and collapsed post-action frames. Persistent K-session results add one AgentSession ledger, per-round official verdicts and Supervisor-reset boundaries; an optional exact-source `viewer-analysis.json` adds curated incident navigation. | Read-only derived projection over exact run evidence. K-session round success is never collapsed into a synthetic top-level official verdict; curated incident labels remain separate presentation/analysis and never change canonical or sealed artifacts. |
 | `/run/<run_id>/composition` | Inspect provider-request slot order, exact recorded prompt text, dynamic/opaque slot status, source files and hashes, and every advertised tool description/schema/effect. | Schema-backed read-only projection of the run's RunPlan, context manifest, compiled policy and ToolSurface. Managed context is labelled opaque rather than reconstructed. |
 | `/api/run/<run_id>/composition` | Return the same exact configuration inspection as JSON. | Schema `ora.policy-config-inspection.v1`; it never calls a provider or environment. |
 | `/api/run/<run_id>/trajectory` | Return the deterministic trajectory bundle used by the Episode Notebook. Persistent K-sessions add a bounded `session_rounds` object and round-local identity on each covered ActionStep. | Schema `ora.viewer-trajectory.v1`, with optional nested `ora.viewer-session-rounds.v1` and source-artifact hashes. |
@@ -306,6 +435,9 @@ the round matrix as `N actions, M refused` and in the run summary. The projectio
 persistent AgentSession and reset EnvironmentSessions as different continuity
 axes. Its aggregate `official_success` remains null: `5/5 rounds`,
 success-within-5 and standard Pass@5 are not interchangeable claims.
+A run or round with `success_after_official_limit` reads as a success after the
+official limit everywhere a verdict shows, with its own outcome filter: its
+`official_success` is false, it counts in no success total, and it is no failure.
 
 The raw trajectory viewer uses a separate lossless index. It scans
 `events.jsonl`, `agent-events.jsonl` and `agent-transcript.jsonl`, retaining each
@@ -346,6 +478,10 @@ Grounding v2 events additionally bind one independently hashed candidate card
 per returned T0/T1/T2 target. The Viewer places those exact policy-visible cards
 after the overview and omits only a missing or mismatched card; it never rebuilds
 or sharpens an alternative crop. Historical v1 events remain single-overlay.
+The tool handlers log these events, and so does a toolkit surface whose environment
+plans its moves (`docs/reference/toolkit-execution.md`). RoboDojo's toolkit surfaces do
+not log them for `vision_ground`, `grasp_plan` or `mark_point`, so those calls add no
+derived image to a RoboDojo step.
 
 ### Episode Notebook review model
 
@@ -429,16 +565,15 @@ targets. Legacy EE-only traces retain normal planner initialization.
 Compile every current formal run before review with:
 
 ```bash
-./scripts/dev/compile-viewer-videos
+uv run --locked ora-viewer compile videos
 ```
 
-Use `./scripts/dev/compile-viewer-videos --video-scope libero` to compile only
+Use `uv run --locked ora-viewer compile videos --video-scope libero` to compile only
 formal LIBERO-Pro runs, or `--video-scope robotwin` to compile locally indexed
 formal, behavioral-attempt and diagnostic RoboTwin runs. Combine any command with
 repeatable `--outputs-root`; use `--replay-mode forensic` only for an explicit
-controller-step investigation. The reusable script selects the project
-interpreter and calls the same compiler as the web route; it contains no second
-rendering path. A controller replay needs the exact external simulator roots,
+controller-step investigation. `ora-viewer compile videos` calls the same
+compiler as the web route; it contains no second rendering path. A controller replay needs the exact external simulator roots,
 Python binding, pinned revision and GPU resource from the recorded RunPlan.
 The RoboTwin recorded-trace producer and the controller-profile stack it
 re-executes ship with the same release as this Viewer, so the complete
@@ -455,10 +590,9 @@ retains the already-simulated derived replay cache so a retry does not repeat
 the worker; the bulky replay frames are deleted only after the MP4 and its
 manifest are durably in place.
 
-Experiments register themselves by the `experiment` identity already present
-in RunPlan and `experiments/*/experiment.yaml`. Adding a new manipulation
-experiment requires no Viewer route: once its run is indexed and it emits the
-shared observation/action/receipt evidence, it appears on the experiment page
+Experiments need no Viewer registration: the registry groups runs by the
+`experiment` field of their RunPlan. Once a run is indexed and emits the shared
+observation/action/receipt evidence, it appears under that experiment filter
 and uses the same Episode Notebook.
 
 LIBERO task cohorts likewise require no curated registry. The Viewer derives
@@ -492,12 +626,10 @@ tax, subscriptions, account discounts, simulator/GPU time, SAM service cost and
 other infrastructure. Updating a provider price adds a new dated catalog entry
 rather than rewriting the meaning of previously displayed calculations.
 
-Configuration inspection follows the same no-second-registry rule. The
-experiment catalog reads the tracked declaration directly. The run composition
-page reads the exact resolved RunPlan, context manifest, compiled policy and
-ToolSurface snapshot. Therefore a source config may describe what should be
-assembled, while only a specific run page claims what was actually resolved;
-the Viewer does not silently fill missing or managed provider text.
+Configuration inspection follows the same no-second-registry rule: the run
+composition page reads the exact resolved RunPlan, context manifest, compiled
+policy and ToolSurface snapshot, and the Viewer does not silently fill missing
+or managed provider text.
 
 ## Interface principles
 
@@ -579,8 +711,8 @@ interpreter for all MuJoCo work. Export `LIBERO_PRO_PYTHON`,
 `LIBERO_PRO_ROOT` and `LIBERO_PRO_DATA_ROOT`, then run:
 
 ```bash
-./scripts/dev/compile-libero-previews
-./scripts/dev/compile-libero-previews --status
+uv run --locked ora-viewer compile previews
+uv run --locked ora-viewer compile previews --status
 ```
 
 The compiler verifies clean exact code/data revisions, exact BDDL languages,
@@ -617,10 +749,9 @@ remain externally hosted by RoboTwin; the catalog records their mapping but
 does not vendor or seal those resources. A missing external video therefore
 does not invalidate a Robot Harness run.
 
-The catalog is deliberately viewer-owned. It is not a task registry, does not
-expand Runtime qualification beyond M0-M5, and does not authorize experiments
-on all 50 tasks. Experiment task, seed, budget, and qualification choices remain
-under `experiments/`.
+The catalog is deliberately viewer-owned. It is not a task registry and does
+not authorize experiments on all 50 tasks; task, seed, budget and qualification
+choices belong to the RunSpec.
 
 ## Provenance and privilege boundary
 
@@ -676,7 +807,8 @@ passed to the policy merely because the Viewer can display it.
   action-boundary fallback.
 
 The protected contracts are listed in [the test inventory](../tests/README.md).
-Operator commands are listed in [the script inventory](../scripts/README.md).
+The `ora` commands are in [the command reference](../docs/usage/cli-reference.md);
+the remaining wrappers are in [the script inventory](../scripts/README.md).
 
 Controller replay readers accept historical inline manifest v1 and the current
 v2 bounded manifest plus hash-bound append-only event journal. The canonical

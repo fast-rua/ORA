@@ -1,0 +1,216 @@
+"""Helpers for ``ora run``: confirmation of long steps, and resident services.
+
+The services part does what an operator does by hand before a GPU task:
+``ora services status``; ``start`` when nothing answers; wait for warmup;
+reuse the readiness report that names the running instances, or ``qualify``.
+"""
+
+from __future__ import annotations
+
+import errno
+import json
+import sys
+import time
+from pathlib import Path
+from typing import Any, Callable, Mapping, Sequence
+
+from ora.orchestrator.progress import clock
+
+#: Measured on the 2026-10-14 verification: both services ready ~170 s after start.
+SERVICE_START_TIMEOUT_S = 900
+#: A report binds for 24 h; reuse one only while it leaves this much for the
+#: interactive session's own launch preflight.
+REPORT_REUSE_MAX_AGE_S = 20 * 3600
+
+
+def confirm(message: str, *, assume_yes: bool, stream=None, reader: Callable[[str], str] | None = None) -> None:
+    """Show what is about to run; proceed on ``--yes`` or an interactive yes, refuse otherwise."""
+    output = stream or sys.stderr
+    print(message, file=output, flush=True)
+    if assume_yes:
+        return
+    if reader is None:
+        if not sys.stdin.isatty():
+            raise RuntimeError("this step runs simulator episodes; rerun with --yes to confirm it")
+        reader = input
+    if reader("Proceed? [y/N] ").strip().lower() not in {"y", "yes"}:
+        raise RuntimeError("not confirmed; nothing was started")
+
+
+def _instances(health: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    from ora.agent.model_services.operator import FIELDS
+
+    return {name: {key: item["health"].get(key) for key in FIELDS} for name, item in health.items()}
+
+
+def reusable_report(directory: Path, health: Mapping[str, Any]) -> Path | None:
+    """The newest readiness report that is valid now and names the running instances."""
+    from ora.agent.model_services import operator
+
+    if not all(item.get("ready") is True for item in health.values()):
+        return None
+    running = _instances(health)
+    for path in sorted(directory.glob("*.json"), key=lambda item: item.stat().st_mtime, reverse=True):
+        try:
+            bound = operator.binding(path, "ora-run-reuse-probe", [])
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        created = next(iter(bound["services"].values()), {}).get("qualification", {}).get("created_unix_s", 0)
+        if time.time() - created > REPORT_REUSE_MAX_AGE_S:
+            continue
+        recorded = {name: {key: child.get(key) for key in operator.FIELDS}
+                    for name, child in bound["services"].items()}
+        if recorded == running:
+            return path
+    return None
+
+
+def _identity_state(record: Mapping[str, Any]) -> str:
+    from ora.agent.model_services.process import service_process_identity_state
+
+    return service_process_identity_state(record)
+
+
+def _record(state: Path, name: str) -> dict[str, Any] | None:
+    try:
+        record = json.loads((state / f"{name}.json").read_text())
+    except (OSError, ValueError):
+        return None
+    return record if isinstance(record, dict) else None
+
+
+def _unowned(name: str, url: str, record: dict[str, Any] | None, pid: Any = None) -> tuple[str, str] | None:
+    """``(kind, text)`` when the service holding ``url`` is not usable as this checkout's, else ``None``.
+
+    ``kind`` is ``foreign`` (no matching record: on a shared host, another
+    user's services) or ``uninspectable``: this checkout recorded the live PID,
+    but it was started from another container or user namespace, so its
+    identity cannot be confirmed from here.
+    """
+    from ora.agent.model_services.process import IDENTITY_MATCHES, IDENTITY_UNINSPECTABLE, uninspectable_message
+
+    if record is not None and (pid is None or record.get("pid") == pid):
+        state = _identity_state(record)
+        if state == IDENTITY_MATCHES:
+            return None
+        if state == IDENTITY_UNINSPECTABLE:
+            return "uninspectable", (f"{name} at {url} was started by this checkout's model-services, not by "
+                                     f"another user: {uninspectable_message(record)}")
+    return "foreign", f"{name} at {url}"
+
+
+def foreign_listeners(state: Path, health: Mapping[str, Any]) -> list[tuple[str, str]]:
+    """Ready listeners this checkout's ``model-services`` did not start, or cannot confirm it started."""
+    from ora.agent.model_services.operator import endpoints
+
+    urls = endpoints()
+    found = (_unowned(name, urls[name], _record(state, name), item.get("health", {}).get("pid"))
+             for name, item in health.items())
+    return [item for item in found if item]
+
+
+FOREIGN_SERVICES_HINT = ("answers but was not started from this checkout (another user's services?); set free "
+                         "ports with ORA_SAM_PORT / ORA_GRASP_PORT in .env, or stop them")
+
+
+def refusal(unowned: Sequence[tuple[str, str]]) -> str:
+    """One refusal for ``foreign_listeners``-style entries; the free-ports remedy is named once."""
+    foreign = [text for kind, text in unowned if kind == "foreign"]
+    parts = [text for kind, text in unowned if kind != "foreign"]
+    if foreign:
+        parts.insert(0, f"{', '.join(foreign)} {FOREIGN_SERVICES_HINT}")
+    elif parts:
+        parts.append("or set free ports with ORA_SAM_PORT / ORA_GRASP_PORT in .env")
+    return "; ".join(parts)
+
+
+def _port_in_use(port: int) -> bool:
+    import socket
+
+    with socket.socket() as sock:
+        try:
+            sock.bind(("127.0.0.1", port))
+        except OSError as exc:
+            if exc.errno == errno.EADDRINUSE:
+                return True
+            raise
+    return False
+
+
+def check_service_ports() -> None:
+    """Refuse, before any qualification, service ports another process holds.
+
+    ``ensure_services`` runs after the one-time qualification, which can take
+    most of an hour; on a shared host the default ports may belong to another
+    user. A ready listener must be this checkout's (``foreign_listeners``); an
+    occupied port that does not answer yet must belong to a live service this
+    checkout started. Read-only: nothing is started or stopped.
+    """
+    from ora.agent.model_services import operator
+    from .services import state_directory
+
+    state = state_directory(None)
+    health = operator.health()
+    ready = {name: item for name, item in health.items() if item.get("ready") is True}
+    foreign = foreign_listeners(state, ready)
+    urls = operator.endpoints()
+    for name in health:
+        if name in ready or not _port_in_use(int(urls[name].rsplit(":", 1)[1])):
+            continue
+        found = _unowned(name, urls[name], _record(state, name))
+        if found:
+            foreign.append(found)
+    if foreign:
+        raise RuntimeError(refusal(foreign))
+
+
+def ensure_services(*, stream=None, timeout_s: float = SERVICE_START_TIMEOUT_S, poll_s: float = 5.0) -> Path:
+    """Ready SAM3/Contact-GraspNet services and a readiness report for them; return the report."""
+    from ora.agent.model_services import operator
+    from ora.orchestrator import paths
+
+    from .services import state_directory
+
+    output = stream or sys.stderr
+    state = state_directory(None)
+    health = operator.health()
+    if not all(item.get("ready") is True for item in health.values()):
+        print("Starting the SAM3 and Contact-GraspNet services (~3 min, SAM3 warmup ~70 s) ...",
+              file=output, flush=True)
+        try:
+            started = operator.lifecycle("start", root=paths.PROJECT_ROOT, state=state,
+                                         runtime_state_root=paths.STATE_ROOT)
+        except OSError as exc:
+            if exc.errno != errno.EADDRINUSE:
+                raise
+            urls = ", ".join(operator.endpoints().values())
+            raise RuntimeError(f"another process already listens on {urls} (another user's services?); set free "
+                               "ports with ORA_SAM_PORT / ORA_GRASP_PORT in .env and rerun") from exc
+        logs = [item["log"] for item in started.values() if item.get("log")]
+        begin = time.monotonic()
+        while True:
+            health = operator.health()
+            if all(item.get("ready") is True for item in health.values()):
+                break
+            elapsed = time.monotonic() - begin
+            if elapsed > timeout_s:
+                raise RuntimeError(f"services not ready after {clock(elapsed)}; see {', '.join(logs) or state}")
+            waiting = ", ".join(name for name, item in health.items() if item.get("ready") is not True)
+            print(f"  waiting for {waiting}: {clock(elapsed)} elapsed", file=output, flush=True)
+            time.sleep(poll_s)
+    foreign = foreign_listeners(state, health)
+    if foreign:
+        # A health check alone would bind another tenant's services to this run.
+        raise RuntimeError(refusal(foreign))
+    directory = state / "qualification"
+    report = reusable_report(directory, health)
+    if report is not None:
+        print(f"Services ready; reusing readiness report {report}", file=output, flush=True)
+        return report
+    report = operator.qualify(directory)
+    print(f"Services ready; readiness report {report}", file=output, flush=True)
+    return report
+
+
+__all__ = ["REPORT_REUSE_MAX_AGE_S", "SERVICE_START_TIMEOUT_S", "check_service_ports", "confirm", "ensure_services",
+           "foreign_listeners", "refusal", "reusable_report"]

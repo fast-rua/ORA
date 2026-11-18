@@ -1,0 +1,123 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "mark_point",
+  "description": "Measure a visible scene point in world metres from an observation-bound pixel. Use when: a precise surface measurement is needed instead of a guessed 3D coordinate; reuse the same point_id only for a complementary view of the same physical point. Effect: read-only world access; persists a local pending or solved measurement record and feedback overlays. Returns: success, point_id, pending/solved/verified status, world xyz_m when solved, source views and action_workspace diagnostics; pending results name next_views. Does not: establish semantic identity, contact, reachability or a grasp; old moving-camera pixels are not current geometry after motion. On error: select a valid interior pixel at the returned view size or use a complementary view; refresh stale evidence after an action.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "point_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Nonempty local identifier for this physical point; reuse across complementary views of the same point, never across different points."
+      },
+      "view": {
+        "type": "string",
+        "minLength": 1,
+        "description": "The exact view name whose returned pixel is being measured; actual camera or derived view, not a camera chosen from an old observation."
+      },
+      "x": {
+        "type": "integer",
+        "description": "Horizontal integer pixel at the returned view size, OpenCV top-left origin; dynamic image bounds apply."
+      },
+      "y": {
+        "type": "integer",
+        "description": "Vertical integer pixel at the returned view size, OpenCV top-left origin; dynamic image bounds apply."
+      }
+    },
+    "required": [
+      "point_id",
+      "view",
+      "x",
+      "y"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "$defs": {
+      "vector3": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": "array"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "next_views": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "point_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "solved",
+              "verified"
+            ]
+          },
+          "success": {
+            "const": true
+          },
+          "views": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "xyz_m": {
+            "$ref": "#/$defs/vector3"
+          },
+          "action_workspace": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "status",
+          "point_id"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "next_views": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "point_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success",
+          "reason"
+        ],
+        "type": "object"
+      }
+    ]
+  }
+}

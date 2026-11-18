@@ -21,10 +21,10 @@ import copy
 import json
 from typing import Any, Mapping
 
-from ora.agent.composition.schema_validation import (
+from ora.agent.composition.surface.schema_validation import (
     ToolSurfaceError, validate_schema_instance,
 )
-from ora.agent.tools.tool_errors import ToolError, schema_refusal
+from ora.agent.error_classes import ToolError, schema_refusal
 
 #: The published ``artifact://`` reference shape (``artifacts._REF_PATTERN``).
 REF_PATTERN = r"^artifact://[A-Za-z0-9][A-Za-z0-9._-]{0,159}/[0-9a-f]{64}$"

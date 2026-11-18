@@ -1,0 +1,7 @@
+# What the code-mode sandbox interpreter (ORA_CODE_MODE_PYTHON) holds; sandbox-requirements.txt is its lock.
+# NumPy and SciPy stay exactly where they are: tests pin their floats to 1e-12 and below.
+numpy==1.26.4
+scipy==1.13.1
+pillow
+scikit-image
+shapely

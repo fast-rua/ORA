@@ -13,7 +13,7 @@ so do not compare its results with the full server composition.
 ## Requirements
 
 - Git, [uv](https://docs.astral.sh/uv/getting-started/installation/) and
-  Node.js 20 or newer (with npm) on `PATH`.
+  Node.js 22.19 or newer with npm ([install](installation.md#nodejs-and-the-agent-core)).
 - A Python 3.11 interpreter. `ora setup` does not download one; install it
   with `uv python install 3.11` if needed.
 - macOS 13 or newer on Apple Silicon (native OpenGL), or Linux with the
@@ -31,20 +31,28 @@ uv sync --all-extras --locked --python 3.11
 ```
 
 `ora setup` downloads the pinned LIBERO-Pro code and task data, creates an
-isolated CPU simulator environment and installs the terminal UI (`ora-tui/`).
+isolated CPU simulator environment and installs the agent core's Pi packages
+(`ora-pi/`), which include the terminal UI.
 It starts no simulator and calls no API. `--root PATH` (or `ORA_LOCAL_ROOT`)
 chooses the installation directory; the default is your user data directory.
 
 ## Check
 
 ```bash
-export DEEPSEEK_LOW_API_KEY=...        # DEEPSEEK_API_KEY is accepted too
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY   # once; or export it (DEEPSEEK_API_KEY is accepted too)
 ./scripts/ora doctor --env local
 ```
 
 `doctor --env local` checks the sources, simulator environment, graphics
 binding, credential presence and terminal UI without starting the simulator or
 calling the API. It prints what is missing and the next command.
+
+The profile also reads `DEEPSEEK_BASE_URL`, which you need not set: it
+defaults to the profile's endpoint, `https://api.deepseek.com`. While the key
+is missing, `doctor` lists it beside the key (`required_environment`), and the
+check passes once the key is stored. A `DEEPSEEK_BASE_URL` left set to any
+other address fails the check (`expected_endpoint`): unset it, or set exactly
+that URL.
 
 ## Run
 

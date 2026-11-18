@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import sys
 import time
 import webbrowser
 from datetime import datetime, timezone
@@ -13,7 +14,6 @@ from threading import Timer
 from typing import Any, Mapping
 from urllib.parse import urlencode
 
-import yaml
 from flask import Flask, Response, abort, jsonify, request, send_file
 
 from ora.orchestrator.paths import (
@@ -44,19 +44,12 @@ from viewer.registry import (
     resolve_discovered_run,
     visible_runs,
 )
-from viewer.experiment_view import (
-    audit_experiment_view_files,
-    render_experiment_view,
-)
 from viewer.pricing import estimate_run_cost, load_price_catalog
 from viewer.ui import render_page, render_style_guide
-from viewer.experiment_identity import (
-    create_identity_blueprint, filter_identity_request, identity_controls, identity_label,
-)
 from viewer.player import render_process_player
 from viewer.process_timeline import compile_process_timeline
 from viewer.process_video import PresentationPendingError, VideoOptions, presentation_video
-from viewer.rounds import render_round_matrix
+from viewer.rounds import LATE_SUCCESS, render_round_matrix
 from viewer.review_media import find_execution_media
 from viewer.replay import REPLAY_MODES
 from ora.agent.composition import inspect_run_configuration
@@ -69,7 +62,6 @@ from viewer.trajectory import (
 
 ROOT = Path(__file__).resolve().parents[1]
 app = Flask(__name__)
-app.register_blueprint(create_identity_blueprint(lambda: viewer_run_roots()))
 VIEWER_START_PAGES = {
     "runs": "/",
     "libero": "/gallery/libero",
@@ -84,24 +76,6 @@ def load(path: Path) -> dict:
         return value if isinstance(value, dict) else {}
     except (OSError, json.JSONDecodeError):
         return {}
-
-
-def load_yaml(path: Path) -> dict:
-    try:
-        value = yaml.safe_load(path.read_text(encoding="utf-8"))
-        return value if isinstance(value, dict) else {}
-    except (OSError, yaml.YAMLError):
-        return {}
-
-
-def experiment_definition(experiment_id: str) -> tuple[Path | None, dict]:
-    """Return the tracked declaration for one registered experiment."""
-
-    for candidate in sorted((ROOT / "experiments").glob("*/experiment.yaml")):
-        value = load_yaml(candidate)
-        if str(value.get("experiment")) == experiment_id:
-            return candidate, value
-    return None, {}
 
 
 def run_root(run_id: str) -> Path:
@@ -178,6 +152,11 @@ def _libero_task_runs_url(
     return path + (f"?{urlencode(values)}" if values else "")
 
 
+def _experiment_url(experiment: str) -> str:
+    """The run registry filtered to one experiment."""
+    return "/?" + urlencode({"view": "all", "experiment": experiment})
+
+
 def _registered_outcome(run: object) -> tuple[str, str, str]:
     """Keep multi-round success evidence distinct from one-episode verdicts."""
     count = getattr(run, "round_count", None)
@@ -188,9 +167,17 @@ def _registered_outcome(run: object) -> tuple[str, str, str]:
     verdict = getattr(run, "official_success", None)
     if verdict is True:
         return "success", "ok", "single episode verdict"
+    if getattr(run, LATE_SUCCESS, False):
+        return "success after official limit", "", "single episode verdict"
     if verdict is False:
         return "failure", "bad", "single episode verdict"
     return "—", "", "unscored"
+
+
+def _verdict_text(official: bool | None, late: Any) -> str:
+    if late is True:
+        return "success after official limit"
+    return "unscored" if official is None else ("success" if official else "failure")
 
 
 def page(title: str, body: str, *, wide: bool = False) -> str:
@@ -214,7 +201,6 @@ def index() -> str:
     state = request.args.get("state", "")
     outcome = request.args.get("outcome", "")
     registrations = build_registry(viewer_run_roots(), inspect_video=False)
-    registrations = filter_identity_request(registrations, request.args)
     backends = sorted({run.backend for run in registrations if run.backend != "unknown"})
     experiments = sorted({
         run.experiment for run in registrations
@@ -245,7 +231,7 @@ def index() -> str:
     })
     if state not in states:
         state = ""
-    if outcome not in {"success", "failure", "unscored"}:
+    if outcome not in {"success", LATE_SUCCESS, "failure", "unscored"}:
         outcome = ""
     selected = visible_runs(
         registrations, view=view, backend=backend, experiment=experiment,
@@ -285,8 +271,8 @@ def index() -> str:
         rows.append(
             f"<tr><td class='run-time'><time{time_attr}><strong>{html.escape(clock.removesuffix(' UTC'))}</strong>"
             "<small>UTC</small></time></td>"
-            f"<td class='run-experiment'><a href='/experiment/{html.escape(run.experiment)}/runs'>{html.escape(run.experiment)}</a>"
-            f"{identity_label(run)}<small>{html.escape(run.config)}</small></td>"
+            f"<td class='run-experiment'><a href='{html.escape(_experiment_url(run.experiment))}'>{html.escape(run.experiment)}</a>"
+            f"<small>{html.escape(run.config)}</small></td>"
             f"<td class='run-id'><a href='/run/{html.escape(run.run_id)}'><code>{html.escape(run.run_id)}</code></a>"
             f"<small>source {html.escape(run.source_commit[:12])}</small></td>"
             f"<td><span class='run-kind {html.escape(run.category)}'>{html.escape(category_label)}</span>"
@@ -295,8 +281,7 @@ def index() -> str:
             f"<small>seed {html.escape(str(run.seed))}</small></td>"
             f"<td>{html.escape(run.backend)}<small>{html.escape(run.policy_kind)} · {html.escape(run.model)}</small></td>"
             f"<td class='{outcome_class}'>{html.escape(run.state)} · {html.escape(label)}"
-            f"<small>{html.escape(outcome_kind)} · evaluation {html.escape(run.evaluation)}</small>"
-            f"<small>control {html.escape(run.control_validity)}</small></td>"
+            f"<small>{html.escape(outcome_kind)} · evaluation {html.escape(run.evaluation)}</small></td>"
             f"<td><div class='review-links'><a href='/run/{html.escape(run.run_id)}'>Summary</a>"
             f"<a href='/run/{html.escape(run.run_id)}/composition'>Composition</a>"
             f"<a href='/run/{html.escape(run.run_id)}/trajectory/raw'>Raw trace</a>"
@@ -304,7 +289,7 @@ def index() -> str:
             f"<small>video {video}</small></td></tr>"
         )
     tabs = "".join(
-        f"<a class='{'active' if value == view else ''}' href='/?{urlencode({'family': request.args.get('family', ''), 'generation': request.args.get('generation', ''), 'view': value, 'backend': backend, 'experiment': experiment, 'task': task_key, 'seed': seed, 'state': state, 'outcome': outcome})}'>{label}</a>"
+        f"<a class='{'active' if value == view else ''}' href='/?{urlencode({'view': value, 'backend': backend, 'experiment': experiment, 'task': task_key, 'seed': seed, 'state': state, 'outcome': outcome})}'>{label}</a>"
         for value, label in (
             ("formal", f"Formal · {counts['formal']}"),
             ("attempts", f"Behavioral · {counts['formal'] + counts['attempt']}"),
@@ -342,6 +327,7 @@ def index() -> str:
         for value, label in (
             ("", "All official outcomes"),
             ("success", "Official success"),
+            (LATE_SUCCESS, "Success after official limit"),
             ("failure", "Official failure"),
             ("unscored", "Unscored"),
         )
@@ -358,11 +344,10 @@ def index() -> str:
         "Legacy worktree and imported roots remain read-only discovery inputs.</p>"
         f"<ul>{root_items}</ul></details>"
     )
-    body += "<nav class='nav'><a href='/experiments'>Experiment families</a><a href='/costs'>Cost ledger</a><a href='/gallery/libero'>LIBERO 130 atlas</a><a href='/gallery/robotwin'>RoboTwin tasks</a><a href='/gallery/robodojo'>RoboDojo tasks</a></nav>"
+    body += f"<nav class='nav'><a href='/costs'>Cost ledger</a><a href='/gallery/libero'>LIBERO 130 atlas</a><a href='/gallery/robotwin'>RoboTwin tasks</a><a href='/gallery/robodojo'>RoboDojo tasks</a></nav>"
     body += (
         f"<div class='registry-controls'><nav class='tabs'>{tabs}</nav><form>"
         f"<input type='hidden' name='view' value='{html.escape(view)}'>"
-        f"{identity_controls(request.args)}"
         f"<label>Experiment<select name='experiment' onchange='this.form.submit()'>{''.join(experiment_options)}</select></label>"
         f"<label>Backend<select name='backend' onchange='this.form.submit()'>{''.join(backend_options)}</select></label>"
         f"<label>Task<select name='task' onchange='this.form.submit()'>{''.join(task_options)}</select></label>"
@@ -443,10 +428,7 @@ def cost_dashboard() -> str:
     for run in selected:
         value = estimates[run.run_id]
         date, clock, _iso = _utc_parts(run.started_unix_s)
-        verdict = run.official_success
-        verdict_text = "unscored" if verdict is None else (
-            "success" if verdict else "failure"
-        )
+        verdict_text = _verdict_text(run.official_success, run.success_after_official_limit)
         input_tokens = value.get("input_tokens")
         cached_tokens = value.get("cached_tokens")
         run_cache_ratio = (
@@ -465,7 +447,7 @@ def cost_dashboard() -> str:
             "<tr>"
             f"<td>{html.escape(date)}<small>{html.escape(clock)}</small></td>"
             f"<td>{task_link}<small>seed {html.escape(str(run.seed))} · {html.escape(str(run.task_key or ''))}</small></td>"
-            f"<td><a href='/experiment/{html.escape(run.experiment)}/runs'>{html.escape(run.experiment)}</a>"
+            f"<td><a href='{html.escape(_experiment_url(run.experiment))}'>{html.escape(run.experiment)}</a>"
             f"<small>{html.escape(run.config)} · {html.escape(run.model)}</small></td>"
             f"<td><span class='outcome-mark {html.escape(verdict_text)}'>{html.escape(verdict_text)}</span>"
             f"<small>{html.escape(run.category)} · {html.escape(run.state)}</small></td>"
@@ -1110,7 +1092,6 @@ def _composition_page(run_id: str, inspection: dict) -> str:
     safe_payload = json.dumps(inspection, ensure_ascii=False).replace("</", "<\\/")
     body = (
         "<nav class='nav'><a href='/'>← All runs</a>"
-        f"<a href='/experiment/{html.escape(str(identity.get('experiment') or ''))}/configs'>Experiment configs</a>"
         f"<a href='/run/{html.escape(run_id)}'>Trajectory summary</a>"
         f"<a href='/run/{html.escape(run_id)}/trajectory/raw'>Raw trajectory</a>"
         f"<a href='/run/{html.escape(run_id)}/raw'>Evidence inventory</a>"
@@ -1172,18 +1153,8 @@ def _trajectory_page(
             else "failure" if successes == 0 else ""
         )
     else:
-        verdict_label = "unscored" if verdict is None else ("success" if verdict else "failure")
+        verdict_label = _verdict_text(verdict, summary.get(LATE_SUCCESS))
         verdict_class = "" if verdict is None else verdict_label
-    control_validity = str(summary.get("control_validity") or "indeterminate")
-    control_issues = summary.get("control_issues")
-    control_issues = control_issues if isinstance(control_issues, list) else []
-    control_note = (
-        "No control-contract issue was found by the v2 receipt audit."
-        if control_validity == "control-valid"
-        else "Control audit: " + ", ".join(str(item) for item in control_issues)
-        if control_issues
-        else "Control validity could not be established from this evidence."
-    )
     run_date, run_clock, _run_iso = _utc_parts(summary.get("run_started_unix_s"))
     safe_payload = json.dumps(trajectory, ensure_ascii=False).replace("</", "<\\/")
     title = trajectory.get("instruction") or trajectory.get("task") or run_id
@@ -1221,8 +1192,9 @@ def _trajectory_page(
                 continue
             ordinal = item.get("round_ordinal", "—")
             official = item.get("official_success")
-            outcome = "SUCCESS" if official is True else "FAILURE" if official is False else "UNSCORED"
-            outcome_class = "success" if official is True else "failure" if official is False else ""
+            late = item.get(LATE_SUCCESS) is True
+            outcome = _verdict_text(official, late).upper()
+            outcome_class = "success" if official is True else "failure" if official is False and not late else ""
             bounds = item.get("policy_state_steps") if isinstance(item.get("policy_state_steps"), dict) else {}
             start = bounds.get("start")
             end = bounds.get("end_exclusive")
@@ -1258,7 +1230,7 @@ def _trajectory_page(
         )
     body = (
         "<nav class='nav'><a href='/'>← All runs</a>"
-        f"<a href='/experiment/{html.escape(str(trajectory.get('experiment')))}/runs'>Experiment runs</a>"
+        f"<a href='{html.escape(_experiment_url(str(trajectory.get('experiment') or '')))}'>Experiment runs</a>"
         f"<a class='raw-link' href='/run/{html.escape(run_id)}/composition'>Composition</a>"
         f"<a class='raw-link' href='/run/{html.escape(run_id)}/trajectory/raw'>Raw trajectory</a>"
         f"<a class='raw-link' href='/run/{html.escape(run_id)}/raw'>Raw evidence</a>"
@@ -1267,8 +1239,7 @@ def _trajectory_page(
         f"<header class='episode-mast'><div><span class='episode-kicker'>{html.escape(notebook_kind)} · read-only projection</span>"
         f"<h1>{html.escape(str(title))}</h1>"
         f"<p>{html.escape(str(task_identity))} · {html.escape(run_id)}</p></div>"
-        f"<div class='verdict-stack'><div class='verdict-stamp {verdict_class}'>behavior · {html.escape(verdict_label)}</div>"
-        f"<div class='control-validity {html.escape(control_validity)}'>control · {html.escape(control_validity)}</div></div></header>"
+        f"<div class='verdict-stack'><div class='verdict-stamp {verdict_class}'>behavior · {html.escape(verdict_label)}</div></div></header>"
         "<div class='episode-meta'>"
         f"<div><span>Experiment ID</span><strong>{html.escape(str(trajectory.get('experiment') or '—'))}</strong></div>"
         f"<div><span>Config</span><strong>{html.escape(str(trajectory.get('config') or '—'))}</strong></div>"
@@ -1375,7 +1346,7 @@ function modelResponse(call,index){
 	renderRoundBoard(); renderInvestigation();
 function roundDivider(round){
   const box=node('header','round-divider'); box.id='round-'+round.round_ordinal;
-  const verdict=round.official_success===true?'official success':round.official_success===false?'official failure':'official verdict missing';
+  const verdict=round.official_success===true?'official success':round.success_after_official_limit===true?'success after official limit':round.official_success===false?'official failure':'official verdict missing';
   box.append(node('span','','Round '+round.round_ordinal+' / '+trajectory.session_rounds.round_count),node('strong','',verdict),node('small','',round.decisions+' decisions · '+round.model_calls+' model calls · Supervisor reset follows; AgentSession continues'));
   return box;
 }
@@ -1406,7 +1377,7 @@ def _raw_trajectory_page(run_id: str, trace: dict) -> str:
     duration = end - start if isinstance(start, (int, float)) and isinstance(end, (int, float)) else None
     safe_payload = json.dumps(trace, ensure_ascii=False).replace("</", "<\\/")
     verdict = summary.get("official_success")
-    verdict_text = "unscored" if verdict is None else ("success" if verdict else "failure")
+    verdict_text = _verdict_text(verdict, summary.get(LATE_SUCCESS))
     run_date, run_clock, _run_iso = _utc_parts(
         summary.get("run_started_unix_s") or start
     )
@@ -1573,7 +1544,7 @@ async function selectEvent(key, scroll=false) {
   }
   history.replaceState(null,'','#event='+encodeURIComponent(key));
 }
-	(trace.rounds||[]).forEach(round=>{const option=node('option','', 'Round '+(round.round_index+1)+' · '+(round.official_success===true?'success':round.official_success===false?'failure':'unscored'));option.value=String(round.round_index);roundFilter.append(option);});
+	(trace.rounds||[]).forEach(round=>{const option=node('option','', 'Round '+(round.round_index+1)+' · '+(round.official_success===true?'success':round.success_after_official_limit===true?'success after official limit':round.official_success===false?'failure':'unscored'));option.value=String(round.round_index);roundFilter.append(option);});
 	trace.cycles.forEach(cycle=>{ const option=node('option','', 'Cycle '+String(cycle.step).padStart(2,'0')+' · '+(cycle.observation_id || 'observation')); option.value=String(cycle.step); stepFilter.append(option); });
 	document.querySelectorAll('.stream-filter').forEach(button=>button.onclick=()=>{ stream=button.dataset.stream; document.querySelectorAll('.stream-filter').forEach(item=>item.classList.toggle('active',item===button)); renderList(true); });
 	document.querySelectorAll('.review-lens').forEach(button=>button.onclick=()=>{lens=button.dataset.lens;document.querySelectorAll('.review-lens').forEach(item=>item.classList.toggle('active',item===button));renderList(true);});
@@ -1734,7 +1705,7 @@ def libero_task_runs(suite: str, task_id: int) -> str:
     if view not in {"completed", "formal", "all"}:
         view = "completed"
     outcome = request.args.get("outcome", "")
-    if outcome not in {"", "success", "failure", "unscored"}:
+    if outcome not in {"", "success", LATE_SUCCESS, "failure", "unscored"}:
         outcome = ""
     seeds = sorted(
         {str(run.seed) for run in task_runs},
@@ -1753,7 +1724,9 @@ def libero_task_runs(suite: str, task_id: int) -> str:
             return False
         if outcome == "success" and run.official_success is not True:
             return False
-        if outcome == "failure" and run.official_success is not False:
+        if outcome == "failure" and (run.official_success is not False or run.success_after_official_limit):
+            return False
+        if outcome == LATE_SUCCESS and not run.success_after_official_limit:
             return False
         if outcome == "unscored" and run.official_success is not None:
             return False
@@ -1763,7 +1736,7 @@ def libero_task_runs(suite: str, task_id: int) -> str:
     completed = [run for run in task_runs if run.state == "completed"]
     formal = [run for run in task_runs if run.category == "formal"]
     successes = [run for run in completed if run.official_success is True]
-    failures = [run for run in completed if run.official_success is False]
+    failures = [run for run in completed if run.official_success is False and not run.success_after_official_limit]
     task_label = task_runs[0].task
     task_key = str(task_runs[0].task_key)
 
@@ -1856,7 +1829,7 @@ def libero_task_runs(suite: str, task_id: int) -> str:
             )
         rows.append(
             "<tr>"
-            f"<td class='treatment-cell'><a href='/experiment/{html.escape(run.experiment)}/runs'>{html.escape(run.experiment)}</a>"
+            f"<td class='treatment-cell'><a href='{html.escape(_experiment_url(run.experiment))}'>{html.escape(run.experiment)}</a>"
             f"<strong>{html.escape(run.config)}</strong><div class='treatment-meta'><span>seed {html.escape(str(run.seed))}</span>"
             f"<span>{html.escape(run.model)}</span><span>source {html.escape(run.source_commit[:12])}</span>"
             f"<span>{html.escape(date)} · {html.escape(clock)}</span></div></td>"
@@ -1888,7 +1861,7 @@ def libero_task_runs(suite: str, task_id: int) -> str:
         for value in seeds
     ]
     outcome_options = [
-        ("", "All outcomes"), ("success", "Success"),
+        ("", "All outcomes"), ("success", "Success"), (LATE_SUCCESS, "Success after official limit"),
         ("failure", "Failure"), ("unscored", "Unscored"),
     ]
     outcome_select = "".join(
@@ -1963,138 +1936,6 @@ def libero_task_runs(suite: str, task_id: int) -> str:
         "list-price equivalent, not an account invoice; taxes, subscriptions and discounts are excluded.</p>"
     )
     return page(f"Task cohort · {task_label}", body, wide=True)
-
-
-@app.get("/experiment/<experiment_id>/runs")
-def experiment_runs(experiment_id: str) -> str:
-    runs = [
-        run for run in build_registry(scoped_run_roots(experiment=experiment_id), inspect_video=False)
-        if run.experiment == experiment_id
-    ]
-    if not runs:
-        abort(404)
-    definition_path, definition = experiment_definition(experiment_id)
-    experiment_view = render_experiment_view(
-        definition_path, definition, runs, _comparison_metrics,
-    )
-    rows = []
-    for run in runs:
-        date, clock, iso = _utc_parts(run.started_unix_s)
-        verdict_text, _outcome_class, outcome_kind = _registered_outcome(run)
-        rows.append(
-            f"<tr><td class='run-time'><time datetime='{html.escape(iso)}'><strong>{html.escape(date)}</strong>"
-            f"<small>{html.escape(clock)}</small></time></td>"
-            f"<td>{html.escape(run.config)}<small>{html.escape(run.experiment)}</small><small>{html.escape(run.category)} · {html.escape(run.milestone)}</small></td>"
-            f"<td>{html.escape(run.task)}<small>seed {html.escape(str(run.seed))}</small></td>"
-            f"<td>{html.escape(run.state)} · {html.escape(verdict_text)}<small>{html.escape(outcome_kind)} · evaluation {html.escape(run.evaluation)}</small></td>"
-            f"<td><div class='review-links'><a href='/run/{html.escape(run.run_id)}'>Summary</a>"
-            f"<a href='/run/{html.escape(run.run_id)}/composition'>Composition</a>"
-            f"<a href='/run/{html.escape(run.run_id)}/trajectory/raw'>Raw trace</a>"
-            f"<a href='/run/{html.escape(run.run_id)}/raw'>Evidence</a></div></td>"
-            f"<td class='run-id'><code>{html.escape(run.run_id)}</code></td></tr>"
-        )
-    config_link = f"<a href='/experiment/{html.escape(experiment_id)}/configs'>Configuration catalog</a>"
-    body = f"<nav class='nav'><a href='/?view=all'>← All experiments / runs</a>{config_link}</nav>"
-    title = str(definition.get('title') or experiment_id)
-    body += f"<span class='eyebrow'>Registered evidence collection</span><h1>{html.escape(title)}</h1>"
-    body += f"<p class='muted'><code>{html.escape(experiment_id)}</code> · {len(rows)} locally indexed runs · newest first</p>"
-    body += render_round_matrix(runs)
-    body += experiment_view.html
-    body += (
-        "<div class='ui-table-scroll'><table><thead><tr><th>date</th><th>config / type</th><th>task</th>"
-        "<th>outcome</th><th>review</th><th>exact run ID</th></tr></thead><tbody>"
-        + "".join(rows) + "</tbody></table></div>"
-    )
-    return page(f"Experiment · {experiment_id}", body, wide=True)
-
-
-@app.get("/experiment/<experiment_id>/configs")
-def experiment_configs(experiment_id: str) -> str:
-    definition_path, definition = experiment_definition(experiment_id)
-    if definition_path is None:
-        abort(404)
-    configs = definition.get("configs")
-    if not isinstance(configs, dict):
-        abort(404)
-    indexed_runs = [
-        run for run in build_registry(scoped_run_roots(experiment=experiment_id), inspect_video=False)
-        if run.experiment == experiment_id
-    ]
-    latest_by_config = {}
-    for run in indexed_runs:
-        latest_by_config.setdefault(run.config, run)
-    rows = []
-    for config_id, raw_config in configs.items():
-        config = raw_config if isinstance(raw_config, dict) else {}
-        task = (
-            str(config.get("task")) if config.get("task") is not None
-            else f"{config.get('suite', 'task')} / task {config.get('task_id', '—')}"
-        )
-        prompt = " · ".join(filter(None, (
-            str(config.get("policy") or ""),
-            f"prompt {config['prompt_version']}" if config.get("prompt_version") else None,
-            f"context {config['context_profile']}" if config.get("context_profile") else None,
-        )))
-        controls = " · ".join(filter(None, (
-            f"surface {config['surface']}" if config.get("surface") else None,
-            str(config.get("evidence_tier") or ""),
-        )))
-        budgets = json.dumps(
-            config.get("budgets", {}), ensure_ascii=False, sort_keys=True,
-        )
-        run = latest_by_config.get(str(config_id))
-        if run is None:
-            evidence = "<span class='config-status'>not indexed</span><small>No local run evidence for this config.</small>"
-        else:
-            date, clock, _iso = _utc_parts(run.started_unix_s)
-            evidence = (
-                f"<a href='/run/{html.escape(run.run_id)}/composition'>Exact latest composition</a>"
-                f"<small>{html.escape(date)} {html.escape(clock)} · seed {html.escape(str(run.seed))}</small>"
-                f"<small><code>{html.escape(run.run_id)}</code></small>"
-            )
-        instruction = config.get("instruction")
-        instruction_html = (
-            f"<small>{html.escape(str(instruction))}</small>" if instruction else ""
-        )
-        rows.append(
-            f"<tr><td><code>{html.escape(str(config_id))}</code>"
-            f"<small>{html.escape(prompt or 'policy unspecified')}</small></td>"
-            f"<td>{html.escape(task)}{instruction_html}</td>"
-            f"<td>{html.escape(controls or '—')}</td>"
-            f"<td><code>{html.escape(budgets)}</code></td><td>{evidence}</td></tr>"
-        )
-    experiment_dir = definition_path.parent.relative_to(ROOT).as_posix()
-    run_script = definition_path.parent / "run.py"
-    supports_inspection = (
-        run_script.is_file()
-        and "inspect-config" in run_script.read_text(encoding="utf-8", errors="replace")
-    )
-    command = (
-        f"uv run --locked python {experiment_dir}/run.py inspect-config "
-        "CONFIG --seed 0"
-    )
-    run_nav = (
-        f"<a href='/experiment/{html.escape(experiment_id)}/runs'>Indexed runs</a>"
-        if indexed_runs else ""
-    )
-    inspection_html = (
-        f"<p>Resolve one config without launching a provider or environment job:</p><pre>{html.escape(command)}</pre>"
-        if supports_inspection else
-        "<p>This archived package does not register the shared prospective inspector. Use a recorded run's Composition page for exact resolved evidence.</p>"
-    )
-    body = (
-        f"<nav class='nav'><a href='/'>← All runs</a>{run_nav}</nav>"
-        "<span class='eyebrow'>Tracked experiment declaration</span>"
-        f"<h1>{html.escape(str(definition.get('title') or experiment_id))}</h1>"
-        "<p class='muted'>This table is the static experiment.yaml catalog. It tells you which cells may be composed; "
-        "the Composition link on a recorded run is authoritative for the exact prompt text, request order, tools and hashes actually resolved for that run.</p>"
-        f"<details class='provenance'><summary>Pre-run exact inspection</summary>{inspection_html}"
-        f"<p>Declaration: <code>{html.escape(definition_path.relative_to(ROOT).as_posix())}</code></p></details>"
-        "<table class='config-table'><thead><tr><th>config / policy</th><th>task declaration</th>"
-        "<th>surface / gates</th><th>budgets</th><th>exact run evidence</th></tr></thead><tbody>"
-        + "".join(rows) + "</tbody></table>"
-    )
-    return page(f"Configurations · {experiment_id}", body)
 
 
 @app.get("/run/<run_id>/raw")
@@ -2217,7 +2058,14 @@ def artifact(run_id: str, relative: str) -> Response:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="ora-viewer", description=__doc__)
+    """``ora-viewer``: serve the Viewer; ``ora-viewer compile previews|videos`` is ``build_compile_parser``,
+    ``ora-viewer dashboard`` the run dashboard (``viewer/dashboard/server.py``)."""
+    parser = argparse.ArgumentParser(
+        prog="ora-viewer", description=__doc__,
+        epilog="ora-viewer compile videos|previews builds the Viewer's videos or the LIBERO gallery previews "
+               "offline (ora-viewer compile --help); ora-viewer dashboard --outputs ROOT serves the run "
+               "dashboard (ora-viewer dashboard --help).",
+    )
     parser.add_argument(
         "--host", default="127.0.0.1",
         help="bind address; keep the default for local-only evidence viewing",
@@ -2234,6 +2082,11 @@ def build_parser() -> argparse.ArgumentParser:
             "(default: runs)"
         ),
     )
+    _add_outputs_root(parser)
+    return parser
+
+
+def _add_outputs_root(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--outputs-root", type=Path, action="append", default=[],
         help=(
@@ -2241,31 +2094,40 @@ def build_parser() -> argparse.ArgumentParser:
             "or experiment workspace; repeatable"
         ),
     )
-    parser.add_argument(
-        "--compile-videos", action="store_true",
-        help="compile missing/current trajectory videos and exit",
+
+
+def build_compile_parser() -> argparse.ArgumentParser:
+    """``ora-viewer compile videos|previews``: the Viewer's offline build steps, outside the web process."""
+    parser = argparse.ArgumentParser(prog="ora-viewer compile", description=build_compile_parser.__doc__)
+    targets = parser.add_subparsers(dest="target", required=True, metavar="{videos,previews}")
+    videos = targets.add_parser(
+        "videos", help="compile missing/current trajectory videos and exit",
+        description="Compile or verify the Viewer's execution and process videos without starting the web server.",
     )
-    parser.add_argument(
-        "--audit-experiment-views", action="store_true",
-        help="validate every tracked viewer.yaml and available source binding, then exit",
-    )
-    parser.add_argument(
+    _add_outputs_root(videos)
+    videos.add_argument(
         "--video-scope", choices=("formal", "libero", "robotwin"), default="formal",
         help="batch video scope (default: every formal run)",
     )
-    parser.add_argument(
+    videos.add_argument(
         "--replay-mode", choices=tuple(sorted(REPLAY_MODES)), default="review",
         help=(
             "review: original recorded frames only (default); forensic: explicit "
             "simulator reconstruction for diagnosis, not original visual evidence"
         ),
     )
-    parser.add_argument("--run-id", action="append", default=[], help="compile an exact indexed run; repeatable, overrides batch scope")
-    parser.add_argument("--video-mode", choices=("execution", "process"), default="execution", help="execution or optional full recorded process")
-    parser.add_argument("--round", dest="video_round", type=int, help="export one recorded round (one-based)")
-    parser.add_argument("--include-reasoning", action="store_true", help="include recorded API-visible reasoning excerpts in process videos")
-    parser.add_argument("--include-context", action="store_true", help="include recorded Context lifecycle events in process videos")
-    parser.add_argument("--card-seconds", type=float, default=2.5, help="reading-card duration, 0.5–15 seconds (default: 2.5)")
+    videos.add_argument("--run-id", action="append", default=[], help="compile an exact indexed run; repeatable, overrides batch scope")
+    videos.add_argument("--video-mode", choices=("execution", "process"), default="execution", help="execution or optional full recorded process")
+    videos.add_argument("--round", dest="video_round", type=int, help="export one recorded round (one-based)")
+    videos.add_argument("--include-reasoning", action="store_true", help="include recorded API-visible reasoning excerpts in process videos")
+    videos.add_argument("--include-context", action="store_true", help="include recorded Context lifecycle events in process videos")
+    videos.add_argument("--card-seconds", type=float, default=2.5, help="reading-card duration, 0.5–15 seconds (default: 2.5)")
+    # Listed for --help only: compile_main hands everything after "previews" to libero_previews.
+    targets.add_parser(
+        "previews", add_help=False,
+        help="build or verify the seed-0 LIBERO/LIBERO-Pro gallery previews offscreen "
+             "(the pinned LIBERO-Pro interpreter and data; --status only reports)",
+    )
     return parser
 
 
@@ -2331,49 +2193,41 @@ def compile_registered_videos(
     return completed, len(selected)
 
 
+def compile_main(argv: list[str]) -> int:
+    """``ora-viewer compile videos|previews ...``."""
+    if argv[:1] == ["previews"]:
+        from viewer.libero_previews import main as compile_previews
+
+        return compile_previews(argv[1:])
+    args = build_compile_parser().parse_args(argv)
+    output_roots = [path.resolve() for path in args.outputs_root]
+    video_options = None
+    if args.run_id or args.video_mode != "execution" or args.video_round is not None or args.include_reasoning or args.include_context:
+        video_options = VideoOptions(
+            mode=args.video_mode,
+            round_index=args.video_round - 1 if args.video_round is not None else None,
+            reasoning=args.include_reasoning, context=args.include_context,
+            card_seconds=args.card_seconds, replay_mode=args.replay_mode,
+        )
+    completed, selected = compile_registered_videos(
+        output_roots or list(default_output_roots()),
+        scope=args.video_scope,
+        replay_mode=args.replay_mode,
+        run_ids=args.run_id, video_options=video_options,
+    )
+    return 0 if completed == selected else 1
+
+
 def main(argv: list[str] | None = None) -> None:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["compile"]:
+        raise SystemExit(compile_main(argv[1:]))
+    if argv[:1] == ["dashboard"]:
+        from viewer.dashboard.server import main as dashboard_main
+
+        raise SystemExit(dashboard_main(argv[1:]))
     args = build_parser().parse_args(argv)
     output_roots = [path.resolve() for path in args.outputs_root]
-    if args.compile_videos and args.audit_experiment_views:
-        raise SystemExit("--compile-videos and --audit-experiment-views are mutually exclusive")
-    if args.compile_videos:
-        video_options = None
-        if args.run_id or args.video_mode != "execution" or args.video_round is not None or args.include_reasoning or args.include_context:
-            video_options = VideoOptions(
-                mode=args.video_mode,
-                round_index=args.video_round - 1 if args.video_round is not None else None,
-                reasoning=args.include_reasoning, context=args.include_context,
-                card_seconds=args.card_seconds, replay_mode=args.replay_mode,
-            )
-        completed, selected = compile_registered_videos(
-            output_roots or list(default_output_roots()),
-            scope=args.video_scope,
-            replay_mode=args.replay_mode,
-            run_ids=args.run_id, video_options=video_options,
-        )
-        if completed != selected:
-            raise SystemExit(1)
-        return
-    if args.audit_experiment_views:
-        roots = output_roots or list(default_output_roots())
-        reports = audit_experiment_view_files(
-            ROOT, build_registry(discover_run_roots(roots)),
-        )
-        for report in reports:
-            status = "OK" if report.passed else "FAIL"
-            unavailable = (
-                f" · {len(report.unavailable_run_ids)} unavailable"
-                if report.unavailable_run_ids else ""
-            )
-            print(
-                f"{status}\t{report.experiment}\t{report.layout}\t"
-                f"{report.path.relative_to(ROOT)}{unavailable}"
-            )
-            for issue in (*report.structural_issues, *report.evidence_issues):
-                print(f"  {issue}")
-        if any(not report.passed for report in reports):
-            raise SystemExit(1)
-        return
     if output_roots:
         app.config["VIEWER_OUTPUT_ROOTS"] = output_roots
     if args.open_browser:

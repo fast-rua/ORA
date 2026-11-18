@@ -119,6 +119,8 @@ def replay_identity(root: Path, *, replay_mode: str = "review") -> tuple[str, Pa
     manifest = root / "native/controller-replay/manifest.json"
     if not manifest.is_file():
         raise ViewerReplayError("run has no controller replay manifest")
+    if _load(manifest).get("backend") == "robolab":  # its record drives `ora replay`, not a rendered video
+        raise ViewerReplayError("the Viewer renders no RoboLab controller replay")
     # A v2 header hashes a committed journal prefix. Validate that prefix and
     # its artifacts even when an already-encoded video would bypass the worker.
     from ora.environment.controller_replay import (

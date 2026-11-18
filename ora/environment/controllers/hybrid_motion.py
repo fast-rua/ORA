@@ -16,6 +16,26 @@ from ora.contracts.motion import (
 
 HYBRID_MOTION_PROFILE_SCHEMA = "ora.hybrid-motion-profile.v1"
 LIBERO_MOTION_PROFILE_V2 = "franka_panda_libero_pro_hybrid_motion_v2"
+# v3 keeps v2's force stop and binds the global route's RoboSuite JOINT_POSITION
+# gains: a reach of joint_command_step_rad, joint_controller_kp, a velocity lead
+# on every knot and pacing at what that controller follows. Its terminal settle
+# also ends once the arm is at rest (terminal_settle_rest_step_rad) inside the
+# local route's endpoint bound.
+LIBERO_MOTION_PROFILE_V3 = "franka_panda_libero_pro_hybrid_motion_v3"
+# v4 is v3 plus ``osc_transit``: a free-space move the planner found clear and nearly
+# straight runs as one straight OSC line (``controllers/osc_transit.py``).
+LIBERO_MOTION_PROFILE_V4 = "franka_panda_libero_pro_hybrid_motion_v4"
+# The profiles whose global route binds its own JOINT_POSITION controller.
+LIBERO_JOINT_CONTROLLER_PROFILES = (LIBERO_MOTION_PROFILE_V3, LIBERO_MOTION_PROFILE_V4)
+# The settled profiles; v1 stays telemetry-only.
+LIBERO_SETTLED_PROFILES = (LIBERO_MOTION_PROFILE_V2, *LIBERO_JOINT_CONTROLLER_PROFILES)
+# RoboSuite's JOINT_POSITION damping ratio (controllers/config/joint_position.json):
+# critically damped, so a knot moving at v is followed with a lag of (2 / sqrt(kp)) v.
+LIBERO_JOINT_DAMPING_RATIO = 1.0
+_JOINT_CONTROLLER_FIELDS = frozenset({
+    "joint_controller_kp", "joint_follow_speed_rad_s", "joint_follow_accel_rad_s2",
+    "terminal_settle_rest_step_rad",
+})
 
 # One identity per live LIBERO endpoint-verification route. The endpoint bound
 # differs by route and each bound is correct for its own executor, so a receipt
@@ -30,7 +50,95 @@ LIBERO_ENDPOINT_ROUTES = (
 
 def precision_force_stop_enabled(profile: Mapping[str, Any] | None) -> bool:
     """Select the versioned precision stop; historical v1 stays telemetry-only."""
-    return profile is not None and profile.get("profile_id") == LIBERO_MOTION_PROFILE_V2
+    return profile is not None and profile.get("profile_id") in LIBERO_SETTLED_PROFILES
+
+
+def libero_joint_controller(profile: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    """The JOINT_POSITION gains a profile binds, or None: RoboSuite's defaults (v1, v2).
+
+    ``output_max_rad`` is the controller's reach, the farthest its goal may sit from
+    the measured joints, and equals ``joint_command_step_rad``, the step the executor
+    normalizes each command by. ``lead_s`` is the velocity lead of every knot,
+    ``2 / sqrt(kp)`` for a critically damped controller. Live execution records this
+    mapping and a replay loads exactly it (``mode`` names the controller it selects).
+    """
+
+    motion = (profile or {}).get("global_motion") or {}
+    if "joint_controller_kp" not in motion:
+        return None
+    kp = float(motion["joint_controller_kp"])
+    return {"mode": "JOINT_POSITION", "kp": kp, "damping_ratio": LIBERO_JOINT_DAMPING_RATIO,
+            "output_max_rad": float(motion["joint_command_step_rad"]),
+            "lead_s": 2.0 * LIBERO_JOINT_DAMPING_RATIO / math.sqrt(kp)}
+
+
+def libero_osc_transit(profile: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    """The ``osc_transit`` limits a profile binds (v4), or None: every free-space move takes the joint path."""
+
+    section = (profile or {}).get("osc_transit")
+    return dict(section) if isinstance(section, Mapping) else None
+
+
+def libero_global_joint_ceilings(
+    profile: Mapping[str, Any], *, tick_s: float,
+) -> tuple[float, float | None]:
+    """What every joint of the global route is paced within: (rad/s, rad/s^2 or None).
+
+    v3 names what its controller follows; v1 and v2 keep their historical ceiling,
+    one command step per tick and no acceleration cap of their own.
+    """
+
+    motion = profile["global_motion"]
+    if "joint_follow_speed_rad_s" in motion:
+        return float(motion["joint_follow_speed_rad_s"]), float(motion["joint_follow_accel_rad_s2"])
+    return float(motion["joint_command_step_rad"]) / float(tick_s), None
+
+
+def libero_settle_at_rest(
+    *, rest_step_rad: float | None, last_step_rad: float | None,
+    position_error_m: float, orientation_error_rad: float,
+) -> bool:
+    """Whether a v3 terminal settle may end before its joint tolerance: the arm at rest inside the local bound.
+
+    At rest: no joint moved more than ``rest_step_rad`` over the last tick. The bound is
+    the local route's (``libero_local_endpoint_tolerances``), compared as the sparse
+    settle hand-off compares it (``<=``), so a move that ends here never needs a local
+    settle segment after it. v1 and v2 name no rest step and never end this way.
+    """
+
+    if rest_step_rad is None or last_step_rad is None or last_step_rad > rest_step_rad:
+        return False
+    position_bound, orientation_bound = libero_local_endpoint_tolerances()
+    return position_error_m <= position_bound and orientation_error_rad <= orientation_bound
+
+
+def lead_joint_targets(
+    knots: Any, start: Any, *, tick_s: float, lead_s: float,
+) -> list[list[float]]:
+    """Each knot moved ahead by ``lead_s`` times its own speed: what the controller is aimed at.
+
+    ``knots`` are one row per control tick after ``start``. A knot's speed is the
+    central difference of its neighbours (``start`` before the first); the last
+    knot is at rest, so its target is the knot itself and the terminal settle
+    aims at the goal unchanged.
+    """
+
+    rows = [[float(value) for value in row] for row in knots]
+    previous = [float(value) for value in start]
+    if not rows or len(previous) != len(rows[0]) or not (tick_s > 0 and lead_s >= 0):
+        raise HybridMotionProfileError("lead targets need knots, a matching start and positive timing")
+    targets = []
+    for index, row in enumerate(rows):
+        before = previous if index == 0 else rows[index - 1]
+        if index + 1 == len(rows):
+            targets.append(list(row))
+            continue
+        after = rows[index + 1]
+        targets.append([
+            value + lead_s * (later - earlier) / (2.0 * tick_s)
+            for value, earlier, later in zip(row, before, after, strict=True)
+        ])
+    return targets
 
 
 def libero_global_endpoint_tolerances() -> tuple[float, float]:
@@ -265,6 +373,8 @@ def validate_hybrid_motion_profile(value: Any) -> dict[str, Any]:
         "schema", "profile_id", "embodiment_id", "gripper", "servo",
         "global_motion", "sensing",
     }
+    if value.get("profile_id") == LIBERO_MOTION_PROFILE_V4:
+        required.add("osc_transit")
     if set(value) != required:
         raise HybridMotionProfileError("motion profile fields drifted")
     if value.get("schema") != HYBRID_MOTION_PROFILE_SCHEMA:
@@ -313,8 +423,33 @@ def validate_hybrid_motion_profile(value: Any) -> dict[str, Any]:
     }
     if precision_force_stop_enabled(value):
         global_fields.add("terminal_settle_joint_tolerance_rad")
+    if value["profile_id"] in LIBERO_JOINT_CONTROLLER_PROFILES:
+        global_fields |= _JOINT_CONTROLLER_FIELDS
     if set(global_motion) != global_fields:
         raise HybridMotionProfileError("global motion profile fields drifted")
+    if value["profile_id"] == LIBERO_MOTION_PROFILE_V4:
+        from .osc_transit import OscTransitError, validate_osc_transit
+
+        try:
+            validate_osc_transit(value["osc_transit"])
+        except OscTransitError as exc:
+            raise HybridMotionProfileError(str(exc)) from exc
+    if value["profile_id"] in LIBERO_JOINT_CONTROLLER_PROFILES:
+        # RoboSuite's kp_limits; a speed the controller follows only if its lead
+        # stays inside its reach: (2 / sqrt(kp)) v <= joint_command_step_rad.
+        kp = _finite_number(global_motion["joint_controller_kp"], "global_motion.joint_controller_kp",
+                            minimum=1.0, maximum=300.0)
+        reach = _finite_number(global_motion["joint_command_step_rad"], "global_motion.joint_command_step_rad",
+                               minimum=0.005, maximum=0.2)
+        follow = _finite_number(global_motion["joint_follow_speed_rad_s"],
+                                "global_motion.joint_follow_speed_rad_s", minimum=0.01, maximum=4.0)
+        if follow * 2.0 * LIBERO_JOINT_DAMPING_RATIO / math.sqrt(kp) > reach:
+            raise HybridMotionProfileError(
+                "global_motion.joint_follow_speed_rad_s leads the controller past its reach")
+        _finite_number(global_motion["joint_follow_accel_rad_s2"], "global_motion.joint_follow_accel_rad_s2",
+                       minimum=0.1, maximum=40.0)
+        _finite_number(global_motion["terminal_settle_rest_step_rad"],
+                       "global_motion.terminal_settle_rest_step_rad", minimum=0.0005, maximum=0.01)
     if precision_force_stop_enabled(value):
         _finite_number(
             global_motion["terminal_settle_joint_tolerance_rad"],
@@ -446,12 +581,16 @@ def bounded_joint_position_command(
 __all__ = [
     "HYBRID_MOTION_PROFILE_SCHEMA", "HybridMotionProfileError",
     "aggregate_motion_contact", "bounded_joint_position_command",
+    "lead_joint_targets", "libero_global_joint_ceilings", "libero_joint_controller", "libero_osc_transit",
+    "libero_settle_at_rest",
     "load_hybrid_motion_profile",
     "libero_endpoint_contract", "libero_endpoint_tolerances",
     "libero_global_endpoint_tolerances", "libero_local_endpoint_tolerances",
     "LIBERO_ENDPOINT_CONTRACT_SCHEMA", "LIBERO_ENDPOINT_ROUTES",
     "LIBERO_ENDPOINT_ROUTE_GLOBAL", "LIBERO_ENDPOINT_ROUTE_LOCAL",
-    "LIBERO_MOTION_PROFILE_V2", "precision_force_stop_enabled",
+    "LIBERO_JOINT_CONTROLLER_PROFILES", "LIBERO_MOTION_PROFILE_V2", "LIBERO_MOTION_PROFILE_V3",
+    "LIBERO_MOTION_PROFILE_V4", "LIBERO_SETTLED_PROFILES",
+    "precision_force_stop_enabled",
     "motion_stop_reason",
     "validate_hybrid_motion_profile",
 ]

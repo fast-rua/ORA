@@ -129,3 +129,18 @@ def test_a_scheduled_round_shows_its_layout_and_the_relaunch(tmp_path: Path) -> 
     assert _scene_note(rows[1]["scene"]) == " · simulation relaunched on layout 37 · d57e3333"
     # An unscheduled round names no layout.
     assert scene_label(None) is None and _scene_note(None) == ""
+
+
+def test_a_late_success_is_shown_as_what_it_is(tmp_path: Path) -> None:
+    from viewer.rounds import round_ledger
+
+    run = tmp_path / "late"
+    run.mkdir()
+    _write(run / "plan.json", {"session": {"cadence": "persistent_agent_k_rounds_v1", "rounds": 2}})
+    _write(run / "status.json", {"state": "completed"})
+    _write(run / "result.json", {"state": "completed", "rounds": [
+        {"round_index": 0, "state": "completed", "official_success": False, "success_after_official_limit": True},
+        {"round_index": 1, "state": "completed", "official_success": False}]})
+    rows = round_ledger(run)["rounds"]
+    assert [row["outcome"] for row in rows] == ["success_after_official_limit", "failure"]
+    assert all(row["official_success"] is False for row in rows)

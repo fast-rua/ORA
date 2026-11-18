@@ -1,10 +1,38 @@
-"""RoboTwin original-execution media hooks, separate from motion and verdicts."""
+"""RoboTwin original-execution media hooks, separate from motion and verdicts.
+
+A scene of one of ORA's play scene sets (``play_scene_set``, whose task object
+is a ``play_scenes.base.PlaySceneTask``) records its own capture cameras: the
+head and front cameras and ORA's operator camera, rendered alone rather than
+through the camera manager's ``update_picture`` (which renders the wrist
+cameras too), at the plan's rate (30 fps for a scene-set plan). After each of
+its actions the scene settles (``play_settle.settle_after_action``) inside the
+action's capture window. A benchmark task, and play on an official task, keep
+the head and front cameras, ``update_picture`` and no settle.
+"""
 
 from __future__ import annotations
 
+import time
 from typing import Any, Mapping
 
 from ora.environment.execution_capture import ExecutionCapture, PhysicsStepTap
+
+#: A scene-set play capture renders its next frame only once the writer holds at most this many frames
+#: (``_await_capture_writer``): rendering holds the interpreter lock, so without the wait the writer thread
+#: starved and dropped frames (measured 2026-10-21: 104 of 253 dropped, 0.37 s per written frame against
+#: 0.095 s of encoding and writing on its own). The wait slows the motion, never the frames' simulated time.
+PLAY_CAPTURE_WRITER_BACKLOG = 1
+#: The longest one frame waits for the writer before rendering anyway (a stalled writer drops frames).
+PLAY_CAPTURE_WRITER_WAIT_S = 5.0
+
+
+def _await_capture_writer(recorder: ExecutionCapture) -> None:
+    """Hold the simulation (sleeping, the interpreter lock released) until the writer has caught up."""
+    backlog = getattr(recorder, "_queue", None)
+    deadline = time.monotonic() + PLAY_CAPTURE_WRITER_WAIT_S
+    while (backlog is not None and backlog.qsize() > PLAY_CAPTURE_WRITER_BACKLOG and recorder.error is None
+           and time.monotonic() < deadline):
+        time.sleep(0.002)
 
 
 class RoboTwinExecutionCaptureMixin:
@@ -45,7 +73,7 @@ class RoboTwinExecutionCaptureMixin:
                     self.output_root, backend="robotwin",
                     identity={"run_id": self.output_root.parent.name, "task": self.task,
                               "source_manifest": self.source_manifest},
-                    cameras=["head_camera", "front_camera"], config=self.execution_capture,
+                    cameras=self._capture_cameras(), config=self.execution_capture,
                 )
             self._execution_physics_step = 0
             self._execution_action = None
@@ -56,6 +84,17 @@ class RoboTwinExecutionCaptureMixin:
             self._execution_capture_error = f"{type(exc).__name__}: {exc}"
             if self._execution_recorder is not None:
                 self._execution_recorder.error = self._execution_capture_error
+
+    def _play_capture_scene(self) -> Any:
+        """The scene-set play scene's task object when it renders its own capture cameras, else None."""
+        if getattr(self, "play_scene_set", None) is None:
+            return None
+        environment = self._require_environment()
+        return environment if callable(getattr(environment, "capture_images", None)) else None
+
+    def _capture_cameras(self) -> list[str]:
+        play = self._play_capture_scene()
+        return list(play.capture_cameras) if play is not None else ["head_camera", "front_camera"]
 
     def _after_capture_physics_step(self) -> None:
         self._execution_physics_step += 1
@@ -71,6 +110,11 @@ class RoboTwinExecutionCaptureMixin:
             sim_time = self._execution_physics_step * float(scene.get_timestep())
 
             def pixels() -> dict[str, Any]:
+                if callable(getattr(environment, "capture_images", None)) and self._play_capture_scene() is not None:
+                    # A scene-set play scene renders only the cameras the capture records, and every frame
+                    # it renders reaches the writer.
+                    _await_capture_writer(recorder)
+                    return environment.capture_images(recorder.cameras)
                 # Do not call Base_Task._update_render: randomized lighting there
                 # consumes RNG. Synchronize actual poses without changing lights.
                 manager = environment.cameras
@@ -101,8 +145,14 @@ class RoboTwinExecutionCaptureMixin:
         try:
             from .wait import execute_wait, is_wait
             if is_wait(payload):  # session.py is descriptor-pinned; wait.py drives its helpers
-                return execute_wait(self, payload)
-            return self._execute_without_capture(payload)
+                result = execute_wait(self, payload)
+            else:
+                result = self._execute_without_capture(payload)
+            if getattr(self, "play_scene_set", None) is not None:
+                # A scene-set play scene settles after the receipt, inside the action's capture window.
+                from .play_settle import settle_after_action
+                settle_after_action(self, payload)
+            return result
         finally:
             self._capture_execution_boundary("action_end")
             self._execution_action = None

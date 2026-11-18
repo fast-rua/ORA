@@ -4,6 +4,8 @@ from __future__ import annotations
 import copy
 from typing import Any, Mapping, Sequence
 
+from ora.agent.composition.surface import tool_names
+
 ARTIFACT_READ_NAMES = frozenset({"artifact.read", "artifact_read"})
 
 
@@ -28,8 +30,6 @@ def artifact_read_name(definitions: Sequence[Mapping[str, Any]]) -> str:
     rather than from a capability list, because what a policy is handed is what
     it has to spell back.
     """
-
-    from ..tools import tool_names
 
     for item in definitions:
         name = str(item.get("name", ""))

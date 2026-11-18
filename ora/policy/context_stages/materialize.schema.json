@@ -1,0 +1,23 @@
+{
+ "type": "object",
+ "description": "materialize (phase materialize, always first): the canonical base of a request.",
+ "properties": {
+  "reasoning": {
+   "enum": [
+    "exclude"
+   ],
+   "default": "exclude",
+   "description": "Reasoning of earlier assistant messages."
+  },
+  "truncated_reply_reasoning": {
+   "enum": [
+    "withheld"
+   ],
+   "description": "withheld: a reply the Provider's output limit cut off before any tool call is sent without its reasoning (its provider continuation state), from the first request that carries it; absent: replayed like any other."
+  }
+ },
+ "required": [
+  "reasoning"
+ ],
+ "additionalProperties": false
+}

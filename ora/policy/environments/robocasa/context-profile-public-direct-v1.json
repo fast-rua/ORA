@@ -1,0 +1,27 @@
+{
+  "schema": "ora.environment-prompt-profile.v1",
+  "profile_id": "robocasa_public_direct_v1",
+  "default": false,
+  "match": {
+    "environment_id": "robocasa",
+    "embodiment_id": "panda_omron",
+    "robot_models": [
+      "PandaOmron"
+    ],
+    "controller": "JOINT_POSITION_IK_PATH+BASE_VELOCITY_SERVO",
+    "public_cameras": [
+      "agentview",
+      "wrist"
+    ]
+  },
+  "sources": {
+    "environment_policy": "ora/policy/environments/robocasa/boundary-v1.md",
+    "embodiment_policy": "ora/policy/embodiments/panda-omron/manual-public-geometry-v2.md"
+  },
+  "compiled_embodiment": {
+    "descriptor": "ora/policy/embodiments/panda-omron/descriptor-public-geometry-v2.json",
+    "review": "ora/policy/embodiments/panda-omron/wording-review-public-geometry-v2.json",
+    "card_sha256": "067b46941210e5290c1aaf182664ce48cdb2ae2e22fe20a564edbed4ae6e0366",
+    "runtime_verification": "loaded_robot_geometry_before_policy_v1"
+  }
+}

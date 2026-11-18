@@ -50,7 +50,7 @@ INSTALLER_PATH = "ora/environment/backends/robotwin/vendored_install.py"
 CURRENT_PROFILE_PATH = (
     "ora/policy/embodiments/aloha-agilex/control-profile-v10.json"
 )
-MOTION_TEST_PATH = "tests/agent/motion/test_motion_transaction_v1.py"
+MOTION_TEST_PATH = "tests/ora/environment/controllers/test_motion_transaction_v1.py"
 CAPABILITIES_PATH = (
     "ora/environment/controllers/profile_capabilities.py"
 )

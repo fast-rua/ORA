@@ -7,9 +7,10 @@ fields. Shared constants and helpers come from ``common``.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from typing import Any, Mapping
 
-from ora.environment.controllers.curobo_motion import _curobo_valid_query
+from ora.environment.controllers.kept_plans import stamped
 from ora.environment.controllers.hybrid_motion import (
     precision_force_stop_enabled,
 )
@@ -24,6 +25,7 @@ from ora.environment.controllers.libero_osc import (
 )
 
 from .common import LiberoProError, _atomic_json, _file_hash
+from .planner_request import valid_query
 
 
 class LiberoMotionEvidenceMixin:
@@ -94,19 +96,27 @@ class LiberoMotionEvidenceMixin:
         return feedback
 
     def _persist_planner_evidence(
-        self, planned: Mapping[str, Any], *, probe: bool = False,
+        self, planned: Mapping[str, Any], *, probe: bool = False, variant: str | None = None,
     ) -> dict[str, Any]:
-        """Keep the full numeric plan canonical but out of policy Context."""
+        """Keep the full numeric plan canonical but out of policy Context.
+
+        ``variant`` names a second plan of the same action (``jaw-twin``: the jaw
+        twin a wrist refusal retried), kept beside the first, never over it.
+        """
 
         path = (
             self.output_root / "curobo/plans"
-            / f"action-{self.action_sequence:04d}.json"
+            / f"action-{self.action_sequence:04d}{'' if variant is None else '-' + variant}.json"
         )
         if probe:
             sequence = getattr(self, "curobo_probe_sequence", 0)
             path = self.output_root / "curobo/probes" / f"request-{sequence:06d}.json"
         if path.exists():
             raise LiberoProError(f"refusing to overwrite CuRobo plan: {path}")
+        planner = getattr(self, "motion_planner", None)
+        if planner is not None:
+            # Which planner made this plan: evidence only, never projected.
+            planned = {**planned, "planner_implementation": str(planner.implementation)}
         _atomic_json(path, planned)
         if probe:
             self.curobo_probe_sequence = sequence + 1
@@ -123,13 +133,21 @@ class LiberoMotionEvidenceMixin:
             }
         from .planning_diagnostics import public_summary
 
+        request = planned.get("request")
+        world_input = request.get("world_input") if isinstance(request, Mapping) else None
         return {
             "schema": "ora.curobo-plan-summary.v1",
             "status": planned.get("status"),
             "reachable": bool(planned.get("reachable")),
             "planner_status": planned.get("planner_status"),
-            "valid_query": _curobo_valid_query(planned),
+            "valid_query": valid_query(planned),
             "world_model": planned.get("world_model"),
+            # The world this goal was planned in; evidence only, never projected.
+            **({"world": dict(planned["world"])} if isinstance(planned.get("world"), Mapping) else {}),
+            **({"world_input": {
+                "path": Path(world_input["path"]).relative_to(self.output_root).as_posix(),
+                "sha256": world_input["sha256"],
+            }} if isinstance(world_input, Mapping) else {}),
             **({"planning_diagnostics": public_summary(planned)}
                if isinstance(planned.get("planning_diagnostics"), Mapping) else {}),
             "trajectory": trajectory_summary,
@@ -204,6 +222,12 @@ class LiberoMotionEvidenceMixin:
                 receipt["acceptance_checks"] = acceptance
             if gripper_targets is not None:
                 receipt["gripper_targets_effective"] = gripper_targets
+        stamped(getattr(getattr(self, "motion_planner", None), "client", None), receipt)
+        # One native action per control tick: what the episode's step limit counts
+        # (``orchestrator/episode/native_allowance.py`` reads it from every receipt).
+        steps = receipt.get("steps_used")
+        if type(steps) is int and steps >= 0:
+            receipt["native_actions"] = steps
         if precision_force_stop_enabled(self.motion_profile) and receipt.get("action") in {
             "move_pose", "move_free_space", "servo_delta", "recover_motion",
         }:

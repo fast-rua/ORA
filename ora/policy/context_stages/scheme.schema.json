@@ -1,0 +1,149 @@
+{
+ "type": "object",
+ "description": "The scheme-level settings of an ora.context-scheme.v2 scheme: the shared services' parameters.",
+ "properties": {
+  "segments": {
+   "type": "object",
+   "description": "How the history is segmented (services/segmenter.ts).",
+   "properties": {
+    "unit": {
+     "enum": [
+      "action_step",
+      "exchange"
+     ],
+     "description": "The unit the age stages count in; the summaries and the lossless invariants count ActionSteps."
+    },
+    "exact_tail": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "The exact tail: what no summary absorbs, in exact_tail_unit (completed ActionSteps when it is absent)."
+    },
+    "exact_tail_unit": {
+     "enum": [
+      "action_step",
+      "exchange"
+     ],
+     "description": "The unit the exact tail counts in; absent: action_step. exchange: the latest exact_tail exchanges plus the latest robot action's exchange (its call, its receipt and the observation after it), however old."
+    }
+   },
+   "required": [
+    "exact_tail",
+    "unit"
+   ],
+   "additionalProperties": false
+  },
+  "limits": {
+   "type": "object",
+   "description": "The window's limits (services/limits.ts).",
+   "properties": {
+    "reserve_tokens": {
+     "type": "integer",
+     "minimum": 0,
+     "description": "Tokens kept free beside the maximum output: hard input limit = window - max output - reserve."
+    }
+   },
+   "required": [
+    "reserve_tokens"
+   ],
+   "additionalProperties": false
+  },
+  "estimator": {
+   "type": "object",
+   "description": "The request-size estimate (services/estimator.ts).",
+   "properties": {
+    "image_tokens": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "Tokens the request estimate charges per inline image before a Provider report anchors it."
+    }
+   },
+   "required": [
+    "image_tokens"
+   ],
+   "additionalProperties": false
+  },
+  "references": {
+   "description": "Whether and how recoverable references are shown (services/references.ts).",
+   "oneOf": [
+    {
+     "type": "object",
+     "description": "References shown.",
+     "properties": {
+      "pointers": {
+       "const": true,
+       "description": "Pointers are shown; summary slots name their exact transcript."
+      },
+      "advertise_over_bytes": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 1,
+       "description": "A tool result larger than this advertises its Pointer at first delivery; null: never."
+      },
+      "preview": {
+       "type": "object",
+       "description": "The preview (D1).",
+       "properties": {
+        "head_bytes": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "The first bytes an externalized result keeps as its preview."
+        }
+       },
+       "required": [
+        "head_bytes"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "advertise_over_bytes",
+      "pointers",
+      "preview"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "type": "object",
+     "description": "No references shown.",
+     "properties": {
+      "pointers": {
+       "const": false,
+       "description": "No Pointer is shown (v8)."
+      },
+      "advertise_over_bytes": {
+       "const": null
+      },
+      "preview": {
+       "type": "object",
+       "description": "No preview.",
+       "properties": {
+        "head_bytes": {
+         "const": 0
+        }
+       },
+       "required": [
+        "head_bytes"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "advertise_over_bytes",
+      "pointers",
+      "preview"
+     ],
+     "additionalProperties": false
+    }
+   ]
+  }
+ },
+ "required": [
+  "estimator",
+  "limits",
+  "references",
+  "segments"
+ ],
+ "additionalProperties": false
+}

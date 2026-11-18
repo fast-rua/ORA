@@ -1,0 +1,69 @@
+{
+ "schema": "ora.context-scheme.v2",
+ "id": "context_rolling_tail_v2",
+ "description": "Retired 2026-11-05 from ora/policy/context_schemes; kept as a test fixture of the stages and management versions that remain. context_rolling_tail_v1's policy (camera tail of the latest two observations, compaction at 150,000 provider input tokens, no artifact reader; management v8's stages) with its own prompt (rolling-tail-v2.md), delivered by bundles that select a context prompt (R0022 D4).",
+ "policy": {
+  "context_profile": "native_causal_context_v1",
+  "context_composition": "native_slots_v4",
+  "context_retention": "action_step_lossless_v4",
+  "summary_policy": "rollout_checkpoint_v1",
+  "memory_policy": "disabled",
+  "provider_continuation_replay": "exact_v1",
+  "initial_observation": "automatic",
+  "context_tools": []
+ },
+ "segments": {
+  "unit": "action_step",
+  "exact_tail": 3
+ },
+ "limits": {
+  "reserve_tokens": 2048
+ },
+ "estimator": {
+  "image_tokens": 530
+ },
+ "references": {
+  "pointers": false,
+  "advertise_over_bytes": null,
+  "preview": {
+   "head_bytes": 0
+  }
+ },
+ "stages": [
+  {
+   "stage": "materialize",
+   "params": {}
+  },
+  {
+   "stage": "camera_delivery",
+   "params": {
+    "mode": "rolling_tail_v1",
+    "tail_observations": 2
+   }
+  },
+  {
+   "stage": "episode_capsule",
+   "params": {
+    "trigger_tokens": 150000,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "emergency_checkpoint",
+   "params": {
+    "trigger_tokens": 150000,
+    "trigger_ratio": 0.8,
+    "target_ratio": 0.65,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "over_limit_guard",
+   "params": {
+    "over_limit": "send_and_record"
+   }
+  }
+ ]
+}

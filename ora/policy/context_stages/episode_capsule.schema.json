@@ -1,0 +1,61 @@
+{
+ "type": "object",
+ "description": "episode_capsule (phase summarize, L5).",
+ "properties": {
+  "trigger_tokens": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 1,
+   "description": "Provider-reported input tokens at which a closed Episode is summarized; null: trigger_ratio of the hard input limit alone."
+  },
+  "trigger_ratio": {
+   "type": [
+    "number",
+    "null"
+   ],
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "default": null,
+   "description": "null: the watermark is trigger_tokens; a ratio: max(trigger_tokens, ratio x hard input limit) (v4/v5), or the ratio alone when trigger_tokens is null."
+  },
+  "checkpoint_target_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The checkpoint length asked of the compactor (estimated tokens)."
+  },
+  "checkpoint_max_tokens": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The checkpoint's soft maximum (estimated tokens), telemetry."
+  },
+  "enabled": {
+   "type": "boolean",
+   "default": true,
+   "description": "false only when a context pack turns rollout compaction off."
+  },
+  "retry_attempts": {
+   "type": "integer",
+   "minimum": 1,
+   "default": 4,
+   "description": "Same-source attempts of one Episode's capsule."
+  },
+  "retry_backoff_action_steps": {
+   "type": "integer",
+   "minimum": 1,
+   "default": 4,
+   "description": "Completed ActionSteps a rejected attempt waits, doubling per attempt."
+  }
+ },
+ "required": [
+  "checkpoint_max_tokens",
+  "checkpoint_target_tokens",
+  "enabled",
+  "retry_attempts",
+  "retry_backoff_action_steps",
+  "trigger_ratio",
+  "trigger_tokens"
+ ],
+ "additionalProperties": false
+}

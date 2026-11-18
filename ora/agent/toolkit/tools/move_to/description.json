@@ -1,0 +1,124 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_to",
+  "description": "Move selected public link6 controlled points to world-frame positions while holding each measured action-start orientation. Use when: the intended change is translation-only free-space repositioning and a position-only trajectory label is useful. Effect: world mutation; compiles through canonical move_pose with interaction=free_space, so it runs as move_pose at its fast speed: a collision-free path planned around what the cameras see and the other arm as it stands (where none is available, one SDK inverse-kinematics solution of the target reached along a straight line in joint space), as one smooth trajectory of at most 250 native actions with a settle; the path is screened again for this arm's own self-collision, against the table top and against the other arm before anything moves, a blocked path is refused with self_collision, table_collision or inter_arm_collision and a target the planner finds no way to with its reason (goal_unreachable, goal_in_collision, goal_below_support, start_in_collision, start_outside_limits, path_blocked), and a move longer than that, or than the episode has left, moves the part they cover and is reported not_reached. When the move is meant to push or move an object (or press something), set expect_contact: true; otherwise the guard may stop the arm as soon as it meets resistance (expect_contact keeps the hard tracking stop). Carrying a held object normally does not need expect_contact; set it only when you use the held object (or the hand) to push, press or insert against something. The guard is only a backup: it infers contact from tracking error alone (no force sensing), so it stops the arm only when it is clearly blocked by something firm; a light or sliding contact usually goes unnoticed, and it cannot tell which part of the arm touched what. Check the next observation yourself for unintended contact. Jaw symmetry: the jaws grip the same when turned a half-turn about the approach axis, so with empty jaws (last gripper command open, nothing noted as held) the requested orientation or its half-turn twin is used, whichever is nearer the current wrist, on every interaction and orientation form; while holding something the request is used as given, so the held object never turns over; move_to holds the current orientation, so it never turns. compiled_pose.targets.<arm>.jaw_symmetry names the choice (requested, twin_nearer_current, held_no_flip or exact) and the receipt's arms.<arm>.motion_progress repeats it. Returns: the completed attempt with action, compiled_pose, receipt and remaining_budget; with expect_contact the receipt's arms.<arm>.motion_progress says expect_contact true, and a tracking stop adds stop_note \"stopped by the tracking bound despite expect_contact\"; compiled_pose.targets contains the compiled requested target, not a measured arrival. The returned receipt separates refusal, arrival and recoverable non-arrival; available contact feedback includes requested versus measured motion and truthful unknown values; this backend measures no contact force. The returned receipt reports execution route, phase outcomes and measured residuals; the next observation carries the current camera images and sensor evidence. A pre-admission error executes no action.\nDoes not: ask the policy to select a controller implementation; rotate, command a gripper, infer contact intent, avoid obstacles, or guarantee reachability. On error: Refused: an empty targets map, an arm outside left and right or a field other than position_m; a non-finite position; a target equal to the measured position; a target outside the bound action workspace (workspace_bounds) unless the controlled point is already outside it and the target only reduces the violation, while the backend rejects any target outside it as plan_rejected (workspace_target_<axis>); the episode's terminal boundary (episode_terminal). Inspect the named failure stage and current residual, then choose a reachable intermediate or recover_pose after a genuine motion failure. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame. Its compiled_pose targets carry reach_along_request, as move_pose's do. The previous applied gripper drive target is held, including an intermediate SDK-limited target. Requested close and applied target are separate in current feedback.\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "targets": {
+        "type": "object",
+        "properties": {
+          "left": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Left-arm translation-only target; use only after its current orientation is already suitable. Null means omitted.",
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Absolute world-frame [x,y,z] left end-effector position in metres. The action-start orientation is held: decreasing world z lowers the controlled point but does not pitch the gripper."
+              }
+            },
+            "required": [
+              "position_m"
+            ],
+            "additionalProperties": false
+          },
+          "right": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Right-arm translation-only target; use only after its current orientation is already suitable. Null means omitted.",
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Absolute world-frame [x,y,z] right end-effector position in metres. The action-start orientation is held: decreasing world z lowers the controlled point but does not pitch the gripper."
+              }
+            },
+            "required": [
+              "position_m"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "minProperties": 1,
+        "additionalProperties": false,
+        "description": "Non-empty sparse translation-only targets over left and right. Omitted arms receive no planner or new drive target; use rotate_pitch, rotate_wrist or move_pose before this call when orientation must change."
+      },
+      "expect_contact": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "Optional; default false. Set true when the move is meant to push or move an object (or press something); otherwise the guard may stop it as soon as it meets resistance. The hard tracking stop stays. Null means omitted."
+      }
+    },
+    "required": [
+      "targets"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

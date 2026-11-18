@@ -1,0 +1,15 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_compute_results_and_refusals/compute[False-arguments0]": "816ae4adbabeacd3b690c95b031a2d3c12c2cf3504067ce557c866f96dfd855d",
+  "test_compute_results_and_refusals/compute[False-arguments1]": "d2999c15f39a975d8074d8c261457343621422cc5aed154bc9a4c34ad3105d3b",
+  "test_compute_results_and_refusals/compute[False-arguments2]": "da114b5bfe78d1ba3333cfdcfadef41eeffbba1a6b97dcaeddff705b7936f278",
+  "test_compute_results_and_refusals/compute[False-arguments3]": "c599ffca7ca24b32918a40cc4b87fecf7694a43d808cdaa2eee75709fa4bea51",
+  "test_compute_results_and_refusals/compute[False-arguments4]": "3b7d6c7e94e98792e6fdbb65a86eeea97feabe83e982b9ce5bf165dd0fd2a9ef",
+  "test_compute_results_and_refusals/compute[True-arguments0]": "816ae4adbabeacd3b690c95b031a2d3c12c2cf3504067ce557c866f96dfd855d",
+  "test_compute_results_and_refusals/compute[True-arguments1]": "d2999c15f39a975d8074d8c261457343621422cc5aed154bc9a4c34ad3105d3b",
+  "test_compute_results_and_refusals/compute[True-arguments2]": "da114b5bfe78d1ba3333cfdcfadef41eeffbba1a6b97dcaeddff705b7936f278",
+  "test_compute_results_and_refusals/compute[True-arguments3]": "c599ffca7ca24b32918a40cc4b87fecf7694a43d808cdaa2eee75709fa4bea51",
+  "test_compute_results_and_refusals/compute[True-arguments4]": "3b7d6c7e94e98792e6fdbb65a86eeea97feabe83e982b9ce5bf165dd0fd2a9ef"
+ }
+}

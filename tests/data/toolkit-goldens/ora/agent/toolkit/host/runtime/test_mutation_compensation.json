@@ -1,0 +1,8 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_a_refused_second_mutation_keeps_the_pending_action/pending_action": "2a8cac93e46653b75ad3933b206945ff4e34e0a77c92bf9593cf380e20b0e15c",
+  "test_a_refused_second_mutation_keeps_the_pending_action/refusal": "31f50732c7124a7fae38acaf147670d582471f5a3b5e798f8475b1210b5a51ae",
+  "test_a_result_schema_failure_after_submission_unsubmits_and_is_logged/logged_error": "3e49a22118d125377e57d1a3e3dc38abe452676cc7f99f8bad0a67e6485bcc63"
+ }
+}

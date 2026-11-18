@@ -1,0 +1,68 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "recover_pose",
+  "description": "Return selected arms to a known joint configuration while preserving gripper commands.\nUse when: a refused or interrupted motion left an arm in a poor configuration and ordinary pose correction is not appropriate. home returns to the joint configuration the arm held when the current round started; previous returns to the configuration it held just before the latest pose motion started executing.\nEffect: world mutation; a straight joint-space move, checked tick by tick for table clearance and the distance between the arms before anything moves. Omitted arms are not commanded; two arms move together.\nReturns: submitted strategies immediately; the next receipt and fresh observation report the plan, execution status and measured pose.\nDoes not: reset the scene, restore moved objects, open or close a gripper, avoid objects on the table, or act as an emergency stop.\nOn error: recovery_state_unavailable means no pose motion has executed yet for previous; use home. A refused plan moved nothing and detail.admission_refusal.check names the check: recover one arm at a time or move the other arm away first.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "targets"
+    ],
+    "properties": {
+      "targets": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Non-empty per-arm recovery strategies. Omitted arms are not commanded.",
+        "properties": {
+          "left": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "previous",
+              "home",
+              null
+            ],
+            "description": "The left arm's strategy: home is its joint configuration when the current round started; previous is its configuration just before the latest pose motion started executing. Neither changes its gripper command. Null means omitted."
+          },
+          "right": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "previous",
+              "home",
+              null
+            ],
+            "description": "The right arm's strategy: home is its joint configuration when the current round started; previous is its configuration just before the latest pose motion started executing. Neither changes its gripper command. Null means omitted."
+          }
+        }
+      }
+    }
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "recover_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

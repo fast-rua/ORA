@@ -1,0 +1,197 @@
+{
+ "note": "Planner refusals as the model received them in sealed runs of the 38-run batch (main 0df4bb815), trimmed to the fields the summary reads; recorded_summary is the line they carried then.",
+ "receipts": {
+  "libero": {
+   "action": "bash",
+   "status": "planner_failed",
+   "failure_code": "planner_failed",
+   "failure_stage": "planner",
+   "physical_cause": "unknown",
+   "detail": {
+    "target_arms": [
+     "right"
+    ],
+    "planning_diagnostics": {
+     "candidate_counts": {
+      "accepted": 0,
+      "converged": 0,
+      "feasible": 20,
+      "optimized": 32,
+      "returned": 4,
+      "returned_successful": 0
+     },
+     "details_available": true,
+     "evidence_scope": "last_recorded_original_ik_attempt",
+     "outcome": "goal_unreachable",
+     "phase": "ik",
+     "recovery": [
+      "No joint configuration reaches this pose even with nothing in the way; with the fingertips at the same point, an approach tilted 20 degrees plans: (0.40, -0.92, -0.06) in world coordinates instead of (0.06, -1.00, -0.06).",
+      "Try a different target position or orientation, or an intermediate pose.",
+      "This finite IK search does not prove that no valid solution exists."
+     ],
+     "rejection_counts": {
+      "outside_position_limits": 12,
+      "position_tolerance": 32,
+      "rotation_tolerance": 32,
+      "self_collision": null,
+      "solver_infeasible": 12
+     },
+     "unknown_reasons": [
+      "per_term_constraint_costs_not_retained_by_sdk"
+     ]
+    },
+    "synchronization": {
+     "mode": "single_arm"
+    },
+    "arms": {
+     "right": {
+      "targeted": true,
+      "pose_error": {
+       "orientation_deg": 0.0,
+       "translation_m": 0.2249613513768808
+      },
+      "realized_translation_world_m": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   "recorded_summary": "right arm 225 mm / 0.0° from target, planner failed, TCP moved 0.0 mm"
+  },
+  "robotwin": {
+   "action": "bash",
+   "status": "planner_failed",
+   "failure_code": "planner_failed",
+   "failure_stage": "planner",
+   "physical_cause": "unknown",
+   "detail": {
+    "target_arms": [
+     "left"
+    ],
+    "synchronization": {
+     "all_planners_succeeded": false,
+     "all_plans_admitted": false,
+     "executed": false,
+     "planned_from_common_snapshot": false,
+     "requested": false
+    },
+    "arms": {
+     "left": {
+      "targeted": true,
+      "pose_error": {
+       "orientation_deg": 0.0,
+       "translation_m": 0.253745
+      },
+      "planner": {
+       "planning_diagnostics": {
+        "candidate_counts": {
+         "accepted": 0,
+         "converged": 6,
+         "feasible": 0,
+         "optimized": 32,
+         "returned": 4,
+         "returned_successful": 0
+        },
+        "details_available": true,
+        "evidence_scope": "last_recorded_original_ik_attempt",
+        "outcome": "goal_unreachable",
+        "phase": "ik",
+        "recovery": [
+         "No joint configuration reaches this pose even with nothing in the way; with the fingertips at the same point, an approach tilted 20 degrees plans: (0.13, 0.32, -0.94) in world coordinates instead of (0.00, 0.00, -1.00); the other arm does not reach this pose with nothing in the way.",
+         "Try a different target position or orientation, or an intermediate pose.",
+         "This finite IK search does not prove that no valid solution exists."
+        ],
+        "rejection_counts": {
+         "outside_position_limits": 2,
+         "position_tolerance": 26,
+         "rotation_tolerance": 17,
+         "self_collision": null,
+         "solver_infeasible": 32
+        },
+        "unknown_reasons": [
+         "per_term_constraint_costs_not_retained_by_sdk"
+        ]
+       }
+      }
+     },
+     "right": {
+      "targeted": false,
+      "planner": {}
+     }
+    }
+   },
+   "recorded_summary": "left arm 254 mm / 0.0° from target, planner failed, not moved"
+  },
+  "robotwin-two-arm": {
+   "action": "bash",
+   "status": "planner_failed",
+   "failure_code": "planner_failed",
+   "failure_stage": "planner",
+   "physical_cause": "unknown",
+   "detail": {
+    "target_arms": [
+     "left",
+     "right"
+    ],
+    "synchronization": {
+     "all_planners_succeeded": false,
+     "all_plans_admitted": false,
+     "executed": false,
+     "planned_from_common_snapshot": true,
+     "requested": true
+    },
+    "arms": {
+     "left": {
+      "targeted": true,
+      "pose_error": {
+       "orientation_deg": 120.66411,
+       "translation_m": 0.290399
+      },
+      "planner": {}
+     },
+     "right": {
+      "targeted": true,
+      "pose_error": {
+       "orientation_deg": 120.331679,
+       "translation_m": 0.345838
+      },
+      "planner": {
+       "planning_diagnostics": {
+        "candidate_counts": {
+         "accepted": 0,
+         "converged": 3,
+         "feasible": 3,
+         "optimized": 32,
+         "returned": 4,
+         "returned_successful": 0
+        },
+        "details_available": true,
+        "evidence_scope": "last_recorded_original_ik_attempt",
+        "outcome": "goal_unreachable",
+        "phase": "ik",
+        "recovery": [
+         "No joint configuration reaches this pose even with nothing in the way; with the fingertips at the same point, an approach tilted 10 degrees plans: (-0.09, 0.15, -0.98) in world coordinates instead of (0.00, 0.00, -1.00); the other arm does not reach this pose with nothing in the way.",
+         "Try a different target position or orientation, or an intermediate pose.",
+         "This finite IK search does not prove that no valid solution exists."
+        ],
+        "rejection_counts": {
+         "outside_position_limits": 5,
+         "position_tolerance": 29,
+         "rotation_tolerance": 20,
+         "self_collision": null,
+         "solver_infeasible": 29
+        },
+        "unknown_reasons": [
+         "per_term_constraint_costs_not_retained_by_sdk"
+        ]
+       }
+      }
+     }
+    }
+   },
+   "recorded_summary": "left arm 290 mm / 121° from target, right arm 346 mm / 120° from target, planner failed, not moved"
+  }
+ }
+}

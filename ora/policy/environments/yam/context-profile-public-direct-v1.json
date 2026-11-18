@@ -1,0 +1,29 @@
+{
+  "schema": "ora.environment-prompt-profile.v1",
+  "profile_id": "yam_public_direct_v1",
+  "default": false,
+  "match": {
+    "environment_id": "yam",
+    "embodiment_id": "yam_station_linear_4310_d405",
+    "robot_models": [
+      "I2RT YAM v1 x2, linear_4310 grippers, wrist RealSense D405"
+    ],
+    "controller": "YAM_IK_JOINT_SCHEDULE",
+    "public_cameras": [
+      "overhead",
+      "front",
+      "wrist_left",
+      "wrist_right"
+    ]
+  },
+  "sources": {
+    "environment_policy": "ora/policy/environments/yam/boundary-v1.md",
+    "embodiment_policy": "ora/policy/embodiments/yam-station/manual-public-geometry-v1.md"
+  },
+  "compiled_embodiment": {
+    "descriptor": "ora/policy/embodiments/yam-station/descriptor-public-geometry-v1.json",
+    "review": "ora/policy/embodiments/yam-station/wording-review-public-geometry-v1.json",
+    "card_sha256": "bc69609cb333b3fd03dc8c54f8efa57002f611df49d87456daa81676c372118c",
+    "runtime_verification": "loaded_robot_geometry_before_policy_v1"
+  }
+}

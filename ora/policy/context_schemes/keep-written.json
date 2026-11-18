@@ -1,0 +1,98 @@
+{
+ "schema": "ora.context-scheme.v2",
+ "id": "context_keep_written",
+ "description": "Keep what the model wrote: tool-call arguments (scripts) and the model's messages never age, so no assistant message is rewritten and every one keeps its reasoning (reasoning_replay all); only data ages. The exact tail is the latest 6 exchanges plus the exchange of the latest robot action (its call, its result and the observation after it), however old. At 100,000 provider input tokens (at most half the hard limit), once 6 exchanges have left that tail, one rewrite ages every older exchange: its tool-returned and camera images and its observation bodies (all but the latest 2 observations') become references, and a tool result over 8,192 bytes keeps only its structured fields (ok, status, exit code, actions executed, a failed one's error type and message) and a reference; readable with artifact_read or observe(ref=...). L5 at 0.15 and L6 at 0.6 of the hard limit (target 0.5), L6 summarizing whole exchanges; a hard backstop keeps every request under the hard limit. Management v10's stages. Not a default.",
+ "prompt": "keep-written.md",
+ "policy": {
+  "context_profile": "native_causal_context_v1",
+  "context_composition": "native_slots_v4",
+  "context_retention": "action_step_lossless_v4",
+  "summary_policy": "rollout_checkpoint_v1",
+  "memory_policy": "disabled",
+  "provider_continuation_replay": "exact_v1",
+  "initial_observation": "automatic",
+  "context_tools": [
+   "artifact_read"
+  ]
+ },
+ "segments": {
+  "unit": "exchange",
+  "exact_tail": 6,
+  "exact_tail_unit": "exchange"
+ },
+ "limits": {
+  "reserve_tokens": 2048
+ },
+ "estimator": {
+  "image_tokens": 530
+ },
+ "references": {
+  "pointers": true,
+  "advertise_over_bytes": null,
+  "preview": {
+   "head_bytes": 0
+  }
+ },
+ "stages": [
+  {
+   "stage": "materialize",
+   "params": {}
+  },
+  {
+   "stage": "exchange_aging",
+   "params": {
+    "trigger_tokens": 100000,
+    "trigger_ratio": 0.5,
+    "exact_tail_exchanges": 6,
+    "argument_bytes": null,
+    "result_bytes": 8192,
+    "preview": {
+     "head_bytes": 128,
+     "tail_bytes": 128
+    },
+    "result_preview": "structured",
+    "keep_anchor": true
+   }
+  },
+  {
+   "stage": "reasoning_replay",
+   "params": {
+    "mode": "all",
+    "binding": "strict"
+   }
+  },
+  {
+   "stage": "camera_delivery",
+   "params": {
+    "mode": "exchange_window_v1",
+    "tail_observations": null
+   }
+  },
+  {
+   "stage": "episode_capsule",
+   "params": {
+    "trigger_tokens": null,
+    "trigger_ratio": 0.15,
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "emergency_checkpoint",
+   "params": {
+    "trigger_tokens": null,
+    "trigger_ratio": 0.6,
+    "target_ratio": 0.5,
+    "unit": "exchange",
+    "checkpoint_target_tokens": 1200,
+    "checkpoint_max_tokens": 1600
+   }
+  },
+  {
+   "stage": "hard_backstop",
+   "params": {
+    "exact_tail_exchanges": 2
+   }
+  }
+ ]
+}

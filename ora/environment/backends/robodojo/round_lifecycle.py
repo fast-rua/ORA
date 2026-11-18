@@ -8,6 +8,7 @@ from typing import Any, Mapping
 from .bridge import RobodojoError
 from .common import file_hash, pose_error, write_json
 from . import layout_rounds
+from .reset_diagnostics import reset_diagnostics
 from ora.environment.benchmarks.robodojo import (
     RoboDojoBenchmarkError, public_context, validate_scene_registration,
 )
@@ -30,7 +31,6 @@ PER_ROUND_CLEARED_CHANNELS: dict[str, Any] = {
     "last_observation_id": None,
     "last_receipt": None,
     "official_terminal": None,
-    "plan_references": {},
     "sim_steps": 0,
     "world_mutation_actions": [],
     "world_mutation_sequence": 0,
@@ -62,24 +62,19 @@ class RobodojoRoundMixin:
         self.session_plant_facts = self.session_task_instruction = self.round0_layout_verification = None
 
     def _reset_environment(self, stack_log_name: str, *, relaunch_layout: int | None = None) -> Any:
-        import faulthandler
-
         schedule = self.layout_schedule
+        self.environment.harness_official_limit_multiple = self.official_limit_multiple
         self.environment.harness_layout_ids = (
             (self.layout_id,) if schedule is None else tuple(entry["layout_id"] for entry in schedule["rounds"]))
         if schedule is not None and getattr(self.environment, "harness_simulation_time_offset_s", None) is None:
             # Epoch 0 starts the annotator clock with the context clock.
             self.environment.harness_simulation_time_offset_s = 0.0
         relaunch = None
-        with (self.output_root / stack_log_name).open("w") as stack_log:
-            faulthandler.dump_traceback_later(60, file=stack_log)
-            try:
-                if relaunch_layout is None:
-                    self.environment.reset(seed=[self.layout_id])
-                else:
-                    relaunch = self.environment.relaunch_for_layout(relaunch_layout)
-            finally:
-                faulthandler.cancel_dump_traceback_later()
+        with reset_diagnostics(self.output_root / stack_log_name):
+            if relaunch_layout is None:
+                self.environment.reset(seed=[self.layout_id])
+            else:
+                relaunch = self.environment.relaunch_for_layout(relaunch_layout)
         if self.environment.step_lim != self.native_action_limit or not self.environment.reward_registered:
             raise RobodojoError("official selected-task lifecycle does not match the binding")
         return relaunch
@@ -133,16 +128,19 @@ class RobodojoRoundMixin:
         # with a directive retained from the previous round.
         self.gripper_directives = {}
         state = self._proprioception()
-        self.pose_targets, self.gripper_directives = {}, {}
+        self.pose_targets, self.gripper_directives, self.joint_targets = {}, {}, {}
         self.home_joints, self.home_poses = {}, {}
         for arm, value in state["end_effectors"].items():
             self.pose_targets[arm] = list(value["pose_xyz_xyzw"])
+            self.joint_targets[arm] = list(value["arm_joint_qpos"])
             self.gripper_directives[arm] = value["gripper_command"]
             self.home_joints[arm] = list(value["arm_joint_qpos"])
             self.home_poses[arm] = list(value["pose_xyz_xyzw"])
         self.last_safe_joints = deepcopy(self.home_joints)
         self.last_safe_poses = deepcopy(self.home_poses)
-        if not self.session_home_poses:
+        self.last_safe_paths = {}
+        self.undo_stacks = {arm: [] for arm in self.home_joints}
+        if not getattr(self, "session_home_poses", None):
             self.session_home_poses = deepcopy(self.home_poses)
             self.session_home_joints = deepcopy(self.home_joints)
             if self.layout_schedule is not None:
@@ -162,10 +160,9 @@ class RobodojoRoundMixin:
     def restart_round(self, round_index: int, *, seed: int | None = None) -> dict[str, Any]:
         """Reset the same isolated plant for another independent round.
 
-        Artifact sequences stay session-global so no observation, receipt,
-        motion probe or plan artifact can collide across rounds; every
-        per-episode target, anchor, plan reference and lifecycle field is
-        rebound to the freshly reset plant.
+        Artifact sequences stay session-global so no observation or receipt
+        can collide across rounds; every per-episode target, anchor and
+        lifecycle field is rebound to the freshly reset plant.
         """
         if isinstance(round_index, bool) or not isinstance(round_index, int):
             raise RobodojoError("RoboDojo round index must be an integer")
@@ -191,7 +188,7 @@ class RobodojoRoundMixin:
         self.round_index = round_index
         isolation = self._round_isolation_audit(state)
         reset = {
-            "schema": ROUND_RESET_SCHEMA, "task": self.task, "eval_seed": 0, "seed": 0, "layout_id": self.layout_id,
+            "schema": ROUND_RESET_SCHEMA, "task": self.task, "eval_seed": self.eval_seed_selected, "seed": 0, "layout_id": self.layout_id,
             "round_index": round_index, "action_codec": self.action_codec,
             "source_manifest": {"path": "source-manifest.json", "sha256": self.source_hash},
             "physics_steps_before_policy": self.reset_physics_steps,
@@ -204,7 +201,8 @@ class RobodojoRoundMixin:
             "artifact_sequences_preserved": {
                 "observation_sequence": self.observation_sequence,
                 "action_sequence": self.action_sequence,
-                "motion_probe_sequence": self.motion_probe_sequence,
+                # Evaluation reads it; no probe here hands out a plan reference to count.
+                "motion_probe_sequence": 0,
             },
             "pre_reset_home_joint_write": home_write,
             "round_isolation": isolation,
@@ -218,6 +216,7 @@ class RobodojoRoundMixin:
                 "RoboDojo round reset did not restore an isolated world: "
                 + "; ".join(isolation["failures"])
             )
+        self._ground_truth_round_started()
         self._start_execution_capture()
         return reset
 
@@ -244,7 +243,7 @@ class RobodojoRoundMixin:
             previous_offset=previous_offset)
         isolation = self._round_isolation_audit(state, layout_checks=layout_checks)
         reset = layout_rounds.round_reset_v2(self, {
-            "task": self.task, "eval_seed": 0, "seed": 0, "round_index": round_index,
+            "task": self.task, "eval_seed": self.eval_seed_selected, "seed": 0, "round_index": round_index,
             "action_codec": self.action_codec,
             "source_manifest": {"path": "source-manifest.json", "sha256": self.source_hash},
             "physics_steps_before_policy": self.reset_physics_steps,
@@ -254,7 +253,7 @@ class RobodojoRoundMixin:
             "artifact_sequences_preserved": {
                 "observation_sequence": self.observation_sequence,
                 "action_sequence": self.action_sequence,
-                "motion_probe_sequence": self.motion_probe_sequence,
+                "motion_probe_sequence": 0,
             },
             "round_isolation": isolation,
         }, relaunch)
@@ -265,6 +264,7 @@ class RobodojoRoundMixin:
                 "RoboDojo scheduled round did not start an isolated new layout: "
                 + "; ".join(isolation["failures"])
             )
+        self._ground_truth_round_started()
         self._start_execution_capture()
         return reset
 

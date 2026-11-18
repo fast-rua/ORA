@@ -1,0 +1,79 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "return_home",
+  "description": "Move the selected arms straight back to the RoboDojo episode reset joints, whatever path they came by, while preserving all gripper commands. Use when: an arm should start over from its start pose (a wound or awkward configuration, a failed sequence of moves); to back out the way the arm came instead, one move at a time, use recover_pose; to go anywhere else, use move_pose. Name only the arms that must go back: two arms named in one call run together as one trajectory, spending about what the longer path needs, less than two separate calls. Effect: world mutation; each arm takes a collision-free path planned to the reset joints (their nearest whole-turn equivalent) around what the cameras see and the other arm as it stands; where there is none it first lifts link6 up to 0.10 m straight up, orientation held (less below the workspace ceiling; skipped without a continuous IK solution or when only the path without it is clear), then reaches them by joint interpolation in the first order (straight, fold-then-yaw or yaw-then-fold) whose path the SDK collision spheres keep clear of the arm itself, the table top and the other arm (no objects, finger links or held payload), at move_pose's fast speed, as one smooth joint trajectory of at most 250 native actions with a short settle; omitted arms receive no drive target. recover_pose cannot undo it, and afterwards can undo earlier calls only if the arm is back on their path. Returns: the receipt and remaining_budget; the receipt reports actual execution, residuals, preservation and drift, and the next observation follows with the current camera images. arms.<arm>.recovery_progress gives outcome (arrived; arrived_not_settled; cut_short, the budget covered only part of the path, call again; stalled; still_moving_at_window_end; episode_terminal; or unknown when unmeasured), joint_distance_start_deg and joint_distance_end_deg, retract (planned or skipped and why, lift_m), unwind_order, and cut_short when the budget covered only part of the path. Available contact feedback includes requested versus measured motion and truthful unknown values; this backend measures no contact force. Does not: reset the episode, restore moved objects or evaluator state, release a gripper, undo physics, act as an emergency stop, model scene or payload collisions, or guarantee escape from contact. On error: Refused: arms empty, repeated or outside left and right; the episode's terminal boundary (episode_terminal). Rejected before anything moves, as plan_rejected with failure_code: reset or measured joints missing or non-finite (recovery_state_unavailable); no clear path (recovery_self_collision_path, recovery_inter_arm_collision_path or recovery_table_collision_path). A blocked arm stops where it is measured; call again to continue. The previous applied gripper drive target is held, including an intermediate SDK-limited target. Requested close and applied target are separate in current feedback.\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "arms": {
+        "description": "The arms that return to their episode reset joints, e.g. [\"left\"].",
+        "items": {
+          "enum": [
+            "left",
+            "right"
+          ],
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 1,
+        "type": "array",
+        "uniqueItems": true
+      }
+    },
+    "required": [
+      "arms"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

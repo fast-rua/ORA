@@ -21,9 +21,9 @@
     "embodiment_policy": "ora/policy/embodiments/arx-x5/manual-public-geometry-v5.md"
   },
   "compiled_embodiment": {
-    "descriptor": "ora/policy/embodiments/arx-x5/descriptor-public-geometry-v5.json",
+    "descriptor": "ora/policy/embodiments/arx-x5/descriptor-public-geometry-v6.json",
     "review": "ora/policy/embodiments/arx-x5/wording-review-public-geometry-v5.json",
-    "card_sha256": "bd340210dc99e96e6a32f38e722c4c41ef95b9bf2ed0182f4a2f4fc69697029a",
+    "card_sha256": "9cf4670748efefb45602c4729de5034f931773a28fde1832b2168b8a03ea31c2",
     "runtime_verification": "loaded_robot_geometry_before_policy_v1"
   }
 }

@@ -5,7 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import sys
+import time
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -83,8 +86,56 @@ def write_json(path: Path, value: Mapping[str, Any]) -> None:
     temporary.replace(path)
 
 
+#: After ``close`` a worker process has this long to write its reply and exit on its own.
+CLOSE_EXIT_GRACE_S = 10.0
+
+
+def hard_exit(delay_s: float = 0.0) -> None:
+    """End a worker process without Kit's in-process teardown (``RobodojoSession.close``)."""
+    if delay_s:
+        time.sleep(delay_s)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(0)
+
+
 def file_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+class JournalLines:
+    """One open handle on the action's physics journal (``controller/action-NNNN.jsonl``).
+
+    Every line reaches the operating system as it is written (line buffering), as it did when each physics step
+    opened, appended to and closed the file, so the file's bytes, and what a fault leaves behind, are the same; only
+    the open and close per physics step are gone (1.8 ms of the 21 ms one RoboDojo physics step took on a network
+    filesystem, measured 2026-11-06). A line for another journal closes the handle first; ``close`` ends it before the
+    journal is hashed and when the session closes.
+    """
+
+    def __init__(self) -> None:
+        self._path: Path | None = None
+        self._stream: Any = None
+
+    def write(self, path: Path, line: str) -> None:
+        if self._stream is None or self._path != path:
+            self.close()
+            self._stream = Path(path).open("a", buffering=1)
+            self._path = Path(path)
+        self._stream.write(line)
+
+    def close(self) -> None:
+        stream, self._stream, self._path = self._stream, None, None
+        if stream is not None:
+            stream.close()
+
+
+def journal_lines(session: Any) -> JournalLines:
+    """The session's journal writer, made on first use."""
+    lines = getattr(session, "_journal_lines", None)
+    if lines is None:
+        lines = session._journal_lines = JournalLines()
+    return lines
 
 
 def array(value: Any) -> np.ndarray:
@@ -97,10 +148,43 @@ def array(value: Any) -> np.ndarray:
 
 def measured_pose(robot_manager: Any, robot: Any) -> list[float]:
     """Read the link6 pose as policy xyzw from the SDK's wxyz measurement."""
-    wxyz = array(robot_manager.get_real_endpose(robot, env_idx_list=[0])[0])
+    return xyzw_pose(array(robot_manager.get_real_endpose(robot, env_idx_list=[0])[0]))
+
+
+def xyzw_pose(wxyz: Any) -> list[float]:
+    """One SDK wxyz link pose as policy xyzw."""
     if wxyz.shape != (7,) or not np.isfinite(wxyz).all():
         raise RobodojoError("robot end-effector measurement is not finite")
     return np.concatenate((wxyz[:3], wxyz[4:], wxyz[3:4])).tolist()
+
+
+def arm_readings(robot_manager: Any, robots: Mapping[str, Any]) -> dict[str, dict[str, np.ndarray]]:
+    """Every arm's joint positions, applied joint targets and link6 pose, in one device-to-host copy.
+
+    Per arm, float64 of the articulation's float32 buffers: ``joints`` (environment 0's measured joint positions,
+    which ``get_joint`` and ``get_end_effector_real_val`` index), ``position_targets`` and ``velocity_targets``
+    (the buffers ``RobotManager.control_robot`` writes) and ``link_wxyz`` (``get_real_endpose``: the controlled
+    link's pose less the environment origin, by ``get_link_pose``'s own statements on the same device). Each value
+    is the separate reads' bit for bit; only the copies are fewer (the separate reads took 1.6 ms of a 21 ms
+    physics step, measured 2026-11-06).
+    """
+    origin = robot_manager.scene.env_origins[0]
+    parts: list[Any] = []
+    for robot in robots.values():
+        articulation = robot_manager.robot_key[robot_manager.robot_list.index(robot)]
+        data = articulation.data
+        link = data.body_link_pose_w[0][articulation.body_names.index(robot.ee_link_name)]
+        pose = link.clone() if hasattr(link, "clone") else link.copy()
+        pose[:3] = pose[:3] - origin
+        parts += [data.joint_pos[0], data.joint_pos_target[0], data.joint_vel_target[0], pose]
+    try:
+        import torch
+    except ImportError:  # arrays outside the runtime interpreter
+        torch = None
+    joined = torch.cat(parts) if torch is not None and isinstance(parts[0], torch.Tensor) else np.concatenate(parts)
+    values = np.split(array(joined), np.cumsum([len(part) for part in parts])[:-1])
+    names = ("joints", "position_targets", "velocity_targets", "link_wxyz")
+    return {arm: dict(zip(names, values[4 * number:4 * number + 4])) for number, arm in enumerate(robots)}
 
 
 def native_pose(pose_xyz_xyzw: Any) -> list[float]:
@@ -292,42 +376,12 @@ def pitch_joint_wraps(target: Sequence[float], current: Sequence[float], pitch: 
             if bending and canonical_excess(goal) > allowed(now)]
 
 
-def _degenerate(pose: Sequence[float], reference: Sequence[float]) -> bool:
-    distance, angle = pose_error(pose, reference)
-    return distance <= 1e-6 and angle <= 1e-6
-
-
-def free_space_segments(
-    session: Any, before: Mapping[str, Any], targets: Mapping[str, Sequence[float]],
-) -> list[tuple[str, dict[str, list[float]]]]:
-    """Lift to a clearance height, translate at that height, then descend."""
-    z_max = float(session.config["workspace_bounds_m"]["z"][1])
-    per_arm: dict[str, dict[str, list[float]]] = {}
-    for arm, goal in targets.items():
-        start = [float(item) for item in before[arm]["pose_xyz_xyzw"]]
-        clearance = min(max(start[2], goal[2]) + session.free_space_clearance_m, z_max)
-        per_arm[arm] = {
-            "lift": [start[0], start[1], clearance, *start[3:]],
-            "translate": [goal[0], goal[1], clearance, *goal[3:]],
-            "descend": list(goal),
-        }
-    segments: list[tuple[str, dict[str, list[float]]]] = []
-    previous = {arm: list(before[arm]["pose_xyz_xyzw"]) for arm in targets}
-    for name in ("lift", "translate", "descend"):
-        poses = {arm: per_arm[arm][name] for arm in targets}
-        if all(_degenerate(poses[arm], previous[arm]) for arm in targets):
-            continue
-        segments.append((name, poses))
-        previous = poses
-    return segments or [("descend", {arm: list(goal) for arm, goal in targets.items()})]
-
-
 __all__ = [
     "ARX_GRIPPER_STALL", "CANONICAL_JOINT_INTERVAL_RAD", "CLOSED_COMMAND_FLOOR", "COMMAND_TARGET_TOLERANCE",
     "FINGER_JOINT_LIMIT_M", "GRIPPER_COMMAND_SCALE", "GRIPPER_TOLERANCE", "ORIENTATION_TOLERANCE_RAD",
     "PITCH_WRAP_HOLD_TOLERANCE_RAD", "POSITION_TOLERANCE_M",
     "array", "canonical_excess", "canonical_joints", "equivalent_turns", "file_hash", "finger_lateral_offset_m",
-    "finger_primary_coordinates", "free_space_segments",
+    "finger_primary_coordinates",
     "gripper_command_target", "gripper_opening", "json_default", "jsonable", "measured_pose",
     "native_pose", "nearest_equivalent_joints", "physical_gripper", "pitch_joint_wraps", "pose_error",
     "primary_limit_holds_close", "two_finger_opening",

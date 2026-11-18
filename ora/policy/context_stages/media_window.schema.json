@@ -1,0 +1,15 @@
+{
+ "type": "object",
+ "description": "media_window (phase age, L3).",
+ "properties": {
+  "tail_action_steps": {
+   "type": "integer",
+   "minimum": 0,
+   "description": "Completed ActionSteps of the current Episode whose media stay inline."
+  }
+ },
+ "required": [
+  "tail_action_steps"
+ ],
+ "additionalProperties": false
+}

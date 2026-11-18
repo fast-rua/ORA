@@ -1,0 +1,105 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "rotate_pitch",
+  "description": "Tilt the current approach axis while holding position.\nUse when: rotating selected public link6 controlled points about each action-start local +Y jaw-separation axis while holding link6 position, usually to change the approach direction.\nEffect: compiles to an exact pose. It runs as move_pose at its fast speed, as one smooth trajectory of at most 250 native actions: rotations within 15 degrees follow the straight line of the controlled point (read-only IK every 1.5 degrees), larger ones the planned collision-free path (a straight line in joint space to one SDK IK solution where none is available); the path is screened for self-collision, the table top and the other arm before anything moves. When the move is meant to push or move an object (or press something), set expect_contact: true; otherwise the guard may stop the arm as soon as it meets resistance (expect_contact keeps the hard tracking stop). Carrying a held object normally does not need expect_contact; set it only when you use the held object (or the hand) to push, press or insert against something. The guard is only a backup: it infers contact from tracking error alone (no force sensing), so it stops the arm only when it is clearly blocked by something firm; a light or sliding contact usually goes unnoticed, and it cannot tell which part of the arm touched what. Check the next observation yourself for unintended contact. Jaw symmetry: the jaws grip the same when turned a half-turn about the approach axis, so with empty jaws (last gripper command open, nothing noted as held) the requested orientation or its half-turn twin is used, whichever is nearer the current wrist, on every interaction and orientation form; while holding something the request is used as given, so the held object never turns over; exact_orientation: true always uses the request exactly (for example to place an object facing a given way). compiled_pose.targets.<arm>.jaw_symmetry names the choice (requested, twin_nearer_current, held_no_flip or exact) and the receipt's arms.<arm>.motion_progress repeats it.\nReturns: the completed attempt with action, compiled_pose, receipt and remaining_budget; with expect_contact the receipt's arms.<arm>.motion_progress says expect_contact true, and a tracking stop adds stop_note \"stopped by the tracking bound despite expect_contact\"; compiled_pose.targets contains the compiled requested target, not a measured arrival. The returned receipt reports execution route, phase outcomes and measured residuals; the next observation carries the current camera images and sensor evidence. A pre-admission error executes no action.\nDoes not: expose a literal robot joint, imply that positive pitch is always world-down, translate by request, infer surface alignment, command a gripper or maintain contact force.\nOn error: Refused: an empty targets map or an arm outside left and right; an angle outside [-180, 180] degrees or not a finite number; an angle of 0; a target outside the bound action workspace (workspace_bounds), which includes any rotation while the controlled point is already outside it; the episode's terminal boundary (episode_terminal). Inspect realized axes and residuals, then correct sign/magnitude or use move_pose when position must co-vary. A rotation within 15 degrees whose line has no IK is refused, not retried in joint space. Numerical inputs follow compute's Use when rule; send every value in this tool's declared units and frame. Its compiled_pose targets carry reach_along_request, as move_pose's do. The previous applied gripper drive target is held, including an intermediate SDK-limited target. Requested close and applied target are separate in current feedback.\nThe next observation does not repeat this receipt. Native action budgets are fixed offline and cannot be supplied as tool arguments.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "targets": {
+        "type": "object",
+        "properties": {
+          "left": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Signed right-hand-rule degrees around the left end effector's action-start local +Y jaw-separation axis. This tilts local +X; the resulting world direction depends on the current orientation, so +90 is not universally world-down. Null means omitted."
+          },
+          "right": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Signed right-hand-rule degrees around the right end effector's action-start local +Y jaw-separation axis. This tilts local +X; the resulting world direction depends on the current orientation, so +90 is not universally world-down. Null means omitted."
+          }
+        },
+        "minProperties": 1,
+        "additionalProperties": false,
+        "description": "Non-empty sparse in-place approach-direction pitches over left and right. Position is held by request; omitted arms receive no planner or new drive target."
+      },
+      "expect_contact": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "Optional; default false. Set true when the move is meant to push or move an object (or press something); otherwise the guard may stop it as soon as it meets resistance. The hard tracking stop stays. Null means omitted."
+      },
+      "exact_orientation": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "Optional; default false. true uses the requested orientation exactly, never its half-turn jaw twin nearer the current wrist (for example to place an object facing a given way). Null means omitted."
+      }
+    },
+    "required": [
+      "targets"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status",
+      "remaining_budget"
+    ],
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "action": {
+        "type": "string"
+      },
+      "skill": {
+        "type": "string"
+      },
+      "candidate_id": {
+        "type": "string"
+      },
+      "compiled_pose": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "receipt": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "remaining_budget": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "verification": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "claim_boundary": {
+        "type": "string"
+      }
+    }
+  }
+}

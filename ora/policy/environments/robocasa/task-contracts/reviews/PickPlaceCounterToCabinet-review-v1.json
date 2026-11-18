@@ -1,0 +1,128 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robocasa",
+ "task": "PickPlaceCounterToCabinet",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robocasa PickPlaceCounterToCabinet at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "a9e152e2eea16d342dac40e4577fb4c68b932854"
+ ],
+ "task_language": "Pick the measuring cup from the counter and place it in the cabinet. (Object category sampled per seed.)",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robocasa/environments/kitchen/atomic/kitchen_pick_place.py",
+   "sha256": "f7157fb5809e73d4ee954974d8c8e199f18d9a0f48ce41f84c2b5d7b74eaf676"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robocasa/utils/object_utils.py",
+   "sha256": "3a7ddb8ba503c5f397baa1513b7b5f370c3c3b2a6a67fa723e83c9472c58af4a"
+  },
+  {
+   "role": "fixture_interior_sites",
+   "path": "robocasa/models/fixtures/fixture.py",
+   "sha256": "6945428028acdcf39b0e139f2cbc95709460ad962d23b9964fbf32563f967c57"
+  },
+  {
+   "role": "episode_success_timing",
+   "path": "robocasa/environments/kitchen/kitchen.py",
+   "sha256": "35b1395ce65d51b993296aff1881fd5371542aec4c4e8ffc38c3f775327b5c56"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robocasa/PickPlaceCounterToCabinet-s0-witness.json",
+   "sha256": "e9604712467add69f1290ff4b5fb2a7be0bf43e458dfbf0168315612a3201671"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read _check_success, obj_inside_of (bounding-box corners against fixture int sites) and gripper_obj_far (eef site distance)."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Read _setup_kitchen_references/_get_obj_cfgs: cabinet and counter sampled per seed; target object on the counter in front of the cabinet, one distractor on the counter and one in the back of the cabinet."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Interior regions come from the cabinet's int sites in world frame; the object bounding box uses its MJCF extents at its current pose."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "Evaluated after every control step; the ORA session latches the first success."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Object, cabinet and gripper are visible in the agentview/wrist cameras; withdrawal distance is judged from measured gripper pose and the cameras."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness: object placed on the floor of the cabinet interior with the robot at its start pose (gripper 0.88 m away) gives true."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: partly outside, at the gripper, and the reset state give false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "OU.obj_inside_of(env, 'obj', cab): all eight bounding-box corners of the object inside one cabinet interior region (5 cm slack).",
+   "interpretation": "The whole object must be inside the cabinet interior.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "OU.gripper_obj_far(env): right end-effector site more than 0.25 m from the object body origin.",
+   "interpretation": "Release the object and withdraw the gripper well away.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "kitchen_pick_place.py:_check_success, object_utils.obj_inside_of/gripper_obj_far.",
+   "interpretation": "The 0.25 m withdrawal distance and the 5 cm interior slack are withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay qualitative; the distractor already in the cabinet is irrelevant to the predicate."
+  }
+ ],
+ "public_clauses": [
+  "Place the object so that the whole of it sits inside the cabinet, not on the cabinet's edge or partly outside it.",
+  "Then let go of it and move the gripper well away from it; the task is not complete while the gripper stays close to the object."
+ ],
+ "counterexamples": [
+  {
+   "case": "Object shifted half out of the cabinet opening: false.",
+   "expected": "witness case object_partly_outside_cabinet"
+  },
+  {
+   "case": "Object held at the gripper outside the cabinet: false.",
+   "expected": "witness case object_at_gripper_outside_cabinet"
+  },
+  {
+   "case": "Object inside the cabinet with the gripper still beside it: false by gripper_obj_far (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

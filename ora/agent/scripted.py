@@ -1,6 +1,6 @@
 """Deterministic scripted policy: replays a fixed list of tool calls.
 
-Used by the Synthetic quickstart and by tests before any live model is involved.
+Selected by a RunSpec with ``policy.kind: scripted``; the tests drive the Runtime loop with it.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
-from ora.agent.tools.robot import RobotToolRuntime
+from ora.agent.toolkit.host.runtime.base import RobotToolRuntime
 
 
 class ScriptedPlannerError(RuntimeError):
@@ -17,7 +17,7 @@ class ScriptedPlannerError(RuntimeError):
 
 @dataclass
 class ScriptedPlanner:
-    """Deterministic policy used before every live model milestone."""
+    """Deterministic policy that needs no model."""
 
     tools: RobotToolRuntime
     actions: Sequence[Mapping[str, Any]]
@@ -73,35 +73,7 @@ class ScriptedPlanner:
         arguments = dict(self.actions[self.index])
         self.index += 1
         tool_name = str(arguments.pop("tool", "robot.submit_action"))
-        offset = arguments.pop("current_pose_offset_m", None)
-        if offset is not None:
-            context = kwargs.get("context", {})
-            arm = arguments.get("arm")
-            effectors = (context.get("proprioception") or {}).get(
-                "end_effectors", {},
-            )
-            current = (effectors.get(arm) or {}).get("pose_xyz_xyzw")
-            if (
-                not isinstance(offset, list)
-                or len(offset) != 3
-                or not isinstance(current, list)
-                or len(current) != 7
-            ):
-                raise ScriptedPlannerError(
-                    "relative scripted action lacks a current EEF pose"
-                )
-            arguments["position_m"] = [
-                float(current[index]) + float(offset[index]) for index in range(3)
-            ]
-            arguments.setdefault(
-                "orientation_xyzw", [float(value) for value in current[3:]],
-            )
-        if tool_name == "robot.submit_action":
-            if arguments.get("action") not in {"move_pose", "set_gripper"}:
-                raise ScriptedPlannerError(
-                    "scripted action must explicitly select move_pose or set_gripper"
-                )
-        elif tool_name not in self.tools.surface.mutation_tools:
+        if tool_name not in self.tools.surface.mutation_tools:
             raise ScriptedPlannerError(
                 "scripted action tool must select a surface mutation tool"
             )

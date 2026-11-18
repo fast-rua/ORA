@@ -16,26 +16,84 @@ ENVIRONMENT_DESCRIPTOR_SCHEMA = "ora.environment-runtime-descriptor.v1"
 # is the single admission source for both the environment descriptor and
 # RunSpec validation. An environment joins a codec row only in the same
 # change as its own pinned-source scripted qualification record — never from
-# task pressure alone. libero_pro joined motion_action_v3 with the passing
-# 14-case sparse-motion qualification on source 932e9bd (execution host
-# gpu3): record outputs/exp08a-unified-native/qualification/
-# 20260826T184717Z-r5-clean/libero-sparse-motion-qualification.json,
-# sha256 6e6e75b2cf0d630cac5aad4c71f51ab9df3516fcedc66a16b329d43781596dba.
+# task pressure alone. Each record below is a run output kept outside the
+# source tree and named here by its sha256.
+# libero_pro joined motion_action_v3 with a passing 14-case sparse-motion
+# qualification (record sha256
+# 6e6e75b2cf0d630cac5aad4c71f51ab9df3516fcedc66a16b329d43781596dba).
 # The current LIBERO route set (settle, staged contact approach, direct
-# driver) passed the same 14 cases on source a03acc04 (gpu1): record
-# current-outputs/libero-dev-line/qualification/20260924-sparse-motion-a03acc04/
-# libero-sparse-motion-qualification.json,
-# sha256 86fda296ea679b84b0b558433ca17a7179bdf14d0907656484e3765981bf5b5f.
-# robodojo joined motion_action_v3 with the passing 24-case sparse-motion
-# qualification on source 3f0bf00; the current record is the 24-case pass on
-# source 41cb6d7 (execution host gpu3, hang_mugs layout 0, two rounds),
-# measured under the resolved robodojo_arx_x5_tabletop_v1 envelope rather than
-# the robodojo_compat +/-1.5 m bounds the first one used: record
-# outputs/exp08a-unified-native/qualification/
-# 20260907T224249Z-robodojo-motion-cuda3/robodojo-sparse-motion-qualification.json,
-# sha256 a81d5892634c15c23d023e2faf516f63aa162a02fa7861cb61e8b9a4c96fa35a.
+# driver) passed the same 14 cases (record sha256
+# 86fda296ea679b84b0b558433ca17a7179bdf14d0907656484e3765981bf5b5f).
+# The shared planner, depth collision world and timed routes passed the same
+# 14 cases through ``ora qualify libero motion`` (record sha256
+# 944c9493ccde5d6262a8317a3b77b72f15adc2a20b12a74166535022f8dd7b01).
+# The jaw-twin retry of a wrist refusal and the planner's straight-line and
+# turn-ranked answers to a wrist detour passed the same 14 cases (record sha256
+# 7021638995a773697e349d4f88f498bcdcfecd1f87eb5933dc6ab5b615fa4d53).
+# Motion profile v3 (the global route's JOINT_POSITION controller at kp 50 with
+# a 0.2 rad reach and a per-knot velocity lead, pacing at 0.55 rad/s, a terminal
+# settle that ends at rest inside the local bound) passed the same 14 cases with
+# no torque clipped (record sha256
+# 621a2f62229ae10366b570aa149d5b2faaf01c72404d67294e67c094ecf079f1).
+# Motion profile v4 (v3 plus the straight OSC line for a clear, nearly straight
+# free-space plan) passed the same 14 cases, the free-space cases on the line
+# (record sha256
+# 8eb177d79a528a64a01cde7ce43da95a08aad232ebf17ee3109c716fb630cb04).
+# robodojo joined motion_action_v3 with a passing 24-case sparse-motion
+# qualification; the current record is the 24-case pass (hang_mugs layout 0,
+# two rounds) measured under the resolved robodojo_arx_x5_tabletop_v1
+# envelope rather than the robodojo_compat +/-1.5 m bounds the first one
+# used (record sha256
+# a81d5892634c15c23d023e2faf516f63aa162a02fa7861cb61e8b9a4c96fa35a).
+# RoboCasa365 joined on its scripted record (joint-position execution of
+# admitted IK paths, gripper, shared wait, move_base translate/rotate/return,
+# home recovery to joints, IK probe, verdict and close through the real worker,
+# a 60-degree joint-space reorientation, a refused straight line into the
+# cabinet front and a reach 0.30 m above the hand that admission meets by
+# lifting the torso first; 19/19 checks) on OpenDrawer seed 0,
+# target split (record sha256
+# 2608ee8a734b7bfbe3d81592d4672265b9c1c2ec464a9804617405090627656b).
+# The horizon fix (no control step once the episode must stop) re-passed the
+# same 19 checks on OpenDrawer seed 0 (record sha256
+# 50eb2aa2132a97c0e986e085449833d62a32dedaf25aaf56818a54db04e54148).
+# End-effector paced arm paths re-passed the same 19 checks (record sha256
+# b70015b7d32e66ae2c432c1b684a313d19b11c1afa639fe084d613bb32ba7fa5).
+# Arm moves on the shared planner, IK and public depth world re-passed them
+# (record sha256
+# f2b0a5d4cdd30d56b9a24fd99a39f8a42180a2f2d481b1ba6f26eaa20d692c0a).
+# The jaw-twin retry of a wrist refusal and the planner's answers to a wrist
+# detour re-passed them (record sha256
+# 8e9591654cca59a3a9e9d95f07a51021c921ef4ef7019b19c360d64eab4439b8).
+# Base placement (stands judged by the move's own admission, the lift admitted
+# on its whole timed path, move_base's footprint and the arm and held load it
+# carries checked along the servo's path, the depth linked to a held load
+# carried with it, split from a wall it touches), the settle and stall rules,
+# and the planner's per-arm, prebuilt scenes re-passed them (record sha256
+# 416f025c3c684c2d49fc601767d7227feb6e408fb7185a933e2c0d8d90465b75).
+# RoboLab joined on its scripted record (absolute-IK Cartesian servo on the
+# Robotiq TCP, gripper, shared wait, home recovery, verdict and close through
+# the real Isaac Sim 5.1 worker, loaded geometry verified against the
+# droid-franka-robotiq descriptor; 12/12 checks) on
+# BananaInBowlTask seed 0 (record sha256
+# 2b7d9487d24801993385d1d7ec68cf95620445bd50c9f322b3788a969e2c958d).
+# The servo's per-tick end-effector speed cap re-passed the same 12 checks (record sha256
+# 00d5641d4bb257f955e90edc347e6cbe4ca47252639a9e0bbdbd788838593d48).
+# Shared planning, timed joint paths and home recovery on the planner passed 14/14 checks,
+# including the planner's refusal of a pose out of reach (record sha256
+# 3fc78338419e4bcbe4853fa54b097e25969db64155c26374086488f6ebaf620f).
+# The jaw-twin retry of a wrist refusal and the planner's answers to a wrist
+# detour re-passed the same 14 checks (record sha256
+# 2962553016ee4018b78d0d67673e5acfeed5f4f4264290e543b0b9022bd797d0).
+# The YAM station joined on its scripted record (warm-started IK joint schedules on the
+# i2rt station model, every tick checked for joint limits, table clearance and inter-arm
+# distance; precision, free-space and simultaneous two-arm moves, both grippers both ways,
+# shared wait, home recovery, the refusals of an unreachable target and of two wrists
+# brought 1.2 cm apart, null verdict and close through the real worker; 15/15 checks) on
+# the simulated sim_pick_place cell, i2rt fe78bae (record sha256
+# 44713149ec92bd8f8af06667c1d7beddcf0f0dd6061b0e6156647ac159f402b9).
+# The real rig executes the same plans; its read and on modes add no planner.
 SPARSE_MOTION_QUALIFIED_ENVIRONMENTS: dict[str, tuple[str, ...]] = {
-    "motion_action_v3": ("robotwin", "libero_pro", "robodojo"),
+    "motion_action_v3": ("robotwin", "libero_pro", "robodojo", "robocasa", "robolab", "yam"),
 }
 # The physics devices each (codec, environment) row's scripted record was
 # measured on, for environments whose runtime declares ``physics_device``.
@@ -46,11 +104,9 @@ SPARSE_MOTION_QUALIFIED_ENVIRONMENTS: dict[str, tuple[str, ...]] = {
 # the same change. RunSpec resolution refuses it until then
 # (rule=sparse_motion_physics_unqualified); qualification probes that bypass
 # the RunSpec (card, scene smoke, the scripted gate itself) are unaffected.
-# The CPU row's record is the 24-case pass on source 76f058b3 (execution host
-# gpu4, swap_blocks layout 0, two rounds, physics_device cpu):
-# outputs/robodojo-compat/qualification/
-# 20261005-robodojo-motion-cpu-gpu4-swap_blocks/robodojo-sparse-motion-qualification.json,
-# sha256 da33671848505ae787a3a5db5b4cf4c5557d960cd15fe21084433698ddd15ec2.
+# The CPU row's record is the 24-case pass (swap_blocks layout 0, two rounds,
+# physics_device cpu; record sha256
+# da33671848505ae787a3a5db5b4cf4c5557d960cd15fe21084433698ddd15ec2).
 SPARSE_MOTION_QUALIFIED_PHYSICS_DEVICES: dict[tuple[str, str], tuple[str, ...]] = {
     ("motion_action_v3", "robodojo"): ("cuda:0", "cpu"),
 }
@@ -74,7 +130,9 @@ def sparse_motion_physics_refusal(codec: str, runtime: Mapping[str, Any]) -> str
 ENVIRONMENT_DESCRIPTOR_V2_SCHEMA = "ora.environment-runtime-descriptor.v2"
 #: Backends whose sparse v3 executor implements the shared ``wait`` hold
 #: (LIBERO: ``backends/libero_pro/wait.py``, one tick per control step).
-WAIT_ENVIRONMENTS = ("libero_pro", "robodojo", "robotwin")
+WAIT_ENVIRONMENTS = ("libero_pro", "robocasa", "robodojo", "robolab", "robotwin", "yam")
+#: Backends with a holonomic mobile base: motion v3 adds ``move_base``.
+MOBILE_BASE_ENVIRONMENTS = ("robocasa",)
 
 
 class EnvironmentDefinitionError(RuntimeError):
@@ -236,6 +294,8 @@ class EnvironmentDefinition:
         )
         if codec == "motion_action_v3" and self.environment_id in WAIT_ENVIRONMENTS:
             action_modes = (*action_modes, "wait")
+        if codec == "motion_action_v3" and self.environment_id in MOBILE_BASE_ENVIRONMENTS:
+            action_modes = (*action_modes, "move_base")
         descriptor_v2 = codec in SPARSE_MOTION_QUALIFIED_ENVIRONMENTS
         if codec in SPARSE_MOTION_QUALIFIED_ENVIRONMENTS and self.environment_id not in (
             SPARSE_MOTION_QUALIFIED_ENVIRONMENTS[codec]
@@ -296,6 +356,19 @@ class EnvironmentDefinition:
                         },
                     }
                     if self.environment_id == "robodojo"
+                    # The YAM station plans both arms at their tcp sites and
+                    # merges the two joint schedules tick by tick.
+                    else {
+                        "left": {
+                            "controlled_point": "tcp",
+                            "planner_route": "left",
+                        },
+                        "right": {
+                            "controlled_point": "tcp",
+                            "planner_route": "right",
+                        },
+                    }
+                    if self.environment_id == "yam"
                     # LIBERO drives one right Panda arm at the RoboSuite
                     # grip site; the v2 descriptor states that honestly
                     # instead of inheriting the dual-arm shape.
@@ -321,6 +394,12 @@ class EnvironmentDefinition:
                     "synchronous_pose_execution": True,
                 },)
                 if descriptor_v2 and self.environment_id == "robodojo"
+                else ({
+                    "group_id": "yam_dual_arm",
+                    "members": ["left", "right"],
+                    "synchronous_pose_execution": True,
+                },)
+                if descriptor_v2 and self.environment_id == "yam"
                 else ()
             ),
             camera_roles=(
@@ -336,6 +415,11 @@ class EnvironmentDefinition:
                     "over_shoulder_left": "fixed_third_person_workspace",
                     "left_wrist": "left_wrist",
                     "right_wrist": "right_wrist",
+                    # The YAM station's fixed overhead and front cameras and its two wrists.
+                    "overhead": "fixed_overhead",
+                    "front": "fixed_front",
+                    "wrist_left": "left_wrist",
+                    "wrist_right": "right_wrist",
                 }.items() if name in cameras}
                 if descriptor_v2 else None
             ),
@@ -404,15 +488,71 @@ def _robodojo(runtime: Mapping[str, Any], action_codec: str | None) -> dict[str,
     return public_context()
 
 
+def _robolab(runtime: Mapping[str, Any], action_codec: str | None) -> dict[str, Any]:
+    from .benchmarks.robolab import public_context
+
+    return public_context()
+
+
+def _yam(runtime: Mapping[str, Any], action_codec: str | None) -> dict[str, Any]:
+    from .benchmarks.yam import public_context
+
+    return public_context()
+
+
+def _robocasa(runtime: Mapping[str, Any], action_codec: str | None) -> dict[str, Any]:
+    from .benchmarks.robocasa import public_context
+
+    return public_context()
+
+
 _DEFAULT_PUBLIC_CONTEXT = {
     "synthetic": _synthetic,
     "robotwin": _robotwin,
     "libero_pro": _libero,
     "robodojo": _robodojo,
+    "robocasa": _robocasa,
+    "robolab": _robolab,
+    "yam": _yam,
 }
 
 
 _DEFINITIONS = {
+    "yam": EnvironmentDefinition(
+        environment_id="yam", version="v1", transports=("local_rpc",),
+        embodiments=("yam_station_linear_4310_d405",), observation_schema="ora-observation.v1",
+        # motion_action_v3: warm-started IK along sampled Cartesian paths, every tick
+        # checked for joint limits, table clearance and inter-arm distance before the
+        # arms move; on the simulated station model or the real arms (rig_mode).
+        # A real cell has no evaluator, so the official verdict is null.
+        action_schemas=("motion_action_v3",),
+        capabilities={"rgb": True, "depth": True, "official_verdict": False, "isolated_worker": True},
+        preflight_id="yam_v1",
+        worker_loader="ora.environment.backends.yam.session:YamSession",
+    ),
+    "robolab": EnvironmentDefinition(
+        environment_id="robolab", version="v1", transports=("local_rpc",),
+        embodiments=("droid_franka_robotiq",), observation_schema="ora-observation.v1",
+        # motion_action_v3: absolute differential-IK Cartesian servo on the
+        # Robotiq TCP; gated by SPARSE_MOTION_QUALIFIED_ENVIRONMENTS with its
+        # scripted motion record cited there.
+        action_schemas=("motion_action_v3",),
+        capabilities={"rgb": True, "depth": True, "official_verdict": True, "isolated_worker": True},
+        preflight_id="robolab_v1",
+        worker_loader="ora.environment.backends.robolab.session:RobolabSession",
+    ),
+    "robocasa": EnvironmentDefinition(
+        environment_id="robocasa", version="v1", transports=("local_rpc",),
+        embodiments=("panda_omron",), observation_schema="ora-observation.v1",
+        # motion_action_v3: joint-position execution of admitted IK paths for the arm plus the base
+        # servo behind move_base; gated by SPARSE_MOTION_QUALIFIED_ENVIRONMENTS
+        # with its scripted motion record cited there.
+        action_schemas=("motion_action_v3",),
+        capabilities={"rgb": True, "depth": True, "official_verdict": True,
+                      "isolated_worker": True, "mobile_base": True},
+        preflight_id="robocasa_v1",
+        worker_loader="ora.environment.backends.robocasa.session:RoboCasaSession",
+    ),
     "robodojo": EnvironmentDefinition(
         environment_id="robodojo", version="v1", transports=("local_rpc",),
         embodiments=("arx_x5",), observation_schema="ora-observation.v1",
@@ -516,9 +656,33 @@ def validate_runtime_extension(runtime: Mapping[str, Any]) -> None:
 
     if runtime.get("kind") == "robodojo":
         from .benchmarks.robodojo import RoboDojoBenchmarkError, validate_runtime_extension as validate_robodojo
+        if runtime.get("play_scene_set") is not None:
+            # One of ORA's own play scenes: the official-task rule admits no such task.
+            from .benchmarks.robodojo_play_scenes import validate_play_runtime as validate_robodojo
         try:
             validate_robodojo(runtime)
         except RoboDojoBenchmarkError as exc:
+            raise EnvironmentDefinitionError(str(exc)) from exc
+        return
+    if runtime.get("kind") == "robolab":
+        from .benchmarks.robolab import RoboLabBenchmarkError, validate_runtime_extension as validate_robolab
+        try:
+            validate_robolab(runtime)
+        except RoboLabBenchmarkError as exc:
+            raise EnvironmentDefinitionError(str(exc)) from exc
+        return
+    if runtime.get("kind") == "yam":
+        from .benchmarks.yam import YamBenchmarkError, validate_runtime_extension as validate_yam
+        try:
+            validate_yam(runtime)
+        except YamBenchmarkError as exc:
+            raise EnvironmentDefinitionError(str(exc)) from exc
+        return
+    if runtime.get("kind") == "robocasa":
+        from .benchmarks.robocasa import RoboCasaBenchmarkError, validate_runtime_extension as validate_robocasa
+        try:
+            validate_robocasa(runtime)
+        except RoboCasaBenchmarkError as exc:
             raise EnvironmentDefinitionError(str(exc)) from exc
         return
     if runtime.get("kind") != "libero_pro":

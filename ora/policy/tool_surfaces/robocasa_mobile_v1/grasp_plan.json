@@ -1,0 +1,844 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "grasp_plan",
+  "description": "Generate inspectable public RGB-D grasp candidates for one current target.\nUse when: current grounding or segmentation identifies the intended object and you need parallel-jaw poses.\nEffect: read-only; queries Contact-GraspNet using the selected source-camera RGB-D and compiles poses to the public TCP convention. Optional synchronized views provide review evidence.\nReturns: up to three candidates, complete world-frame pregrasp_pose and contact_pose, each with approach_world and jaw_line_world, the world directions of its approach axis and jaw line (move_pose's world_axes fields), copyable bounded contact_approach targets, predicted opening, compiler checks and labeled review images. Reachability is delegated to move_pose; this call does not run a motion probe or return a plan_ref. Inspect every candidate panel and choose target identity and geometry independently of rank. For this atomic surface, command the selected pregrasp_pose with move_pose, then read the receipt and fresh observation before approaching or closing with set_gripper. Re-plan candidates after any world action. Pose handoff: when manually commanding a returned world pose, set position_mode=absolute and orientation_mode=absolute_quaternion, then copy position_m and orientation_xyzw unchanged. Send these fields at the top level. Choose interaction by the intended physical contact. Schema example only; replace the illustrative pose with your selected current result:\n{\"tool\":\"move_pose\",\"arguments\":{\"position_mode\":\"absolute\",\"position_m\":[0.1,0.0,0.9],\"orientation_mode\":\"absolute_quaternion\",\"orientation_xyzw\":[0.0,0.0,0.0,1.0],\"interaction\":\"precision\"}}\nDoes not: plan trajectories, certify reachability, move the robot, command a gripper, use object ground truth, certify retention or report task success. Backend rank is not a success probability. Missing optional review cameras do not invalidate usable primary input.\nOn error: Refused: a target_ref unknown in this round (target_ref_unavailable) or bound to an earlier observation (stale_observation); max_candidates outside 1 to 3; unusable primary RGB-D or a transient backend failure (grasp_proposal_failed); a request the grasp-proposal service rejects (invalid_arguments, with the service's detail). Not refused but moved to diagnostics.rejected: a candidate whose predicted opening exceeds the 80 mm nominal ceiling, or whose controlled point or pregrasp lies outside the action workspace; with none left the result is status no_candidate. Obtain a better current view or select another target or candidate. Recompute after the target or observation changes. After a submitted motion fails, use its phase and measured residual to choose the next action. Retention evidence remains advisory. Candidate order: the grasp service's order, truncated to max_candidates; no inverse kinematics is checked before display on this backend.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "max_candidates": {
+        "default": 3,
+        "description": "Maximum alternatives to inspect from this one query, from one through three, default 3: the front of the grasp service's order. This truncates a call-local ranking and does not select a grasp or request repeated planning. Null means omitted.",
+        "maximum": 3,
+        "minimum": 1,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "target_ref": {
+        "description": "Exactly one target_ref returned by vision_ground or vision_segment for the current immutable observation; do not copy an older reference after the world or observation changes.",
+        "pattern": "^target-[0-9a-f]{24}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "target_ref"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "$defs": {
+      "backend": {
+        "additionalProperties": false,
+        "properties": {
+          "config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "approach_delta": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "position_mode",
+              "translation_m",
+              "position_frame",
+              "orientation_mode",
+              "interaction"
+            ],
+            "properties": {
+              "position_mode": {
+                "const": "delta",
+                "type": "string"
+              },
+              "translation_m": {
+                "$ref": "#/$defs/vector3"
+              },
+              "position_frame": {
+                "const": "end_effector",
+                "type": "string"
+              },
+              "orientation_mode": {
+                "const": "hold_current",
+                "type": "string"
+              },
+              "interaction": {
+                "const": "contact_approach",
+                "type": "string"
+              }
+            }
+          },
+          "backend_score": {
+            "type": "number"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "compiler_checks": {
+            "additionalProperties": false,
+            "properties": {
+              "aperture": {
+                "const": "passed",
+                "type": "string"
+              },
+              "bounded_local_approach": {
+                "const": "passed",
+                "type": "string"
+              },
+              "contact_baseline_reconstruction": {
+                "const": "passed",
+                "type": "string"
+              },
+              "embodiment_mapping": {
+                "type": "string"
+              },
+              "finite_geometry": {
+                "const": "passed",
+                "type": "string"
+              },
+              "reachability": {
+                "type": "string",
+                "const": "delegated_to_move_pose"
+              },
+              "right_handed_grip_site_axes": {
+                "const": "passed",
+                "type": "string"
+              },
+              "source_origin_to_grip_site": {
+                "const": "passed",
+                "type": "string"
+              },
+              "workspace": {
+                "const": "passed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "finite_geometry",
+              "right_handed_grip_site_axes",
+              "bounded_local_approach",
+              "source_origin_to_grip_site",
+              "contact_baseline_reconstruction",
+              "embodiment_mapping",
+              "workspace",
+              "aperture",
+              "reachability"
+            ],
+            "type": "object"
+          },
+          "contact_pose": {
+            "additionalProperties": false,
+            "properties": {
+              "approach_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "jaw_line_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "orientation_xyzw": {
+                "$ref": "#/$defs/quaternion"
+              },
+              "position_m": {
+                "$ref": "#/$defs/vector3"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "approach_world",
+              "jaw_line_world"
+            ],
+            "type": "object"
+          },
+          "gripper_opening_m": {
+            "exclusiveMinimum": 0,
+            "maximum": 0.08,
+            "type": "number"
+          },
+          "pregrasp_pose": {
+            "additionalProperties": false,
+            "properties": {
+              "approach_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "jaw_line_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "orientation_xyzw": {
+                "$ref": "#/$defs/quaternion"
+              },
+              "position_m": {
+                "$ref": "#/$defs/vector3"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "approach_world",
+              "jaw_line_world"
+            ],
+            "type": "object"
+          },
+          "rank": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "rank",
+          "pregrasp_pose",
+          "contact_pose",
+          "approach_delta",
+          "gripper_opening_m",
+          "backend_score",
+          "compiler_checks"
+        ],
+        "type": "object"
+      },
+      "compiler": {
+        "additionalProperties": false,
+        "properties": {
+          "axis_mapping": {
+            "additionalProperties": false,
+            "properties": {
+              "model_approach_z": {
+                "type": "string"
+              },
+              "model_jaw_x": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "model_jaw_x",
+              "model_approach_z"
+            ],
+            "type": "object"
+          },
+          "contact_graspnet_gripper_depth_m": {
+            "type": "number"
+          },
+          "controlled_point": {
+            "const": "robosuite_grip_site",
+            "type": "string"
+          },
+          "controlled_point_semantics": {
+            "const": "grip_center",
+            "type": "string"
+          },
+          "controlled_point_to_contact_baseline_m": {
+            "type": "number"
+          },
+          "embodiment_descriptor_id": {
+            "type": "string"
+          },
+          "embodiment_descriptor_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "source_origin_to_controlled_point_m": {
+            "type": "number"
+          },
+          "source_pose_convention": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "embodiment_descriptor_id",
+          "embodiment_descriptor_sha256",
+          "source_pose_convention",
+          "controlled_point",
+          "controlled_point_semantics",
+          "contact_graspnet_gripper_depth_m",
+          "source_origin_to_controlled_point_m",
+          "controlled_point_to_contact_baseline_m",
+          "axis_mapping"
+        ],
+        "type": "object"
+      },
+      "diagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "compiled_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "compiler_rejected": {
+            "items": {
+              "$ref": "#/$defs/rejected_compiler_candidate"
+            },
+            "type": "array"
+          },
+          "compiler_returned_candidate_count": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "inference_seed": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "model": {
+            "$ref": "#/$defs/model"
+          },
+          "raw_candidate_limit": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/$defs/rejected_backend_candidate"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "returned_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scene_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "seed_identity_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "seed_policy": {
+            "type": "string"
+          },
+          "target_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "warning": {
+            "type": "string"
+          },
+          "candidate_family_counts": {
+            "additionalProperties": false,
+            "properties": {
+              "learned_available": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "public_rgbd_topdown_available": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "selected": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "learned_available",
+              "public_rgbd_topdown_available",
+              "selected"
+            ],
+            "type": "object"
+          },
+          "learned": {
+            "$ref": "#/$defs/family_diagnostics"
+          },
+          "public_rgbd_topdown": {
+            "$ref": "#/$defs/family_diagnostics"
+          }
+        },
+        "required": [
+          "request_id",
+          "rejected",
+          "compiler_rejected",
+          "compiler_returned_candidate_count"
+        ],
+        "type": "object"
+      },
+      "latency": {
+        "additionalProperties": false,
+        "properties": {
+          "roundtrip": {
+            "type": "number"
+          },
+          "service_inference": {
+            "type": "number"
+          },
+          "service_queue": {
+            "type": "number"
+          },
+          "service_total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "roundtrip",
+          "service_queue",
+          "service_inference",
+          "service_total"
+        ],
+        "type": "object"
+      },
+      "model": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_sha256": {
+            "type": "string"
+          },
+          "config_sha256": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "source_commit",
+          "checkpoint_sha256",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "nullable_string": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "overlay": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sha256",
+          "width",
+          "height"
+        ],
+        "type": "object"
+      },
+      "quaternion": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 4,
+        "minItems": 4,
+        "type": "array"
+      },
+      "rejected_backend_candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "predicted_opening_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Raw predicted opening in metres; a finite invalid prediction may be negative, and unavailable is null."
+          },
+          "required_opening_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "PCA-derived required opening in metres, or null when unavailable; not measured jaw aperture."
+          },
+          "maximum_opening_m": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Positive compiler admission ceiling in metres; not measured physical aperture."
+          },
+          "limit_semantics": {
+            "type": "string",
+            "enum": [
+              "compiler_admission_not_measured_physical_aperture"
+            ]
+          }
+        },
+        "required": [
+          "candidate_id",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "rejected_compiler_candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "vector3": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": "array"
+      },
+      "family_diagnostics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "source_commit": {
+                "type": "string"
+              },
+              "checkpoint_sha256": {
+                "type": "string"
+              },
+              "config_sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "family",
+              "source_commit",
+              "checkpoint_sha256"
+            ]
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "scene_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "target_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "filtered_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "raw_candidate_limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "returned_candidate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "compiled_candidate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inference_seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seed_policy": {
+            "type": "string"
+          },
+          "seed_identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "warning": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "backend": {
+        "$ref": "#/$defs/backend"
+      },
+      "camera": {
+        "enum": [
+          "agentview",
+          "wrist"
+        ],
+        "type": "string"
+      },
+      "candidates": {
+        "items": {
+          "$ref": "#/$defs/candidate"
+        },
+        "maxItems": 3,
+        "type": "array"
+      },
+      "compiler": {
+        "$ref": "#/$defs/compiler"
+      },
+      "diagnostics": {
+        "$ref": "#/$defs/diagnostics"
+      },
+      "grasp_query_ref": {
+        "pattern": "^grasp-query-[0-9a-f]{24}$",
+        "type": "string"
+      },
+      "observation_id": {
+        "type": "string"
+      },
+      "overlay": {
+        "$ref": "#/$defs/overlay"
+      },
+      "status": {
+        "enum": [
+          "candidates",
+          "no_candidate"
+        ],
+        "type": "string"
+      },
+      "success": {
+        "const": true,
+        "type": "boolean"
+      },
+      "target_ref": {
+        "pattern": "^target-[0-9a-f]{24}$",
+        "type": "string"
+      },
+      "review_evidence": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "primary_camera": {
+            "type": "string"
+          },
+          "requested_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "available_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unavailable_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "primary_input_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "claim_boundary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "primary_camera",
+          "requested_cameras",
+          "available_cameras",
+          "unavailable_cameras",
+          "primary_input_required",
+          "claim_boundary"
+        ],
+        "additionalProperties": false
+      },
+      "image_mapping": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "description": "A physical source view names its camera. A derived public RGB-D geometry render or paired contact sheet has camera=\"\" and an explicit review role; it is not an additional sensor or a new capture. Source camera provenance stays in the source-bound evidence fields.",
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "image_index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "role": {
+                  "type": "string"
+                },
+                "camera": {
+                  "type": "string",
+                  "enum": [
+                    "agentview",
+                    "wrist"
+                  ]
+                },
+                "candidate_id": {
+                  "type": "string"
+                },
+                "target_ref": {
+                  "type": "string"
+                },
+                "observation_step": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "image_index",
+                "role",
+                "camera",
+                "candidate_id",
+                "target_ref",
+                "observation_step"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "image_index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "local_contact_candidates",
+                    "global_public_scene_candidates"
+                  ]
+                },
+                "camera": {
+                  "type": "string",
+                  "const": ""
+                },
+                "candidate_id": {
+                  "type": "string"
+                },
+                "target_ref": {
+                  "type": "string"
+                },
+                "observation_step": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "image_index",
+                "role",
+                "camera",
+                "candidate_id",
+                "target_ref",
+                "observation_step"
+              ]
+            }
+          ]
+        }
+      },
+      "scene_review": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason",
+          "scope"
+        ]
+      }
+    },
+    "required": [
+      "success",
+      "status",
+      "observation_id",
+      "target_ref",
+      "camera",
+      "grasp_query_ref",
+      "backend",
+      "compiler",
+      "candidates",
+      "diagnostics",
+      "overlay",
+      "review_evidence"
+    ],
+    "type": "object"
+  }
+}

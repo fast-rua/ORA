@@ -7,9 +7,22 @@ import hashlib
 import json
 import pytest
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
+
+# BLAS and OpenMP start one thread per core when NumPy first loads them, so
+# every pytest-xdist worker would run as many threads as the host has cores:
+# the BLAS-heavy perception and clearance tests then burned 30 to 60 times
+# their wall time in CPU on a 128-core host. One thread each, set before any
+# test module imports NumPy; the subprocesses tests start inherit it.
+for _variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_variable] = "1"
+
+# Shared helpers in tests/support/ assert like test code does, so pytest rewrites
+# their asserts too and a failing check inside a helper reports its operands.
+pytest.register_assert_rewrite("tests.support")
 
 _WORKSPACE_ENV = "ORA_WORKSPACE_ROOT"
 _TEST_WORKSPACE = Path(tempfile.mkdtemp(prefix="ora-pytest-workspace-"))
@@ -20,16 +33,36 @@ _TEST_WORKSPACE = Path(tempfile.mkdtemp(prefix="ora-pytest-workspace-"))
 # point at the operator's shared evidence workspace.
 os.environ[_WORKSPACE_ENV] = str(_TEST_WORKSPACE)
 # Execution host profiles are user-provided; tests bind the fixture hosts
-# (test-host, test-cluster, test-arm) before ora.orchestrator.resources
+# (test-host, test-cluster, test-arm) before ora.orchestrator.preflight.resources
 # resolves HOSTS_ROOT at import time.
 os.environ["ORA_HOSTS_DIR"] = str(Path(__file__).resolve().parent / "data" / "hosts")
+# The operator's own provider profiles and keys (ORA_CONFIG_HOME, else
+# ~/.config/ora) are never test input; a test that exercises them names its own.
+_TEST_CONFIG_HOME = Path(tempfile.mkdtemp(prefix="ora-pytest-config-"))
+os.environ["ORA_CONFIG_HOME"] = str(_TEST_CONFIG_HOME)
+# A process's timing is process-wide (ora/environment/controllers/motion_timing.py). Every test starts on
+# motion_pace's own, whatever the operator's environment names; the tests of the timing worker read its
+# interpreter from here and skip without one.
+TIMING_PYTHON_FOR_TESTS = "ORA_TEST_TIMING_PYTHON"
+if os.environ.get("ORA_TIMING_PYTHON"):
+    os.environ[TIMING_PYTHON_FOR_TESTS] = os.environ["ORA_TIMING_PYTHON"]
+os.environ.pop("ORA_TIMING_PYTHON", None)
+
+
+@pytest.fixture(autouse=True)
+def _timing_starts_unconfigured():
+    yield
+    timing = sys.modules.get("ora.environment.controllers.motion_timing")
+    if timing is not None:
+        timing.reset()
 
 
 def pytest_sessionfinish(session, exitstatus: int) -> None:
-    """Remove only the exact temporary workspace allocated above."""
+    """Remove only the exact temporary workspace and config home allocated above."""
 
     del session, exitstatus
     shutil.rmtree(_TEST_WORKSPACE, ignore_errors=True)
+    shutil.rmtree(_TEST_CONFIG_HOME, ignore_errors=True)
 
 
 def pytest_configure(config) -> None:
@@ -41,7 +74,29 @@ def pytest_configure(config) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _hermetic_host_storage(request, monkeypatch: pytest.MonkeyPatch, tmp_path_factory):
+def _restore_environment():
+    """Undo every ``os.environ`` change a test leaves behind, whoever made it.
+
+    Code under test sets variables directly (``ORA_BASE_URL`` and a profile's
+    ``*_BASE_URL``/``*_API_KEY``, the ``ROBODOJO_*`` defaults, ``MUJOCO_GL``),
+    which would otherwise change what every later test in the same process sees.
+    Variables set before the first test (this module's own) stay as they are.
+    It must tear down after every ``monkeypatch`` undo, since a ``setenv`` over a
+    value the code under test set restores that value: ``_hermetic_host_storage``,
+    the autouse fixture that brings ``monkeypatch`` in first, therefore requests it.
+    """
+
+    saved = dict(os.environ)
+    yield
+    for name in set(os.environ) - set(saved):
+        del os.environ[name]
+    for name, value in saved.items():
+        if os.environ.get(name) != value:
+            os.environ[name] = value
+
+
+@pytest.fixture(autouse=True)
+def _hermetic_host_storage(request, _restore_environment, monkeypatch: pytest.MonkeyPatch, tmp_path_factory):
     """Keep the orchestrator's host-storage calls off real disks and /dev/shm.
 
     This stubs the ``host_storage`` entry points preflight and launch call:
@@ -52,7 +107,8 @@ def _hermetic_host_storage(request, monkeypatch: pytest.MonkeyPatch, tmp_path_fa
 
     if request.node.get_closest_marker("host_storage_real"):
         return
-    from ora.orchestrator import host_storage, run_scratch
+    from ora.orchestrator.preflight import host_storage
+    from ora.orchestrator.episode import run_scratch
 
     names = ("evidence_workspace_capacity", "runtime_tmpdir",
              "system_partition_capacity", "shm_carb_segments")
@@ -83,7 +139,7 @@ def _hermetic_host_storage(request, monkeypatch: pytest.MonkeyPatch, tmp_path_fa
 @pytest.fixture
 def robodojo_activation():
     """Build explicitly fake compiled-model evidence for host admission tests."""
-    from ora.orchestrator.robodojo_embodiment import CARD_ROOT, create_activation
+    from ora.orchestrator.backends.robodojo.embodiment import CARD_ROOT, create_activation
     from ora.environment.benchmarks.robodojo import REVISIONS
     from ora.environment.controllers.robodojo_arx import controller_binding
 
@@ -151,6 +207,19 @@ def robodojo_activation():
     return build
 
 
+
+@pytest.fixture
+def fake_sdk_candidate_boundary(monkeypatch: pytest.MonkeyPatch):
+    """Keep the fake RoboDojo plant's kinematics outside the real bounded candidate selector.
+
+    A module that drives the fake plant (``tests/support/robodojo/backend.py``)
+    names it in ``pytestmark = pytest.mark.usefixtures(...)``; the RoboDojo,
+    reach and context tests that use it sit in different directories.
+    """
+    from tests.support.robodojo.backend import install_fake_sdk_candidate_boundary
+
+    install_fake_sdk_candidate_boundary(monkeypatch)
+
 @pytest.fixture
 def ready_model_services(monkeypatch: pytest.MonkeyPatch):
     """Stand in for the resident SAM3 and Contact-GraspNet services.
@@ -161,7 +230,7 @@ def ready_model_services(monkeypatch: pytest.MonkeyPatch):
     whether those services happen to be running on the host. runtime.core binds
     the client classes at import, so the patch targets runtime.core, not grasp.
     """
-    from ora.agent.tools.runtime import core as runtime_core
+    from ora.agent.toolkit.host.runtime import core as runtime_core
 
     class Ready:
         def __init__(self, **kwargs):

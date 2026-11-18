@@ -1,0 +1,47 @@
+{
+ "name": "synthetic-compact-v1",
+ "date": "2026-10-21",
+ "files": {
+  "CORE.md": "dd9982b8a66900ec889aaaf9b52737f368f3520009b943aa757a82159b0c0a52",
+  "tool-overlay.json": "91e5d4017f78dfebcece0d720773cccd21df8f3e78749e244b93969b9b395718"
+ },
+ "ora_profile": {
+  "schema": "ora.context-pack-profile.v1",
+  "system": {
+   "core_file": "CORE.md",
+   "embodiment_sections": [
+    "Identity",
+    "Frames and units",
+    "Cameras"
+   ]
+  },
+  "episode_task": "task_and_contract_v1",
+  "tools": {
+   "overlay_file": "tool-overlay.json",
+   "drop": [
+    "check_task"
+   ]
+  },
+  "finish": {
+   "success": "official_verdict"
+  },
+  "compact_view": {
+   "schema": "ora.compact-view.v1",
+   "recent_turns": 1,
+   "tool_text_cap_chars": 200,
+   "image_window": 2,
+   "image_long_edge_px": 64,
+   "fold": {
+    "line_format": "turn_summary_v1",
+    "rationale_cap_chars": 300,
+    "arguments_cap_chars": 160,
+    "latest_result_tools": []
+   },
+   "texts": {
+    "earlier_steps_header": "EARLIER STEPS (condensed; images and full results omitted):",
+    "image_placeholder": "[image omitted: {label}]",
+    "tool_text_omission": "\n\u2026[{omitted} more characters omitted]"
+   }
+  }
+ }
+}

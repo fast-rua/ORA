@@ -1,0 +1,60 @@
+"""Finite pose validation and bounded lifted targets for closed skills.
+
+A candidate whose committed geometry is unusable is refused as that candidate
+(``field=candidate_id``): another candidate can still succeed, so the refusal
+is retryable and only a changed ``candidate_id`` can.
+"""
+from __future__ import annotations
+
+import math
+from typing import Any, Mapping, Sequence
+from ora.agent.error_classes import ToolError
+from ora.agent.toolkit.tools.grasp_plan._lift import _lifted, split_liftable
+
+
+def _unusable(message: str, candidate_id: Any, **constraints: Any) -> ToolError:
+    return ToolError(message, code="candidate_geometry_unavailable", retryable=True,
+                     field="candidate_id", received=candidate_id,
+                     retry_requires_changed_arguments=True, constraints=constraints or None)
+
+
+def _pose(value: Any, what: str, candidate_id: Any = None) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise _unusable(f"{what} is unavailable on the selected candidate", candidate_id)
+    position = value.get("position_m")
+    orientation = value.get("orientation_xyzw")
+    if not (
+        isinstance(position, Sequence) and len(position) == 3
+        and isinstance(orientation, Sequence) and len(orientation) == 4
+        and all(
+            not isinstance(item, bool) and isinstance(item, (int, float))
+            and math.isfinite(float(item))
+            for item in [*position, *orientation]
+        )
+    ):
+        raise _unusable(f"{what} is not a finite pose", candidate_id)
+    return {
+        "position_m": [float(item) for item in position],
+        "orientation_xyzw": [float(item) for item in orientation],
+    }
+
+
+def validate_prepared_targets(poses: Mapping[str, Mapping[str, Any]], bounds: Mapping[str, Any],
+                              candidate_id: Any = None) -> None:
+    """Reject unusable committed geometry before the opening can release anything."""
+    for stage, pose in poses.items():
+        norm = math.sqrt(sum(v * v for v in pose["orientation_xyzw"]))
+        if abs(norm - 1.0) > 1e-3:
+            raise _unusable(f"{stage} orientation is not a unit quaternion", candidate_id,
+                            stage=stage, quaternion_norm=norm)
+        if any(not bounds[axis][0] <= value <= bounds[axis][1]
+               for axis, value in zip("xyz", pose["position_m"])):
+            raise _unusable(f"{stage} target is outside the public workspace", candidate_id,
+                            stage=stage, position_m=list(pose["position_m"]),
+                            workspace_bounds_m={axis: list(bounds[axis]) for axis in "xyz"})
+    pregrasp, contact = poses["pregrasp"], poses["approach"]
+    dot = abs(sum(a * b for a, b in zip(pregrasp["orientation_xyzw"], contact["orientation_xyzw"])))
+    distance = math.dist(pregrasp["position_m"], contact["position_m"])
+    if dot < 1.0 - 1e-5 or distance <= 1e-6:
+        raise _unusable("pregrasp must supply a nonzero approach at the contact orientation",
+                        candidate_id)

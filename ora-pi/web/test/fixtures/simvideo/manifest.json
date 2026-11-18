@@ -1,0 +1,46 @@
+{
+  "attempted_frames": 84,
+  "backend": "robodojo",
+  "boundaries": {
+    "action_end": 7,
+    "action_start": 7,
+    "close": 1,
+    "control": 68,
+    "reset": 1
+  },
+  "camera_panels": [
+    "head",
+    "left_wrist",
+    "right_wrist",
+    "operator_camera"
+  ],
+  "capture_semantics": "original_execution_pixels_no_simulator_reconstruction",
+  "capture_wall_s": 17.10046903276816,
+  "config": {
+    "enabled": true,
+    "fps": 30,
+    "queue_capacity": 32,
+    "schema": "ora.execution-capture-config.v1"
+  },
+  "dropped_by_reason": {},
+  "error": null,
+  "finalized": true,
+  "frame_count": 84,
+  "max_queue_occupancy": 1,
+  "round_boundaries": {
+    "0": {
+      "action_end": 7,
+      "action_start": 7,
+      "close": 1,
+      "control": 68,
+      "reset": 1
+    }
+  },
+  "schema": "ora.execution-capture-manifest.v1",
+  "status": "incomplete",
+  "success_authority": "none",
+  "timeline": "timeline.jsonl",
+  "unwritten_frames": 0,
+  "visibility": "control_only",
+  "writer_wall_s": 20.814402517396957
+}

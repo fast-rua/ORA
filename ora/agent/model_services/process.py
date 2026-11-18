@@ -143,7 +143,7 @@ def uninspectable_message(record: Mapping[str, Any]) -> str:
     return (
         f"resident service pid {record.get('pid')} is alive but this process cannot inspect it "
         "(permission denied on /proc/<pid>/exe: it was started from another container, sandbox or "
-        "user namespace). Run model-services stop from the environment that started it; or confirm "
+        "user namespace). Run `ora services stop` from the environment that started it; or confirm "
         f"/proc/{record.get('pid')}/cmdline is the recorded command and stop process group "
         f"{identity.get('process_group_id', record.get('pid'))} yourself (kill -TERM -- -<pgid>)"
     )

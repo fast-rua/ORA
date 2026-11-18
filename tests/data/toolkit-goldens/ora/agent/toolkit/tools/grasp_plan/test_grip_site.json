@@ -1,0 +1,18 @@
+{
+ "schema": "ora.toolkit-goldens.v1",
+ "digests": {
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[0-libero]": "de51c7ed350078f5af8ac45891dbf483845dcf5c3200e6930e9e8fdc9deac48e",
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[0-robocasa]": "adb813811690c04d59c12b5583737efa6e96e552498c49d8b0f1a4a898882982",
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[0-robolab]": "322fb25dc678549db7eac7e00605f51103b6d79f08544a389a6d4f286c949f1d",
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[3-libero]": "0e036434c7818ee4a7781bc9f7863cd8379655840c8336f8d46e2637cdede11c",
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[3-robocasa]": "76072afe8934b88f2443d7b93af3fae9aa7edf7a753ba207cfcf2ab609b39537",
+  "test_a_grip_site_surface_plans_in_its_own_spelling/plan[3-robolab]": "3a1852b28f6a890e14b31101c06f2bc2328db1c5f3119191412c162e1fa25499",
+  "test_a_target_a_top_down_first_hybrid_cannot_use_names_the_argument/refusal": "b2a4f18ded90765159c15723c42b371a3b1ad26a4c8f0c699a1216ef0460155e",
+  "test_a_target_the_fallback_cannot_use_costs_only_that_family/plan": "26c631966d310d543ad87bc527ca42b9f386cdbbea9284f0f7030a675feb2cda",
+  "test_robotwin_plans_on_its_grip_centre_compiler/plan[0]": "91b2a9f20ff7868f7549a7708f9c133e759a727f387fa45f9ebd1b6fe4cf3160",
+  "test_robotwin_plans_on_its_grip_centre_compiler/plan[3]": "6e9e2ea3423b8fefdc882ed1a3d43fa0549f0c8ad66a9335d8061f6fb65b1cb0",
+  "test_the_arguments_shape_the_plan/plan[arguments0]": "8fb6b5ee788d50c448194d0b236ec4205febfdecee86e865d2bbd965bb85b8b4",
+  "test_the_arguments_shape_the_plan/plan[arguments1]": "505c83b77f0d83fef682a1fa2134b35dbc083a3097df6a8371043641977aa495",
+  "test_the_arguments_shape_the_plan/plan[arguments2]": "b3129f6567b90236dc3149fded693231f2bdb64936f50e2b3354381aa276a7c2"
+ }
+}

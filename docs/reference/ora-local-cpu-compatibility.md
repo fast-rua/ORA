@@ -2,7 +2,7 @@
 
 Status: source facts reviewed before authoring the local bundle; local rendering,
 reset and device qualification remain separate. This record follows the
-[environment compatibility guide](../guides/environment-compatibility-authoring.md).
+[environment compatibility guide](../developer/authoring/environment-compatibility.md).
 It authorizes no simulator or provider launch and makes no Mac behavioral claim.
 
 ## Sources and scope

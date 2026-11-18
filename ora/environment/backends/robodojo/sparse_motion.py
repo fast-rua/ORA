@@ -1,37 +1,27 @@
-"""Sparse motion v3 over the qualified RoboDojo SDK IK and joint interpolation.
+"""Sparse motion v3 on RoboDojo: the evidence and budget every executed action shares, and the read-only probe.
 
-v1 global moves are one SDK CuRobo IK solve followed by the original
-joint-target interpolation, not CuRobo trajectory planning: they certify a
-kinematic target, never a collision-free path, and every receipt discloses
-that as ``non_parity_motion`` plan validation.  Local moves compile one
-bounded Cartesian step through the shared servo contract and solve it with
-the same IK.  All segments of one command share the fixed 20-native-action
-budget so the controller contract and the evidence joins stay unchanged; a
-segment ends early once every arm arrived or stalled (``motion_stall``).
+A move is a ``follow_joint_trajectory`` the toolkit planned (``trajectory``), a
+jaw command a ``set_gripper`` (``gripper_ramp`` for the rate-limited form, the
+open/close form here) and a hold a ``wait``; ``_SparseAction`` finishes every
+receipt. The SDK executor that solved one IK endpoint per segment and
+interpolated the joints to it is gone, so ``move_pose``, ``move_free_space``
+and ``recover_motion`` are refused before anything is written. Receipts sealed
+on that route keep their schema; nothing here reads them.
 """
 
 from __future__ import annotations
 
-from collections import Counter
 from copy import deepcopy
-import hashlib
-import json
 import math
 import time
 from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from ora.contracts.action import SERVO_MAX_ROTATION_RAD, SERVO_MAX_TRANSLATION_M
-from ora.contracts.motion import compile_servo_delta
-from ora.contracts.planning_diagnostics import (
-    IK_CONSTRAINT_KEYS, PROBE_FEEDBACK_REQUEST_SCHEMA, PROBE_IK_CANDIDATE_FEEDBACK,
-    public_planning_diagnostics,
-)
+from ora.contracts.planning_diagnostics import PROBE_FEEDBACK_REQUEST_SCHEMA, PROBE_IK_CANDIDATE_FEEDBACK
+from ora.contracts.refusal import EnvironmentRefusal
 from ora.contracts.robodojo_arx import ARX_X5_CONTRACT
-from ora.environment.controllers.motion_transaction import write_motion_plan_artifact
 
-from . import inter_arm, motion_stall
 from .bridge import RobodojoError
 from .ik import solve_ik
 from ora.environment.controllers.gripper_stall import (
@@ -39,45 +29,30 @@ from ora.environment.controllers.gripper_stall import (
 )
 
 from .common import (
-    ARX_GRIPPER_STALL, GRIPPER_TOLERANCE, array, free_space_segments, gripper_opening, native_pose,
-    physical_gripper, pose_error, pose_reached, primary_limit_holds_close, workspace_violation, write_json,
+    ARX_GRIPPER_STALL, GRIPPER_TOLERANCE, ORIENTATION_TOLERANCE_RAD, POSITION_TOLERANCE_M, array,
+    gripper_opening, physical_gripper, pose_error, primary_limit_holds_close, workspace_violation,
 )
 
 
 SPARSE_RECEIPT_SCHEMA = "ora.robodojo-sparse-motion-receipt.v1"
-PLAN_REFERENCE_SCHEMA = "ora.robodojo-plan-reference.v1"
 PROBE_REQUEST_SCHEMA = "ora.motion-probe-request.v1"
 PROBE_RESULT_SCHEMA = "ora.motion-probe-result.v1"
-GLOBAL_EXECUTOR = "robodojo_sdk_ik_joint_interpolation"
-LOCAL_EXECUTOR = "robodojo_sdk_ik_local_cartesian_step"
-RECOVERY_EXECUTOR = "robodojo_sdk_joint_interpolation"
 GRIPPER_EXECUTOR = "robodojo_sdk_gripper_actuator"
-GLOBAL_PLANNING_NON_PARITY = "sdk_ik_joint_interpolation_not_curobo_planning"
-PLAN_VALIDATION = {
-    "schema": "ora.robodojo-plan-validation.v1", "status": "kinematics_only",
-    "global_planner": "sdk_ik_joint_interpolation", "parity": "non_parity_motion",
-    "collision_model": None,
-}
+#: Bounds a runtime may still name: ``session.__init__`` validates all three, and
+#: the two joint-jump bounds limit ``ik.solve_ik``.
 FREE_SPACE_CLEARANCE_M = 0.05
 LOCAL_JOINT_JUMP_LIMIT_RAD = 1.0
 # IK endpoints are not paths. Preserve the half-turn raw-coordinate bound
 # after legal equivalent-coordinate selection; a live 179-degree probe once
 # returned a 6.5 rad jump and drove the arm 0.5 m off.
 GLOBAL_JOINT_JUMP_LIMIT_RAD = math.pi
-PLAN_REFERENCE_JOINT_TOLERANCE_RAD = 0.02
-ROUTE_REFUSAL_CODE = "route_contact_approach_exceeds_local_bound"
-#: Opt-in staged route for a large contact approach (see ``staged_contact``).
+#: The staged contact route a runtime may name (``session.__init__`` validates it);
+#: the toolkit chooses every route now (``lib.motion_plan.route``).
 STAGED_CONTACT_STRATEGY = "global_precontact_then_local"
 ARMS = ("left", "right")
 # Parallel-jaw symmetry axis: joint7/joint8 close along link6 +/-Y from an
 # origin 0.087 m along link6 +X (X5A.urdf), so the approach axis is link6 +X.
 JAW_SYMMETRY_AXIS = (1.0, 0.0, 0.0)
-
-
-def within_local_envelope(translation_m: float, rotation_rad: float) -> bool:
-    """Route locally only when the servo contract itself will accept the step."""
-    return (translation_m <= SERVO_MAX_TRANSLATION_M + 1e-12
-            and rotation_rad <= SERVO_MAX_ROTATION_RAD + 1e-12)
 
 
 def _quaternion_multiply(left: Sequence[float], right: Sequence[float]) -> list[float]:
@@ -103,23 +78,6 @@ def rotate_about_local_axis(orientation_xyzw: Sequence[float], axis: Sequence[fl
     return _quaternion_multiply(orientation_xyzw, delta)
 
 
-def rotation_vector_between(target_xyzw: Sequence[float], current_xyzw: Sequence[float]) -> list[float]:
-    """Return the world-frame rotation vector taking ``current`` to ``target``."""
-    cx, cy, cz, cw = (float(item) for item in current_xyzw)
-    error = np.asarray(_quaternion_multiply(target_xyzw, [-cx, -cy, -cz, cw]))
-    if error[3] < 0:
-        error = -error
-    vector_norm = float(np.linalg.norm(error[:3]))
-    if vector_norm < 1e-12:
-        return [0.0, 0.0, 0.0]
-    angle = 2.0 * math.atan2(vector_norm, float(error[3]))
-    return (error[:3] * (angle / vector_norm)).tolist()
-
-
-def _pose_list(target: Mapping[str, Any]) -> list[float]:
-    return [float(item) for item in target["position_m"]] + [float(item) for item in target["orientation_xyzw"]]
-
-
 def gripper_closed_floor(session: Any, arm: str) -> float:
     """Normalized opening at the primary finger joint's lower limit.
 
@@ -137,7 +95,7 @@ def gripper_closed_floor(session: Any, arm: str) -> float:
 
 
 class _SparseAction:
-    """Evidence and budget of one sparse v3 action across its segments."""
+    """Evidence and budget of one sparse v3 action across its native ticks."""
 
     def __init__(self, session: Any, action: Mapping[str, Any], arms: Sequence[str]) -> None:
         self.session = session
@@ -155,26 +113,12 @@ class _SparseAction:
         self.native_before = int(session.environment.take_action_cnt[0])
         self.steps_before = session.sim_steps
         self.started = time.time()
-        self.budget = int(session.native_actions_per_command)
+        self.budget = min(int(session.native_actions_per_command),
+                          getattr(session, "request_action_budget", 20))
         self.used = 0
         self.tracking: list[dict[str, Any]] = []
         self.segments: dict[str, list[dict[str, Any]]] = {arm: [] for arm in ARMS}
-        self.ik_attempts: list[dict[str, Any]] = []
-        self.stall = motion_stall.ActionStallState()
         self.journal = session._open_journal()
-
-    def record_ik(self, segment: str, arm: str, pose: Sequence[float], solved: Mapping[str, Any]) -> dict[str, Any]:
-        """Keep all candidate evidence Control-side and a compact public choice."""
-        self.ik_attempts.append({"arm": arm, "segment": segment,
-                                 "target_pose_xyz_xyzw": list(pose), **deepcopy(dict(solved))})
-        return {"ik_status": solved["ik_status"], "joint_delta_rad": solved["joint_delta_rad"],
-                "ik_selection": deepcopy(solved.get("ik_selection"))}
-
-    def rejected_ik(self, segment: str, arm: str, pose: Sequence[float],
-                    solved: Mapping[str, Any], summary: Mapping[str, Any]) -> None:
-        self.segments[arm].append({"segment": segment, "target_pose_xyz_xyzw": list(pose),
-                                  "joint_target": deepcopy(solved["joint_target"]), **dict(summary),
-                                  "native_actions": 0, "reached": False})
 
     def begin(self, controlled_keys: Sequence[str]) -> None:
         self.held_targets = {key: value for key, value in self.command_before.items() if key not in set(controlled_keys)}
@@ -187,31 +131,6 @@ class _SparseAction:
 
     def remaining(self) -> int:
         return self.budget - self.used
-
-    def run_joint_segment(
-        self, segment: str, joint_targets: Mapping[str, Sequence[float]],
-        pose_targets: Mapping[str, Sequence[float]], planned: Mapping[str, Mapping[str, Any]] | None = None,
-    ) -> bool:
-        """Drive until every arm arrived or stalled, or the budget ends; ``True`` when all arrived."""
-        arrival = {arm: motion_stall.pose_arrival(pose) for arm, pose in pose_targets.items()}
-        before_used = self.used
-        _, stall = motion_stall.drive_until_settled(
-            self, segment=segment, joint_targets=joint_targets, arrived=arrival, budget=self.remaining())
-        after = self.session._proprioception()["end_effectors"]
-        for arm, pose in pose_targets.items():
-            self.session.pose_targets[arm] = [float(item) for item in pose]
-            distance, angle = pose_error(pose, after[arm]["pose_xyz_xyzw"])
-            self.segments[arm].append({
-                "segment": segment, "target_pose_xyz_xyzw": [float(item) for item in pose],
-                "joint_target": [float(item) for item in joint_targets[arm]],
-                **dict((planned or {}).get(arm, {})),
-                "native_actions": self.used - before_used,
-                "reached": pose_reached(pose, after[arm]["pose_xyz_xyzw"]),
-                "position_error_m": distance, "orientation_error_rad": angle,
-            })
-        # After the targets above: a stalled arm's pose target becomes where it holds.
-        motion_stall.record_progress(self, stall, after, segment=segment, arrived=arrival)
-        return all(arrival[arm](after[arm]) for arm in pose_targets)
 
     def run_gripper(self, directives: Mapping[str, float], effective: Mapping[str, float]) -> dict[str, str]:
         """Drive the jaws until each arrives or stalls; name how each one ended.
@@ -251,11 +170,8 @@ class _SparseAction:
 
     def finish(
         self, *, status: str, strategy: str | None, stage: str | None, code: str | None,
-        executor: list[str] | None, interactions: Mapping[str, str] | None = None,
-        target_poses: Mapping[str, Sequence[float]] | None = None,
-        plan_refs: Mapping[str, str] | None = None, gripper_targets: Mapping[str, float] | None = None,
-        gripper_states: Mapping[str, str] | None = None,
-        precontact: Mapping[str, Mapping[str, Any]] | None = None,
+        executor: list[str] | None, target_poses: Mapping[str, Sequence[float]] | None = None,
+        gripper_targets: Mapping[str, float] | None = None, gripper_states: Mapping[str, str] | None = None,
         arm_extras: Mapping[str, Mapping[str, Any]] | None = None, extra: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         session = self.session
@@ -275,24 +191,14 @@ class _SparseAction:
         for arm in ARMS:
             targeted = arm in self.arms
             effect: dict[str, Any] = {
-                "targeted": targeted, "interaction": (interactions or {}).get(arm),
+                "targeted": targeted, "interaction": None,
                 "pose_error": None, "gripper_error": None, "plan_validation": None,
-                "plan_ref": (plan_refs or {}).get(arm), "segments": self.segments[arm],
+                "plan_ref": None, "segments": self.segments[arm],
                 "inactive_arm_drift": None,
             }
-            attempts = [attempt for attempt in self.ik_attempts if attempt["arm"] == arm]
-            if attempts:
-                effect["planning_diagnostics"] = deepcopy(attempts[-1].get("planning_diagnostics"))
             if targeted and target_poses is not None and arm in target_poses:
                 distance, angle = pose_error(target_poses[arm], after[arm]["pose_xyz_xyzw"])
                 effect["pose_error"] = {"translation_m": distance, "orientation_rad": angle}
-                staged = strategy == STAGED_CONTACT_STRATEGY and GLOBAL_EXECUTOR in (executor or ())
-                effect["plan_validation"] = (deepcopy(PLAN_VALIDATION)
-                                             if (strategy == "global" or staged) and executor else None)
-            if targeted and precontact is not None and arm in precontact:
-                effect["precontact"] = deepcopy(dict(precontact[arm]))
-            if targeted and arm in self.stall.progress:
-                effect["motion_progress"] = deepcopy(self.stall.progress[arm])
             if targeted and gripper_targets is not None and arm in gripper_targets:
                 effect["gripper_error"] = abs(after[arm]["gripper"] - gripper_targets[arm])
             if targeted and gripper_states and arm in gripper_states:
@@ -316,7 +222,7 @@ class _SparseAction:
                 "requested": len(self.arms) == 2, "executed": native_used > 0,
             },
             "arms": arms_effect, "before": self.before, "after": after,
-            "ik_attempts": self.ik_attempts,
+            "ik_attempts": [],
             "native_actions": native_used, "physics_steps": session.sim_steps - self.steps_before,
             "native_action_budget": self.budget, "steps_used": native_used, "sim_steps_total": session.sim_steps,
             "gripper_directives": deepcopy(session.gripper_directives),
@@ -344,169 +250,6 @@ def _remember_backtrack(session: Any, before: Mapping[str, Any], arms: Sequence[
     for arm in arms:
         session.last_safe_joints[arm] = list(before[arm]["arm_joint_qpos"])
         session.last_safe_poses[arm] = list(before[arm]["pose_xyz_xyzw"])
-
-
-def _run_global(
-    execution: _SparseAction, segments: Sequence[tuple[str, Mapping[str, Sequence[float]]]],
-    common: Mapping[str, Any],
-) -> dict[str, Any] | None:
-    """Run global segments in order; a finished receipt when one stops, else ``None``."""
-    for segment_id, poses in segments:
-        joints: dict[str, list[float]] = {}
-        planned: dict[str, dict[str, Any]] = {}
-        for arm, pose in poses.items():
-            # Both arms moving: each IK is screened against itself, the pair in lockstep below.
-            solved = solve_ik(execution.session, arm, pose, static_other_arm=len(poses) == 1)
-            planned[arm] = execution.record_ik(segment_id, arm, pose, solved)
-            if solved["joint_target"] is None:
-                execution.rejected_ik(segment_id, arm, pose, solved, planned[arm])
-                return execution.finish(
-                    status="planner_failed" if execution.used == 0 else "not_reached",
-                    stage="planner", code=inter_arm.refusal_code(solved, segment_id),
-                    executor=[GLOBAL_EXECUTOR] if execution.used else None, **common,
-                )
-            if solved["joint_delta_rad"] > execution.session.global_joint_jump_limit_rad:
-                execution.rejected_ik(segment_id, arm, pose, solved, planned[arm])
-                return execution.finish(
-                    status="plan_rejected" if execution.used == 0 else "not_reached",
-                    stage="plan_validation", code=f"ik_branch_jump:{segment_id}",
-                    executor=[GLOBAL_EXECUTOR] if execution.used else None, **common,
-                )
-            joints[arm] = solved["joint_target"]
-        extras = inter_arm.lockstep_refusal(execution, segment_id, poses, joints, planned)
-        if extras is not None:
-            return execution.finish(status="planner_failed" if execution.used == 0 else "not_reached",
-                                    stage="planner", code=inter_arm.code(segment_id), arm_extras=extras,
-                                    executor=[GLOBAL_EXECUTOR] if execution.used else None, **common)
-        if execution.remaining() <= 0:
-            return execution.finish(status="not_reached", stage="execution",
-                                    code="native_action_budget_exhausted", executor=[GLOBAL_EXECUTOR], **common)
-        reached = execution.run_joint_segment(segment_id, joints, poses, planned)
-        if execution.session.is_terminal:
-            return None
-        if not reached:
-            return execution.finish(
-                status="not_reached", stage="execution", code=motion_stall.not_reached_code(
-                    execution, motion_stall.BUDGET_CODE if execution.remaining() <= 0
-                    else f"segment_not_reached:{segment_id}"),
-                executor=[GLOBAL_EXECUTOR], **common,
-            )
-    return None
-
-
-def _global_segments(
-    execution: _SparseAction, segments: Sequence[tuple[str, Mapping[str, Sequence[float]]]],
-    final_targets: Mapping[str, Sequence[float]], interactions: Mapping[str, str],
-) -> dict[str, Any]:
-    common = {"strategy": "global", "interactions": interactions, "target_poses": final_targets}
-    stopped = _run_global(execution, segments, common)
-    if stopped is not None:
-        return stopped
-    after = execution.session._proprioception()["end_effectors"]
-    reached = all(pose_reached(pose, after[arm]["pose_xyz_xyzw"]) for arm, pose in final_targets.items())
-    return execution.finish(
-        status="reached" if reached else "not_reached",
-        stage=None if reached else "endpoint_verification",
-        code=None if reached else ("episode_terminal_during_execution" if execution.session.is_terminal
-                                   else "endpoint_residual_exceeded"),
-        executor=[GLOBAL_EXECUTOR], **common,
-    )
-
-
-def _local_step(
-    execution: _SparseAction, targets: Mapping[str, Sequence[float]], interactions: Mapping[str, str],
-    *, start: Mapping[str, Any] | None = None, strategy: str = "local",
-    executor: Sequence[str] = (LOCAL_EXECUTOR,), precontact: Mapping[str, Mapping[str, Any]] | None = None,
-) -> dict[str, Any]:
-    # After a staged pre-contact write a refusal is not_reached (the others promise no write).
-    common = {"strategy": strategy, "interactions": interactions, "target_poses": targets,
-              **({"precontact": precontact} if precontact is not None else {})}
-    written = list(executor[:-1]) or None
-    measured = execution.before if start is None else start
-    joints: dict[str, list[float]] = {}
-    poses: dict[str, list[float]] = {}
-    planned: dict[str, dict[str, Any]] = {}
-    for arm, target in targets.items():
-        current = [float(item) for item in measured[arm]["pose_xyz_xyzw"]]
-        try:
-            compiled = compile_servo_delta({
-                "translation_m": [target[index] - current[index] for index in range(3)],
-                "rotation_rotvec_rad": rotation_vector_between(target[3:], current[3:]),
-                "frame": "world",
-            }, current_pose_xyz_xyzw=current, controlled_point="link6")
-        except ValueError:
-            return execution.finish(status="plan_rejected" if execution.used == 0 else "not_reached",
-                                    stage="route", code="servo_envelope_exceeded", executor=written, **common)
-        poses[arm] = [float(item) for item in compiled["target_pose_xyz_xyzw"]]
-        solved = solve_ik(execution.session, arm, poses[arm], static_other_arm=len(targets) == 1,
-                          jump_limit_rad=execution.session.local_joint_jump_limit_rad)
-        planned[arm] = {**execution.record_ik("local", arm, poses[arm], solved),
-                        "servo_frame": compiled["servo_frame"]}
-        if solved["joint_target"] is None:
-            execution.rejected_ik("local", arm, poses[arm], solved, planned[arm])
-            return execution.finish(status="planner_failed" if execution.used == 0 else "not_reached", stage="planner",
-                                    code=inter_arm.refusal_code(solved, "local"), executor=written, **common)
-        if solved["joint_delta_rad"] > execution.session.local_joint_jump_limit_rad:
-            execution.rejected_ik("local", arm, poses[arm], solved, planned[arm])
-            # One bounded Cartesian step that needs a large joint excursion is an
-            # aliased IK branch, not a local move; it must not write the plant.
-            return execution.finish(status="plan_rejected" if execution.used == 0 else "not_reached",
-                                    stage="plan_validation", code="local_ik_branch_jump", executor=written,
-                                    **common)
-        joints[arm] = solved["joint_target"]
-    extras = inter_arm.lockstep_refusal(execution, "local", poses, joints, planned)
-    if extras is not None:
-        return execution.finish(status="planner_failed" if execution.used == 0 else "not_reached", stage="planner",
-                                code=inter_arm.code("local"), executor=written, arm_extras=extras, **common)
-    reached = execution.run_joint_segment("local", joints, poses, planned)
-    return execution.finish(
-        status="reached" if reached else "not_reached",
-        stage=None if reached else "execution",
-        code=None if reached else motion_stall.not_reached_code(execution, motion_stall.BUDGET_CODE),
-        executor=list(executor), **common,
-    )
-
-
-def _execute_pose_targets(execution: _SparseAction, targets: Mapping[str, Any], interactions: Mapping[str, str]) -> dict[str, Any]:
-    session = execution.session
-    kind = execution.action["action"]
-    unique = set(interactions.values())
-    poses = {arm: _pose_list(targets[arm]) for arm in execution.arms}
-    if len(unique) != 1:
-        return execution.finish(status="plan_rejected", strategy=None, stage="route", code="mixed_interactions",
-                                executor=None, interactions=interactions, target_poses=poses)
-    for arm, pose in poses.items():
-        axis = workspace_violation(pose, session.config.get("workspace_bounds_m"))
-        if axis is not None:
-            return execution.finish(status="plan_rejected", strategy=None, stage="plan_validation",
-                                    code=f"workspace_target_{axis}", executor=None,
-                                    interactions=interactions, target_poses=poses)
-    interaction = unique.pop()
-    local_eligible = all(
-        within_local_envelope(*pose_error(pose, execution.before[arm]["pose_xyz_xyzw"]))
-        for arm, pose in poses.items()
-    )
-    if kind == "move_free_space" or interaction == "free_space":
-        strategy: str | None = "global"
-    elif interaction == "precision":
-        strategy = "local" if local_eligible else "global"
-    elif local_eligible:
-        strategy = "local"
-    else:
-        strategy = STAGED_CONTACT_STRATEGY if session.contact_approach_route == STAGED_CONTACT_STRATEGY else None
-    if strategy is None:
-        return execution.finish(status="plan_rejected", strategy=None, stage="route", code=ROUTE_REFUSAL_CODE,
-                                executor=None, interactions=interactions, target_poses=poses)
-    _remember_backtrack(session, execution.before, execution.arms)
-    execution.begin([execution.arm_key(arm) for arm in execution.arms])
-    if strategy == "local":
-        return _local_step(execution, poses, interactions)
-    if strategy == STAGED_CONTACT_STRATEGY:
-        from .staged_contact import staged_contact_approach
-        return staged_contact_approach(execution, poses, interactions)
-    segments = (free_space_segments(session, execution.before, poses) if kind == "move_free_space"
-                else [("move", poses)])
-    return _global_segments(execution, segments, poses, interactions)
 
 
 def _gripper_outcome(*, state: str, after: Mapping[str, Any], budget: int, used: int, robot: Any) -> dict[str, Any]:
@@ -562,111 +305,44 @@ def _execute_gripper(execution: _SparseAction, targets: Mapping[str, str]) -> di
     )
 
 
-def _execute_plan_reference(session: Any, action: Mapping[str, Any]) -> dict[str, Any]:
-    plan_ref = str(action["arguments"]["plan_ref"])
-    stored = session.plan_references.get(plan_ref)
-    if not isinstance(stored, Mapping):
-        raise RobodojoError("plan_ref is unknown or tampered")
-    recorded = int(stored["world_mutation_sequence"])
-    same_snapshot = (
-        recorded == session.world_mutation_sequence
-        and stored["observation_id"] == action["observation_id"]
-        and stored["observation_sha256"] == action["bound_observation_sha256"]
-    )
-    intervening = session.world_mutation_actions[recorded:]
-    gripper_only = bool(intervening) and all(kind == "set_gripper" for kind in intervening)
-    if not (same_snapshot or gripper_only):
-        raise RobodojoError("plan_ref is stale for the current world state")
-    arm = str(stored["arm"])
-    current = session._proprioception()["end_effectors"][arm]["arm_joint_qpos"]
-    if max(abs(float(a) - float(b)) for a, b in zip(current, stored["measured_start_joints"])) > PLAN_REFERENCE_JOINT_TOLERANCE_RAD:
-        raise RobodojoError("plan_ref start joints no longer match")
-    execution = _SparseAction(session, action, (arm,))
-    _remember_backtrack(session, execution.before, (arm,))
-    execution.begin([execution.arm_key(arm)])
-    target = [float(item) for item in stored["target_pose_xyzw"]]
-    reached = execution.run_joint_segment(
-        "plan_ref", {arm: stored["joint_target"]}, {arm: target},
-        {arm: {"ik_status": "Success", "joint_delta_rad": stored["joint_delta_rad"], "source": "motion_probe_plan_ref"}},
-    )
-    return execution.finish(
-        status="reached" if reached else "not_reached", strategy="global",
-        stage=None if reached else "execution",
-        code=None if reached else motion_stall.not_reached_code(execution, motion_stall.BUDGET_CODE),
-        executor=[GLOBAL_EXECUTOR], interactions={arm: "free_space"}, target_poses={arm: target},
-        plan_refs={arm: plan_ref},
-    )
-
-
 def execute_sparse_motion_v3(session: Any, action: Mapping[str, Any]) -> dict[str, Any]:
-    """Dispatch one validated sparse v3 action to its RoboDojo executor."""
+    """Dispatch one validated sparse v3 action to its RoboDojo executor; any other is refused unwritten."""
     kind = action["action"]
-    arguments = action["arguments"]
-    if kind == "move_pose" and set(arguments) == {"plan_ref"}:
-        return _execute_plan_reference(session, action)
     if kind == "wait":
         from .wait import execute_wait
         return execute_wait(_SparseAction(session, action, ()))
-    targets = arguments["targets"]
+    if kind != "set_gripper":
+        raise EnvironmentRefusal(
+            f"RoboDojo executes no {kind}: a move runs as the follow_joint_trajectory the toolkit plans "
+            "(unsupported_action_for_backend)", field="action", received=kind,
+            allowed=["follow_joint_trajectory", "set_gripper", "wait"])
+    targets = action["arguments"]["targets"]
     arms = tuple(arm for arm in ARMS if arm in targets)
-    execution = _SparseAction(session, action, arms)
-    if kind == "set_gripper":
-        return _execute_gripper(execution, targets)
-    if kind == "recover_motion":
-        from .recovery import execute_recovery
-        return execute_recovery(execution, targets)
-    return _execute_pose_targets(execution, targets, arguments["interactions"])
+    return _execute_gripper(_SparseAction(session, action, arms), targets)
 
 
-#: SDK candidate rejections (``ik.select_candidate_set``) in the public
-#: constraint names the probe summary counts.
-_IK_REJECTION_NAMES = {
-    "nonfinite_joint_target": "non_finite_solution",
-    "sdk_not_feasible_or_converged": "solver_unsuccessful",
-    "joint_limits": "joint_limit",
-    "fk_residual_exceeded": "fk_residual_exceeded",
-    "joint_jump": "joint_jump",
-    "pitch_joint_wrap": "pitch_joint_wrap",
-}
-
-
-def _planner_summary(solved: Mapping[str, Any], *, ik_feedback: Mapping[str, Any] | None = None) -> dict[str, Any]:
-    """The bounded planner record of one probe variant.
-
-    The v1 shape is what the frozen ``robodojo_unified_manip_v1`` probe result
-    schema admits, so it stays exactly as released. ``ik_feedback`` is supplied
-    only for a v2 feedback request and keeps the SDK solve's own candidate
-    evidence -- returned/valid/continuous counts, per-filter rejections and the
-    retained diagnostic file -- that the v1 record reduces to ``Fail``.
-    """
-    reachable = solved["joint_target"] is not None
-    record = {
-        "called": True, "status": solved["ik_status"], "stage": "SUCCESS" if reachable else "FAILED",
-        "valid_query": True, "attempts": None, "trajopt_attempts": None, "used_graph": None,
-        "goalset_index": None, "path_steps": 1 if reachable else 0, "interpolation_dt_s": None,
-        "errors": {"position": None, "rotation": None, "cspace": None},
-        "timings_s": {"solve": None, "ik": None, "graph": None, "trajopt": None, "finetune": None, "total": None},
-        "error": None, "planner": "sdk_ik_joint_interpolation", "parity": "non_parity_motion",
+def _probe_variant(variant_id: str, pose: list[float], row: Mapping[str, Any]) -> dict[str, Any]:
+    entry = {
+        "variant_id": variant_id, "reachable": row["reachable"], "target_pose_xyzw": pose,
+        "planner": {"kind": "shared_ik", "plan": "none"},
+        "endpoint_error": {"translation_m": row["position_error_m"], "orientation_rad": row["orientation_error_rad"]},
+        "trajectory_steps": 0, "trajectory_duration_s": 0.0, "joint_delta_rad": row["joint_delta_rad"],
+        "plan_ref": None,
     }
-    if ik_feedback is None:
-        return record
-    rejections = Counter(
-        _IK_REJECTION_NAMES.get(str(row.get("rejection")), str(row.get("rejection")))
-        for row in solved.get("candidates", []) if isinstance(row, Mapping) and row.get("rejection")
-    )
-    record["constraint_rejection_counts"] = {key: int(rejections.get(key, 0)) for key in IK_CONSTRAINT_KEYS}
-    diagnostics = public_planning_diagnostics(solved.get("planning_diagnostics"))
-    if diagnostics:
-        record["planning_diagnostics"] = diagnostics
-    record["ik_validation_artifact"] = dict(ik_feedback)
-    return record
+    if not row["reachable"]:
+        entry["failure"] = {"code": row["reason"], "message": f"IK admitted no joint target: {row['reason']}"}
+    return entry
 
 
 def probe_motion(session: Any, request: Mapping[str, Any]) -> dict[str, Any]:
-    """Answer reachability by IK from the current snapshot without writing the world."""
+    """Whether IK holds each pose from the measured joints (``reachability.solve_batch``); plans nothing.
+
+    A surface may still send the v2 request. It names per-seed IK feedback, and one
+    IK solve per pose has none to give, so both requests get this record.
+    """
+    from .reachability import solve_batch
+
     fields = {"schema", "observation_id", "observation_sha256", "queries", "variant_policy"}
-    # v1 is the released request; v2 differs only by naming the planner
-    # feedback it asks for, so frozen surfaces keep receiving the v1 record.
     if not isinstance(request, Mapping) or not (
         (request.get("schema") == PROBE_REQUEST_SCHEMA and set(request) == fields)
         or (request.get("schema") == PROBE_FEEDBACK_REQUEST_SCHEMA
@@ -674,7 +350,6 @@ def probe_motion(session: Any, request: Mapping[str, Any]) -> dict[str, Any]:
             and request.get("planner_feedback") == PROBE_IK_CANDIDATE_FEEDBACK)
     ):
         raise RobodojoError("motion probe request fields drifted")
-    ik_feedback = request.get("schema") == PROBE_FEEDBACK_REQUEST_SCHEMA
     observation_id, observation_sha256 = request.get("observation_id"), request.get("observation_sha256")
     queries, variant_policy = request.get("queries"), request.get("variant_policy")
     if (not isinstance(observation_id, str) or not observation_id
@@ -683,7 +358,6 @@ def probe_motion(session: Any, request: Mapping[str, Any]) -> dict[str, Any]:
             or variant_policy not in {"exact", "parallel_jaw_equivalents"}):
         raise RobodojoError("motion probe request is invalid")
     clock_before = session._clock()
-    measured = session._proprioception()["end_effectors"]
     results: list[dict[str, Any]] = []
     query_ids: set[str] = set()
     for query in queries:
@@ -705,75 +379,15 @@ def probe_motion(session: Any, request: Mapping[str, Any]) -> dict[str, Any]:
         variants = [("variant-00-exact-+0deg", orientation)]
         if variant_policy == "parallel_jaw_equivalents":
             variants.append(("variant-01-jaw-flip-180deg", rotate_about_local_axis(orientation, JAW_SYMMETRY_AXIS, math.pi)))
-        rows: list[dict[str, Any]] = []
-        admitted: list[dict[str, Any]] = []
-        for index, (variant_id, variant_orientation) in enumerate(variants):
-            variant_pose = position + list(variant_orientation)
-            solved = solve_ik(session, arm, variant_pose)
-            # Keep the existing closed public probe schema. Persist full
-            # failed and successful IK evidence in the canonical workspace.
-            diagnostic = {"schema": "ora.robodojo-probe-ik.v1",
-                          "observation_id": observation_id, "observation_sha256": observation_sha256,
-                          "world_mutation_sequence": session.world_mutation_sequence,
-                          "round_index": session.round_index, "query_id": query_id,
-                          "variant_id": variant_id, "arm": arm,
-                          "target_pose_xyzw": variant_pose, "ik": solved}
-            diagnostic_hash = hashlib.sha256(json.dumps(
-                diagnostic, sort_keys=True, separators=(",", ":"), allow_nan=False,
-            ).encode()).hexdigest()
-            diagnostic_path = session.output_root / "motion-probes" / "ik-diagnostics" / f"{diagnostic_hash}.json"
-            write_json(diagnostic_path, diagnostic)
-            summary = _planner_summary(solved, ik_feedback={
-                "path": f"motion-probes/ik-diagnostics/{diagnostic_hash}.json",
-                "schema": diagnostic["schema"],
-                "sha256": hashlib.sha256(diagnostic_path.read_bytes()).hexdigest(),
-            } if ik_feedback else None)
-            if solved["joint_target"] is None:
-                rows.append({"variant_id": variant_id, "reachable": False, "planner": summary,
-                             "failure": {"code": solved["ik_status"], "message": "SDK IK admitted no joint target"}})
-                continue
-            if solved["joint_delta_rad"] > session.global_joint_jump_limit_rad:
-                rows.append({"variant_id": variant_id, "reachable": False, "planner": summary,
-                             "failure": {"code": "ik_branch_jump",
-                                         "message": f"IK branch is {solved['joint_delta_rad']:.3f} rad away"}})
-                continue
-            reference_body = {
-                "schema": PLAN_REFERENCE_SCHEMA, "observation_id": observation_id,
-                "observation_sha256": observation_sha256,
-                "world_mutation_sequence": session.world_mutation_sequence, "round_index": session.round_index,
-                "arm": arm, "query_id": query_id, "variant_id": variant_id,
-                "target_pose_xyzw": variant_pose, "measured_start_joints": list(measured[arm]["arm_joint_qpos"]),
-                "joint_target": solved["joint_target"], "joint_delta_rad": solved["joint_delta_rad"],
-            }
-            plan_ref = "plan-" + hashlib.sha256(json.dumps(
-                reference_body, sort_keys=True, separators=(",", ":"),
-            ).encode()).hexdigest()[:32]
-            artifact = write_motion_plan_artifact(
-                session.output_root / "motion-probes",
-                transaction_id=f"probe-{session.motion_probe_sequence:04d}-{arm}-{index:03d}",
-                backend_id="robodojo", embodiment_id="arx_x5", binding=reference_body,
-                validation=PLAN_VALIDATION,
-                arrays={f"planned_{arm}_joint__position": [solved["joint_target"]]},
-            )
-            # The artifact writer records paths relative to its own root;
-            # evaluation resolves against the run native root.
-            artifact = {**artifact, "path": f"motion-probes/{artifact['path']}"}
-            session.plan_references[plan_ref] = {**reference_body, "plan_ref": plan_ref, "artifact": artifact}
-            entry = {
-                "variant_id": variant_id, "reachable": True, "target_pose_xyzw": variant_pose,
-                "planner": summary, "endpoint_error": {"translation_m": None, "orientation_rad": None},
-                "trajectory_steps": 1, "trajectory_duration_s": 0.0,
-                "joint_delta_rad": solved["joint_delta_rad"], "plan_ref": plan_ref,
-            }
-            rows.append(entry)
-            admitted.append(entry)
-            session.motion_probe_sequence += 1
-        admitted.sort(key=lambda row: row["joint_delta_rad"])
-        selected = admitted[0] if admitted else None
+        poses = [position + list(variant_orientation) for _variant_id, variant_orientation in variants]
+        solved = solve_batch(session, arm, poses, position_tolerance_m=POSITION_TOLERANCE_M,
+                             orientation_tolerance_rad=ORIENTATION_TOLERANCE_RAD)
+        rows = [_probe_variant(variant_id, pose, row)
+                for (variant_id, _orientation), pose, row in zip(variants, poses, solved)]
+        selected = min((row for row in rows if row["reachable"]), key=lambda row: row["joint_delta_rad"], default=None)
         results.append({
-            "query_id": query_id, "arm": arm, "reachable": bool(admitted),
-            "selected_variant_id": selected["variant_id"] if selected else None,
-            "plan_ref": selected["plan_ref"] if selected else None,
+            "query_id": query_id, "arm": arm, "reachable": selected is not None,
+            "selected_variant_id": selected["variant_id"] if selected else None, "plan_ref": None,
             "selected_target_pose_xyzw": selected["target_pose_xyzw"] if selected else None,
             "variants": rows,
         })
@@ -788,12 +402,10 @@ def probe_motion(session: Any, request: Mapping[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
-    "GLOBAL_EXECUTOR", "GLOBAL_JOINT_JUMP_LIMIT_RAD", "GLOBAL_PLANNING_NON_PARITY", "GRIPPER_EXECUTOR",
-    "LOCAL_EXECUTOR",
-    "PLAN_VALIDATION", "RECOVERY_EXECUTOR", "ROUTE_REFUSAL_CODE", "SPARSE_RECEIPT_SCHEMA",
+    "GLOBAL_JOINT_JUMP_LIMIT_RAD", "GRIPPER_EXECUTOR", "SPARSE_RECEIPT_SCHEMA",
     "STAGED_CONTACT_STRATEGY",
-    "execute_sparse_motion_v3", "free_space_segments", "gripper_closed_floor", "gripper_failure_code",
+    "execute_sparse_motion_v3", "gripper_closed_floor", "gripper_failure_code",
     "probe_motion",
     "rotate_about_local_axis",
-    "rotation_vector_between", "solve_ik", "within_local_envelope",
+    "solve_ik",
 ]

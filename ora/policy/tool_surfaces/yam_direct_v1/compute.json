@@ -1,0 +1,84 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "compute",
+  "description": "Calculate derived quantities from numbers already available to you.\nUse when: before using a newly calculated number to choose or parameterize an action, call compute. This includes a single offset, distance, angle, unit conversion, quaternion calculation or residual check. Send the expression before using its answer; do not substitute mental arithmetic. Batch related calculations when useful. No call is needed to copy an already returned valid value, reuse a result whose inputs and assumptions are unchanged, or choose a constant that requires no calculation. For image, depth or calibration queries, use geometry_query; use mark_point when a current pixel measurement needs a persistent name or cross-view check.\nSelection examples: deriving a new world target by adding an offset to a measured point -> compute, then use the returned point. Locating a known world target in a camera image -> geometry_query(world_points_m=...). Copying a valid planner pose unchanged -> the selected motion or execution tool, with no redundant calculation.\nReady to use: np, Rotation, math, geom, pi, float and int are prebound; do not write import statements or function definitions. bindings is a list of {name,value,from?}; numeric lists become arrays automatically, so b-a works directly. Each call starts fresh: pass every input again. Use Rotation.from_quat(q).as_matrix(), Rotation.from_euler('xyz', angles, degrees=True).as_quat(), np.linalg.norm(v), np.clip(x,-1,1), and math.radians(degrees) directly. Quaternions are [x,y,z,w].\nGeometry helpers: geom.unit(v) normalizes a nonzero 3-vector; geom.angle_deg(a,b) returns the unsigned angle in [0,180] degrees without hand-written normalization or acos; geom.rotate(q,v) rotates a 3-vector by q; geom.transform_point(t,q,p) returns t + rotated p. The translation and rotated point must share the declared destination frame and units. Helpers use only your inputs; they do not choose the correct frame or robot axis. unit and angle reject zero directions and use scaled normalization to avoid overflow/underflow.\nCall format examples (replace these illustrative numbers with your inputs):\n{\"bindings\":[{\"name\":\"a\",\"value\":[0.1,0.2,0.3]},{\"name\":\"b\",\"value\":[0.4,0.6,0.3]}],\"expressions\":\"distance_m = np.linalg.norm(b - a)\",\"outputs\":[\"distance_m\"]}\n{\"bindings\":[{\"name\":\"p\",\"value\":[0.1,0.2,0.3]},{\"name\":\"q\",\"value\":[0.0,0.0,0.0,1.0]}],\"expressions\":\"axis = geom.rotate(q, [1, 0, 0])\\npoint = p + 0.03 * axis\\nangle = geom.angle_deg(axis, [0, 0, 1])\",\"outputs\":[\"point\",\"angle\"]}\nThe first example returns distance_m=0.5; the second returns point=[0.13,0.2,0.3] and angle=90. expressions is one JSON string; encode line breaks as \\n, with no Markdown fences, imports, print or return statement. A final bare expression is available as result.\nEffect: read-only pure calculation, no robot decision, scene read, image, files, network or persistent state.\nReturns: outputs entries with name, value and kind. Set outputs to the final variable names you need (or result for the last expression); temporary arrays are then not serialized or counted as returned measurements. Omit outputs for the historical automatic numeric-variable results. Unreturned working values are named in intermediates_not_returned. Numbers are rounded to nine decimal places.\nDoes not: measure the world, detect stale inputs, prove reachability, contact, retention or task success. A computed value remains conditional on your measurements, units and assumptions. Only the listed numeric namespace is available; module loading and general Python are unavailable.\nOn error: read field, received and constraints, then change that input. Syntax error: use valid numeric Python; separate statements with actual decoded newlines or semicolons. Do not leave literal backslash-n characters between statements after JSON decoding. Repair and retry the calculation rather than supplying a mental substitute. Imports: remove the import and use the prebound name. Unknown name: pass it in bindings or use a listed helper; variables do not survive calls. Output count/size: select only the small final results with outputs, return a slice/summary, or split independent calculations. Non-finite result: check zero division, scale and units; use geom.unit/angle_deg for directions. Limits: 4096 UTF-8 source bytes, 24 statements, 16 bindings, at most 12 selected outputs and 64 elements per returned value in at most 2 dimensions, ** literal exponent magnitude <=8. No loops, comprehensions, definitions or arbitrary imports. Memory/time exhaustion calls for a smaller calculation, not the identical retry.\nEvaluator grammar (generated from the evaluator's own allow-list). Statements: a bare expression (the last one is returned as result); assignment to a plain name or a tuple of plain names (x = ..., a, b = ...). Operators: != % * ** + - / // < <= == > >= @ and not or unary + unary -. Forms: a if condition else b, calls to listed functions, indexing x[i], x[i, j], keyword arguments, list literals, listed attributes, names, number, boolean and short string literals, slices x[a:b], tuple literals. Not available: assert, augmented assignment (x += v), await, class definition, comprehension, del, dict literal, f-string, for loop, function definition, global, if statement, import, lambda, nonlocal, raise, set literal, star unpacking, subscript or attribute assignment (x[i] = v), try block, walrus assignment, while loop, with block, yield. Reserved names, never assigned or bound: Rotation, float, geom, int, math, np, pi. Attributes of a value the block produced: T, all, any, apply, approx_equal, argmax, argmin, argsort, as_davenport, as_euler, as_matrix, as_mrp, as_quat, as_rotvec, astype, clip, conj, copy, cumsum, diagonal, dot, flatten, imag, inv, item, magnitude, max, mean, min, ndim, nonzero, prod, ravel, real, repeat, reshape, round, shape, size, sort, squeeze, std, sum, take, tolist, trace, transpose, var. The exponent of ** is a numeric literal, sign allowed, of magnitude at most 8.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "expressions"
+    ],
+    "properties": {
+      "expressions": {
+        "type": "string",
+        "maxLength": 4096,
+        "description": "One block of straight-line numeric Python. Every name you assign becomes a returned measurement; a trailing bare expression is returned as result. Statements are separated by newlines, at most 24 of them."
+      },
+      "bindings": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "maxItems": 16,
+        "description": "The numbers the block may use, each given a name. Omit when the block needs only literals. A name bound here cannot be np, Rotation or pi. Null means omitted.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "value"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "The identifier the block refers to this value by. Each name appears at most once."
+            },
+            "value": {
+              "type": [
+                "number",
+                "boolean",
+                "array"
+              ],
+              "maxItems": 64,
+              "items": {
+                "type": [
+                  "number",
+                  "array"
+                ],
+                "maxItems": 64,
+                "items": {
+                  "type": "number",
+                  "description": "One finite component of a matrix row."
+                },
+                "description": "One finite component, or one row of a matrix."
+              },
+              "description": "A finite number, a boolean, a vector, or a matrix as a list of equal-length rows. At most 64 elements and at most 2 dimensions."
+            },
+            "from": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 120,
+              "description": "Where this number came from, recorded with the call so the result can be recomputed offline. Optional: a constant you chose yourself needs none. Null means omitted."
+            }
+          }
+        }
+      },
+      "outputs": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "description": "Final variable names to return; use result for the final bare expression. Omit for automatic numeric results. Null means omitted.",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1,
+        "maxItems": 12,
+        "uniqueItems": true
+      }
+    }
+  }
+}

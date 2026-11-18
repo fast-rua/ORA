@@ -1,0 +1,81 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "geometry.query",
+  "description": "Back-project pixels, project world points, or summarize region depth from policy-visible RGB-D calibration. Invalid or missing depth fails explicitly rather than being inferred. Results use the declared world/base frame and SI units.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "camera": {
+        "type": "string"
+      },
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "minItems": 1,
+        "maxItems": 16
+      },
+      "region": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        },
+        "minItems": 4,
+        "maxItems": 4
+      },
+      "world_points_m": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "minItems": 1,
+        "maxItems": 16
+      },
+      "window_px": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 15
+      },
+      "step": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0
+      }
+    },
+    "required": [
+      "camera"
+    ],
+    "oneOf": [
+      {
+        "required": [
+          "points"
+        ]
+      },
+      {
+        "required": [
+          "region"
+        ]
+      },
+      {
+        "required": [
+          "world_points_m"
+        ]
+      }
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

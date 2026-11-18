@@ -7,15 +7,22 @@ The vendored RoboTwin planner/robot adapters derive from RoboTwin at
 c3ddfa8b97d5519efa828b075999bd0006778e5e (MIT). The full upstream notice is
 in third_party/ROBOTWIN_LICENSE.txt.
 
-Parts of the planner chain derive from CaP-X (MIT), Copyright (c) 2026 Max Fu.
-The full notice is retained in
+Parts of the planner chain derive from CaP-X (MIT), Copyright (c) 2026 Max Fu,
+at commit 53e9966d7a8e2fa7494676772bccc35280f5c0ed. The full notice is in
+third_party/CAPX_LICENSE.txt; the copy installed with the vendored planner is
 ora/environment/backends/robotwin/vendored/CAPX_MIT_ATTRIBUTION.md.
 
+ORA's web page (ora-pi/web) was seeded from Watercol/pi-web-ui (MIT). Its
+upstream notice is retained in ora-pi/web/LICENSE.
+
 The RoboDojo installer carries a patch against Vulkan-Profiles. Its upstream
-license notice is retained in third_party/VULKAN_PROFILES_LICENSE.txt.
-Patched script: scripts/gen_profiles_layer.py, upstream commit
+license file, LICENSE.md at the commit below, is retained verbatim in
+third_party/VULKAN_PROFILES_LICENSE.txt; its first line names the Vulkan-Docs
+project, as upstream's own file does. Patched script:
+scripts/gen_profiles_layer.py, upstream commit
 a400d0b10059b2cc3cd285475593eee79975a5c4. Copyright (c) 2021-2025
-LunarG, Inc.; Copyright (c) 2023-2024 RasterGrid Kft. (Apache-2.0).
+LunarG, Inc.; Copyright (c) 2023-2024 RasterGrid Kft. (Apache-2.0, the
+license of ORA's own LICENSE file).
 ORA changes its generated condition for VK_KHR_external_memory_capabilities.
 
 Simulator SDKs, model weights, benchmark assets and external dependencies

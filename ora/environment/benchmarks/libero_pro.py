@@ -47,6 +47,18 @@ ROBUSTNESS_CASES = tuple(ROBUSTNESS_CASE_FOLDERS)
 #: LIBERO evaluates every task on its fixed initial states; the pinned files
 #: carry 50 per task, and the Runtime selects state ``seed % 50``.
 OFFICIAL_CORE_INIT_STATES = 50
+#: The driver of a free-play scene (``ora play``): the task's scene and initial
+#: state load with the official predicate withheld, so nothing counts as success.
+PLAY_DRIVER = "direct_libero_play_v1"
+#: The driver of a practice episode: the task's BDDL region samplers place
+#: the scene from the episode seed and no official initial state is loaded,
+#: while the official predicate stays. Every episode on another driver loads
+#: official state ``seed % trial_count`` and belongs to the evaluation set
+#: (``evaluation-sets-v1.json``).
+PRACTICE_DRIVER = "direct_libero_practice_v1"
+#: Practice seeds start here, so they never read as an official state index
+#: and stay clear of the seeds that may have generated the official init files.
+PRACTICE_SEED_FLOOR = 1_000_000
 #: The LIBERO-Pro leaderboard's column for each core perturbation.
 OFFICIAL_PERTURBATION_LABELS = {
     "object": "Obj", "position": "Pos", "language": "Sem", "task": "Task",
@@ -250,6 +262,9 @@ __all__ = [
     "OFFICIAL_CORE_INIT_STATES",
     "OFFICIAL_EVALUATION_SCHEMA",
     "OFFICIAL_PERTURBATION_LABELS",
+    "PLAY_DRIVER",
+    "PRACTICE_DRIVER",
+    "PRACTICE_SEED_FLOOR",
     "ROBUSTNESS_CASE_FOLDERS",
     "ROBUSTNESS_CASES",
     "ROBUSTNESS_SCHEMA",

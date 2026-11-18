@@ -1,0 +1,27 @@
+{
+ "type": "object",
+ "description": "hard_backstop (phase guard): a request estimated over the hard input limit after every other stage has all but the latest exchanges aged, reasoning included; one that still exceeds it ends the turn with context_exhausted before it is sent. It replaces the over-limit rule for Provider-reported input.",
+ "properties": {
+  "exact_tail_exchanges": {
+   "type": "integer",
+   "minimum": 1,
+   "description": "The latest exchanges the backstop keeps exact; at most exchange_aging's exact tail."
+  },
+  "trigger_ratio": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1,
+   "description": "The share of the hard input limit at or above which the backstop ages, by the request's own estimate after every other stage (management v6: L6's emergency_fallback_ratio); absent: only a request over the hard limit."
+  },
+  "aging": {
+   "enum": [
+    "own"
+   ],
+   "description": "own: the backstop keeps and renders its own aged frontier, in a scheme without exchange_aging and reasoning_replay (management v6): the reasoning, read-only tool results and tool-returned images of every exchange before its exact tail age, the open ActionStep's included; absent: it moves the exchange stages' frontiers (v9, v10)."
+  }
+ },
+ "required": [
+  "exact_tail_exchanges"
+ ],
+ "additionalProperties": false
+}

@@ -23,7 +23,10 @@ DeepSeek and every other profile without the option keep their wire bytes.
 ``request_options`` is a closed set of profile-owned request fields merged into
 the final wire body: sampling (``temperature``, ``top_p``, ``top_k``), vLLM's
 ``chat_template_kwargs`` and OpenRouter's ``reasoning`` and ``provider``
-routing objects. NVIDIA Nemotron 3.5 Super VL switches thinking on with
+routing objects, and vLLM's ``return_token_ids`` (``true`` only), which streams
+the prompt token ids in the first chunk and every sampled token's id in its
+delta, so the archived response carries both (``ora export-sft --view wire``
+reads them). NVIDIA Nemotron 3.5 Super VL switches thinking on with
 ``chat_template_kwargs: {"enable_thinking": true}`` and its hosted endpoints do
 not take ``reasoning_effort``; each model card names its own sampling. A field
 the request already carries is refused rather than overwritten, and a profile
@@ -32,7 +35,7 @@ without the option keeps its wire bytes.
 ``prepare_request`` is the one place the wire body is built. As a
 ``profile_bound`` attribute it is the plain static projection when read from
 the class, and the projection with the instance's own options when read from a
-provider. The Native request assembler records exactly what ``complete`` sends,
+provider. The retired Native core's request assembler recorded exactly what ``complete`` sends,
 including ``max_completion_tokens`` and ``strict``.
 """
 
@@ -52,7 +55,7 @@ TOOL_STRICTNESS_MODES = frozenset({"explicit_false"})
 REASONING_FIELDS = frozenset({"reasoning_content", "reasoning"})
 #: Closed keys of a profile's ``request_options`` (see the module docstring).
 REQUEST_OPTION_FIELDS = frozenset({
-    "temperature", "top_p", "top_k", "chat_template_kwargs", "reasoning", "provider",
+    "temperature", "top_p", "top_k", "chat_template_kwargs", "reasoning", "provider", "return_token_ids",
 })
 
 
@@ -95,6 +98,8 @@ def validate_request_options(value: Any) -> dict[str, Any] | None:
     for field in ("chat_template_kwargs", "reasoning", "provider"):
         if field in value and (not isinstance(value[field], Mapping) or not value[field]):
             raise ValueError(f"request_options.{field} must be a non-empty mapping")
+    if "return_token_ids" in value and value["return_token_ids"] is not True:
+        raise ValueError("request_options.return_token_ids must be true")
     return copy.deepcopy(dict(value))
 
 
@@ -210,7 +215,11 @@ def normalize_usage(value: Any) -> dict[str, Any] | None:
         "input_tokens": nonnegative_count(value.get("prompt_tokens")),
         "cached_input_tokens": cached_value,
         "output_tokens": nonnegative_count(value.get("completion_tokens")),
-        "reasoning_output_tokens": nonnegative_count(completion_details.get("reasoning_tokens")),
+        # sglang reports reasoning at the top level of usage, OpenAI and vLLM in completion_tokens_details.
+        "reasoning_output_tokens": nonnegative_count(
+            completion_details.get("reasoning_tokens") if "reasoning_tokens" in completion_details
+            else value.get("reasoning_tokens")
+        ),
         "total_tokens": nonnegative_count(value.get("total_tokens")),
     }
     if all(item is None for item in output.values()):

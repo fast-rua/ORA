@@ -42,6 +42,10 @@ class HarnessFault:
         }
 
 
+class SupervisorError(RuntimeError):
+    """The trusted causal episode loop cannot continue."""
+
+
 class HarnessFaultError(RuntimeError):
     def __init__(self, fault: HarnessFault) -> None:
         super().__init__(fault.message or fault.code)

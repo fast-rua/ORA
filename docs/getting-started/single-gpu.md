@@ -9,10 +9,10 @@ hand-written configuration.
 The whole path, once the [tools](#2-user-space-tools) are on `PATH`:
 
 ```bash
-git clone https://github.com/hao-ai-lab/ORA.git && cd ORA
+git clone https://github.com/fast-rua/ORA.git && cd ORA
 uv sync --all-extras --locked
 ./scripts/ora setup --env robotwin                                   # install once
-export DEEPSEEK_LOW_API_KEY=sk-...
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY                     # once; or export it
 ./scripts/ora run --env robotwin --task click_bell --confirm-launch  # every task
 ```
 
@@ -41,10 +41,11 @@ and what you will see. Section 9 lists the explicit commands that `setup` and
 | GPU | One NVIDIA GPU, compute capability 7.5 or newer (Turing to Blackwell), **32 GB or more** | The perception services hold 8–10 GB (SAM3 ~6.7 GB; Contact-GraspNet ~1.7 GB, growing to ~3.7 GB with use), and the RoboTwin and RoboDojo slots require 20 GB free at launch besides them. A 24 GB card runs LIBERO only |
 | Driver | R570 or newer; **R580 recommended** | CUDA 12.8 wheels, EGL and Vulkan come from the driver. See [§7](#7-gpu-and-driver-notes) for R595 |
 | CUDA 12.8 toolkit | `nvcc` under `/usr/local/cuda-12.8` (or `--cuda-home`) | Builds CuRobo for your GPU; the driver alone is not enough |
-| Disk | ~70 GB for LIBERO + RoboTwin, ~170 GB with RoboDojo | RoboDojo alone is ~90 GB (66 GB of assets) |
+| Disk | ~170 GB for any combination | RoboDojo alone is ~90 GB (66 GB of assets); LIBERO and RoboTwin install it too, for their planner, cuRobo V2 |
 | Network | GitHub, PyPI, download.pytorch.org, Hugging Face, ModelScope | No account or token is needed for any download |
 | Model API | A DeepSeek API key | One task used 8–70 model calls; most input tokens are cache hits |
 | OS | x86_64 Linux (verified on Ubuntu 24.04) | macOS/CPU users: [Run on your computer (CPU)](local.md) |
+| Sandbox (RoboDojo) | bubblewrap (`bwrap`) and unprivileged user namespaces | RoboDojo's default policy is code mode: the model's programs run in a bubblewrap sandbox. Setup installs `bwrap` when the machine has none (on Debian and Ubuntu); the user namespaces are the kernel's, and [§2](#2-user-space-tools) checks them |
 
 ## 2. User-space tools
 
@@ -56,6 +57,7 @@ nvidia-smi                                   # driver and GPU
 git --version; git lfs version; node --version; uv --version; unzip -v | head -1; c++ --version
 ls /usr/share/glvnd/egl_vendor.d/ /usr/share/vulkan/icd.d/   # expect 10_nvidia.json and nvidia_icd.json
 ldconfig -p | grep -E 'libvulkan.so.1|libGLU.so.1'          # Isaac Sim needs both; setup fetches missing ones
+bwrap --version && bwrap --unshare-all --ro-bind / / true && echo sandbox-ok   # RoboDojo's code mode needs both
 ```
 
 Install what is missing into `~/.local` (no sudo):
@@ -64,20 +66,40 @@ Install what is missing into `~/.local` (no sudo):
 mkdir -p ~/.local/bin
 curl -LsSf https://astral.sh/uv/install.sh | sh                       # uv
 curl -fsSL https://nodejs.org/dist/v22.20.0/node-v22.20.0-linux-x64.tar.xz \
-  | tar -xJ -C ~/.local --strip-components=1                          # Node 22 (ORA needs >= 20)
+  | tar -xJ -C ~/.local --strip-components=1                          # Node 22.20 (ORA needs >= 22.19)
 curl -fsSL https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-amd64-v3.7.1.tar.gz \
-  | tar -xz -C /tmp && cp /tmp/git-lfs-3.7.1/git-lfs ~/.local/bin/      # only RoboDojo needs git-lfs
+  | tar -xz -C /tmp && cp /tmp/git-lfs-3.7.1/git-lfs ~/.local/bin/      # optional: setup installs it for RoboDojo
 export PATH=~/.local/bin:$PATH
 echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc                # new shells and tmux panes too
 ```
 
+RoboDojo runs code mode by default, so it also needs bubblewrap and
+unprivileged user namespaces. `ora setup --env robodojo` unpacks `bwrap` under its prefix when
+the machine has none and `apt-get` is there (Debian, Ubuntu); by hand: Without sudo, unpack the package into
+`~/.local/bin` (ORA also looks there):
+
+```bash
+(cd /tmp && apt-get download bubblewrap && dpkg -x bubblewrap_*.deb /tmp/bwrap) \
+  && cp /tmp/bwrap/usr/bin/bwrap ~/.local/bin/
+```
+
+If `bwrap --unshare-all --ro-bind / / true` still fails ("No permissions to
+creating new namespace", "setting up uid map: Permission denied"), the kernel
+refuses unprivileged user namespaces, and an administrator has to allow them:
+`user.max_user_namespaces` above 0, `kernel.unprivileged_userns_clone=1` on
+Debian and Ubuntu, and on Ubuntu 23.10 and later
+`kernel.apparmor_restrict_unprivileged_userns=0` or an AppArmor profile for
+`bwrap`; inside a container, user namespaces must be allowed (Docker's default
+seccomp profile refuses them). A RunSpec with `"code_mode": null` runs RoboDojo
+with tool calls and needs neither.
+
 Make the `PATH` line persistent: the run step in §5 starts in `tmux`, whose
-new shell would otherwise find the distribution's Node 18 first. ORA looks
-for Node 20+ on `PATH`, then `~/.local/bin/node` and `~/.nvm`, or uses
-`ORA_NODE`.
+new shell would otherwise find the distribution's Node 18 first. ORA uses
+`ORA_NODE` when set, else the first Node.js 22.19+ among `node` on `PATH`,
+`~/.local/bin/node` and `~/.nvm`.
 
 Ubuntu's packaged Node 18 is too old. With sudo, `apt-get install git-lfs
-unzip build-essential libegl1 libvulkan1` covers the rest. Without a CUDA
+unzip build-essential libegl1 libvulkan1 bubblewrap` covers the rest. Without a CUDA
 toolkit, install NVIDIA's `cuda_12.8.*_linux.run` with `--toolkit --silent
 --toolkitpath=$HOME/cuda-12.8`, or a conda environment
 (`conda create -p ~/cuda-12.8 -c nvidia cuda-toolkit=12.8`), and pass
@@ -86,23 +108,18 @@ toolkit, install NVIDIA's `cuda_12.8.*_linux.run` with `--toolkit --silent
 ## 3. Get ORA
 
 ```bash
-git clone https://github.com/hao-ai-lab/ORA.git && cd ORA
+git clone https://github.com/fast-rua/ORA.git && cd ORA
 uv sync --all-extras --locked
 ```
 
-While the repository is not public, the clone needs a GitHub account with
-access (`gh auth login`, or an SSH key and the `git@github.com:` URL). On a
-machine that should not hold GitHub credentials, clone elsewhere and copy a
-bundle: `git bundle create ora.bundle --all`, then `git clone ora.bundle
-ORA` on the machine.
-
 ORA ships the host profile this guide uses,
-`ora/orchestrator/hosts/single-gpu.yaml`: one `libero-gpu0`,
-`robotwin-gpu0` and `robodojo-gpu0` slot on CUDA device 0. You do not write
+`ora/orchestrator/hosts/single-gpu.yaml`: a `libero-gpu<N>`,
+`robotwin-gpu<N>` and `robodojo-gpu<N>` slot for each CUDA device index 0-7. `ora run`
+uses GPU 0; on a machine with several GPUs, `--gpu N` runs on GPU N (§5). You do not write
 a host file.
 
 Runs bind the exact Git commit, so keep the checkout **clean**: no local
-edits or untracked files. `.env`, `outputs/` and `ora-tui/node_modules/` are
+edits or untracked files. `.env`, `outputs/` and `ora-pi/node_modules/` are
 ignored by Git and do not count.
 
 ## 4. Install an environment
@@ -123,16 +140,27 @@ outside the checkout: `--prefix DIR`, else `ORA_GPU_PREFIX`, else
   (`--cuda-arch 9.0` overrides it);
 - the SAM3 and Contact-GraspNet perception services, with SAM3 weights from
   ModelScope checked against a pinned SHA-256;
-- the terminal UI (`npm ci --prefix ora-tui`);
+- the agent core's Pi packages, which include the terminal UI
+  (`npm ci --prefix ora-pi`, skipped when they already match the lock);
 - the environment's simulator and assets;
 - for RoboDojo, `libGLU.so.1` and the Vulkan loader when the system lacks
   them (minimal server images often do): setup downloads the Ubuntu packages
   `libglu1-mesa` and `libvulkan1` with `apt-get download` and unpacks them
   into `<prefix>/syslibs` without sudo; `ora run` puts that directory on
-  `LD_LIBRARY_PATH`.
+  `LD_LIBRARY_PATH`;
+- for RoboDojo, the code-mode sandbox interpreter (`ORA_CODE_MODE_PYTHON`, a
+  Python 3.11 with NumPy, SciPy, Pillow, scikit-image and Shapely from the
+  hash-pinned lock `ora/agent/code_mode/sandbox-requirements.txt`, under
+  `envs/code-mode`, about 300 MB);
+- git-lfs (the static release, SHA-256 checked, into `<prefix>/tools/bin`) and
+  bubblewrap (`apt-get download bubblewrap`, unpacked into `<prefix>/tools` and named in `.env`
+  as `ORA_CODE_MODE_BWRAP`), each only when the machine has none. User namespaces stay the
+  kernel's (§2); setup warns when `bwrap` is still missing.
 
-`libero` also installs RoboTwin's Python environment and CuRobo, because the
-LIBERO motion planner uses it.
+`libero` and `robotwin` also install the RoboDojo runtime, because their motion
+planner, cuRobo V2, runs under its interpreter (`CUROBO_V2_PYTHON`, `CUROBO_V2_ROOT`).
+They also build the small CPU interpreter of the
+motion timing worker (`ORA_TIMING_PYTHON`, about 250 MB, under `envs/motion-timing`).
 
 Setup starts no simulator, service or model call. Each step prints `already
 done` when its pinned state or recorded recipe still holds, so rerunning after
@@ -140,19 +168,30 @@ a failure resumes where it stopped. Logs are in `<prefix>/logs/ora-setup/`.
 
 Setup writes the paths it installed into the checkout's `.env` (mode 0600)
 and sets `DEEPSEEK_BASE_URL` if it is unset. It never writes a credential.
+When it writes the `ORA_SAM_*` / `ORA_GRASP_*` service keys, it also replaces
+the names releases before 1.0 used for those settings in `.env` with the
+`ORA_` names, keeping a value it does not set itself (a port, for one).
 
 | Environment | Largest costs | Disk (upper bound) |
 |---|---|---|
-| `libero` | Torch downloads, CuRobo build (~6 min) | ~35 GB |
-| `robotwin` | Torch downloads, CuRobo build, 14 GB of asset zips (unpack ~2 min) | ~57 GB |
-| `robodojo` | 66 GB of assets through git-lfs, Isaac Sim 5.1 wheels, graphics layer build (~40 s) | ~103 GB |
+| `libero` | Torch downloads, the RoboDojo runtime for cuRobo V2 (as `robodojo` below) | ~114 GB |
+| `robotwin` | Torch downloads, CuRobo build, 14 GB of asset zips (unpack ~2 min), the RoboDojo runtime for cuRobo V2 (as `robodojo` below) | ~148 GB |
+| `robodojo` | 66 GB of assets through git-lfs, Isaac Sim 5.1 wheels, graphics layer build (~40 s) | ~105 GB |
 
 Downloads dominate. A rerun with everything in place takes a few minutes.
 
 ## 5. Run a task
 
-Put the key in your shell; ORA reads it from the environment and never
-stores it:
+Configure the key once. ORA asks for it without echo, keeps it in your user
+config outside the repository (`~/.config/ora/pi-auth.json`, mode 0600) and
+tests it with the probe every launch runs:
+
+```bash
+./scripts/ora providers key DEEPSEEK_LOW_API_KEY
+```
+
+Exporting it instead still works, and an exported key comes first
+([model APIs](model-apis.md#keys-configured-once-in-the-terminal)):
 
 ```bash
 export DEEPSEEK_LOW_API_KEY=sk-...
@@ -182,8 +221,13 @@ the reason:
    - RoboTwin scans the task's seeds with the upstream expert and stops at
      the first seed the expert solves (`--candidates`, default 4). This took
      2.5 min for `click_bell`.
-   - RoboDojo runs a card qualification once per GPU, driver and
-     installation (~9 min), then a task qualification once per task (~4 min).
+   - RoboDojo runs a card qualification on the first start on each GPU,
+     driver and installation (two full-length episodes, ~9 min on an RTX PRO
+     6000). It checks the card and warms Isaac's renderer caches: without it a
+     fresh installation's first episode can time out while Isaac compiles its
+     materials (`original camera assets did not become ready`). A task
+     qualification (~4 min) runs only with `--requalify`; without one the run
+     continues with a warning.
 
    Later runs reuse these records. LIBERO needs none.
 3. **Perception services.** SAM3 and Contact-GraspNet start if they are not
@@ -205,15 +249,21 @@ the reason:
 |---|---|---|---|
 | LIBERO | `<suite>/<id>`, `--seed` 0–49 picks the initial state | `libero_goal/0`, `libero_spatial/3`, `libero_10/7` | Suites `libero_goal`, `libero_spatial`, `libero_object`, `libero_10` (tasks 0–9), plus the LIBERO-Pro core suites |
 | RoboTwin | task name; `--task-config demo_clean` for clean scenes | `click_bell`, `adjust_bottle`, `beat_block_hammer` | `ls <prefix>/sources/RoboTwin/envs/*.py` |
-| RoboDojo | task name (layout 0) | `general_pickup` | `NATIVE_ACTION_LIMITS` in `ora/environment/benchmarks/robodojo.py` (43 tasks) |
+| RoboDojo | task name (layout 0) | `general_pickup` | `NATIVE_ACTION_LIMITS` in `ora/environment/benchmarks/robodojo.py` (54 tasks, the 12 `*_random` variants included) |
 
 A new RoboTwin or RoboDojo task runs its own one-time qualification (step 2).
 
 Other options:
 
 - `--prepare-only` stops after printing the RunSpec path. Run it later with
-  `./scripts/ora interactive --spec PATH --confirm-launch`.
+  `./scripts/ora interactive --spec PATH --confirm-launch` (the task picker) or
+  `./scripts/ora launch PATH` (no terminal UI). For a spec on this host both read
+  the checkout's `.env` and set the host marker as `ora run` does, and start the
+  perception services on the spec's GPU when they are not running.
 - `--requalify` ignores reusable qualification records.
+- `--gpu N` runs on GPU N of this machine (0-7, default 0, as `nvidia-smi` numbers them): the
+  simulator's slot and the perception services `ora run` starts. Qualification records name the
+  card they were made on, so a new GPU qualifies once.
 - `./scripts/ora run --env robotwin --help` lists all options.
 
 Run **one task at a time** on the GPU.
@@ -229,7 +279,7 @@ leave the UI with Ctrl-C, the run keeps going; find it with
 When you are done, free the GPU memory the services hold:
 
 ```bash
-./scripts/model-services stop
+./scripts/ora services stop
 ```
 
 ## 6. Watch, steer and inspect
@@ -254,12 +304,12 @@ episode ends.
 After a run:
 
 ```bash
-./scripts/ora watch RUN_ID          # replay a finished run, or follow a live one
-./scripts/open-viewer               # browser evidence viewer with videos and trajectories
+./scripts/ora watch RUN_ID                  # replay a finished run, or follow a live one
+uv run --locked ora-viewer --open-browser   # browser evidence viewer with videos and trajectories
 ```
 
 The viewer listens on `127.0.0.1:5012`; on a shared machine where another
-user's viewer holds that port, pass a free one: `./scripts/open-viewer --port 5023`.
+user's viewer holds that port, pass a free one: `uv run --locked ora-viewer --open-browser --port 5023`.
 
 Runs are under `outputs/ora-interactive/runs/<run_id>/`:
 
@@ -314,7 +364,7 @@ asks first, as on the first run.
 To remove everything ORA installed and recorded:
 
 ```bash
-./scripts/model-services stop
+./scripts/ora services stop
 rm -rf ~/.local/share/ora/gpu      # or your --prefix / ORA_GPU_PREFIX
 rm -rf ~/.cache/ora                # run scratch
 rm -rf outputs/* .harness-runtime .env   # runs, qualifications, local state and settings in the checkout
@@ -327,21 +377,27 @@ environments). Other uv projects share it; `uv cache clean` empties it.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `terminal UI requires Node.js 20 or newer` | distribution Node 18 | Node 22 tarball into `~/.local` (§2) |
+| `Node.js >= 22.19 is required (found v18…)` | distribution Node 18, or an older Node 22 | Node 22 tarball into `~/.local` (§2), or `ORA_NODE` |
+| `npm ci in ora-pi failed` | no route to the npm registry and an empty npm cache | run setup once with registry access, or point `npm_config_cache` at a populated cache |
+| preflight `agent_core` fails | Node or the `ora-pi` packages are missing in this checkout | `./scripts/ora setup --env …` |
 | `ora setup`: CUDA toolkit not found | no `nvcc` 12.8 | install the toolkit (§2) and pass `--cuda-home` |
 | `no kernel image is available for execution on the device` | a cu121/cu124 Torch on a newer GPU, or CuRobo built for another GPU | rerun `ora setup --env …`; it reinstalls cu128 Torch and rebuilds CuRobo when the GPU changes |
-| `provider_marker_configuration` fails | key unset, or `DEEPSEEK_BASE_URL` points at another endpoint | `export DEEPSEEK_LOW_API_KEY=…`; unset the URL or set `https://api.deepseek.com` |
+| `provider_marker_configuration` fails | key unset, or `DEEPSEEK_BASE_URL` points at another endpoint | `./scripts/ora providers key DEEPSEEK_LOW_API_KEY` (or export it); unset the URL or set `https://api.deepseek.com` |
 | key empty although exported | a sourced `.env` still has an empty `DEEPSEEK_*_API_KEY=` line | `ora setup --env …` removes those lines; or delete them by hand |
 | `ora run`: … unset; run ./scripts/ora setup --env … | that environment is not installed, or `.env` lacks its paths | `./scripts/ora setup --env <env>` |
 | `ora run`: the checkout has local changes | runs bind a clean commit | commit or move the changes |
 | `ora run`: this step runs simulator episodes; rerun with --yes | a qualification is needed and stdin is not a terminal | read the estimate, rerun with `--yes` |
+| RoboDojo run ends `incomplete` with `original camera assets did not become ready` | a fresh installation's first Isaac start compiled its materials for longer than the camera wait; the card qualification `ora run` runs on a GPU's first start warms them | rerun `ora run`; `--requalify` runs the card qualification again |
 | preflight stops at `provider_marker` or the run ends `incomplete` on the Provider recovery deadline | the API returned errors (for example HTTP 503) | check the provider's status and rerun |
-| `ora run`: … answers but was not started from this checkout, or `another process already listens on …` | on a shared machine another user's SAM3 / Contact-GraspNet listen on 8114/8115; `ora run` will not bind services it did not start | set free ports with `B2_SAM_PORT` / `B2_GRASP_PORT` in `.env` (for example 8124/8125) |
-| `model-services stop`: pid … is alive but this process cannot inspect it | services were started from another container or user namespace | stop them where they were started |
-| `ora run`: … was started by this checkout's model-services, not by another user: … cannot inspect it | this checkout started the services, but from another container or user namespace, so their identity cannot be confirmed from here | run `./scripts/model-services stop` where they were started, or set free ports with `B2_SAM_PORT` / `B2_GRASP_PORT` |
+| `ora run`: … answers but was not started from this checkout, or `another process already listens on …` | on a shared machine another user's SAM3 / Contact-GraspNet listen on 8114/8115; `ora run` will not bind services it did not start | set free ports with `ORA_SAM_PORT` / `ORA_GRASP_PORT` in `.env` (for example 8124/8125) |
+| `ora services stop`: pid … is alive but this process cannot inspect it | services were started from another container or user namespace | stop them where they were started |
+| `ora run`: … was started by this checkout's model-services, not by another user: … cannot inspect it | this checkout started the services, but from another container or user namespace, so their identity cannot be confirmed from here | run `./scripts/ora services stop` where they were started, or set free ports with `ORA_SAM_PORT` / `ORA_GRASP_PORT` |
 | `graphics-compat`: `Vulkan driver compatibility rejected: libvulkan.so.1: cannot open shared object file`, or a RoboDojo qualification fails with `original camera assets did not become ready` (the worker log shows `libGLU.so.1: cannot open shared object file`) | the system lacks the Vulkan loader or libGLU that Isaac Sim loads | rerun `./scripts/ora setup --env robodojo`: it unpacks `libvulkan1` / `libglu1-mesa` into `<prefix>/syslibs` without sudo. Without `apt-get`, install those libraries; when running `setup-robodojo` or a qualification by hand, put `<prefix>/syslibs/usr/lib/x86_64-linux-gnu` on `LD_LIBRARY_PATH` |
+| preflight `code_mode_sandbox` fails: `bubblewrap (bwrap) is not installed` | RoboDojo's default policy, code mode, runs programs in a bubblewrap sandbox | install bubblewrap (§2), or set `ORA_CODE_MODE_BWRAP` to a `bwrap` binary |
+| preflight `code_mode_sandbox` fails: `bubblewrap cannot create the sandbox's namespaces` | the kernel or the container refuses unprivileged user namespaces | allow them (§2); `./scripts/ora doctor --env robodojo` checks it |
+| preflight `code_mode_sandbox` fails: `no code-mode interpreter`, or `does not match its lock` | setup ran before RoboDojo defaulted to code mode, or the interpreter was changed | rerun `./scripts/ora setup --env robodojo` |
 | RoboDojo worker: `graphics-compat/installation.json` missing | the layer was not built | `./scripts/setup-robodojo graphics-compat --root <prefix>/robodojo-runtime` |
-| `git lfs` not found during RoboDojo assets | no git-lfs | static binary (§2) |
+| `git lfs` not found during RoboDojo assets | no git-lfs, on a machine that is not x86_64 Linux (elsewhere setup installs it) | install git-lfs (§2) |
 | Isaac prints `OptiX … Database file is not writable` | `/var/tmp` is not writable | set `OPTIX_CACHE_PATH` to a writable directory |
 | `ora doctor`: OSMesa is missing (local CPU path) | no NVIDIA EGL vendor file | `./scripts/ora setup --graphics egl` if EGL is elsewhere, else install `libosmesa6` |
 
@@ -369,7 +425,7 @@ git -C $PREFIX/sources/LIBERO-Pro-data checkout --detach c86fc3b8293185a6f373677
 uv venv --python 3.11 --seed $PREFIX/envs/libero
 uv pip install --python $PREFIX/envs/libero/bin/python \
   torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
-uv pip install --python $PREFIX/envs/libero/bin/python -r ops/x86/requirements-libero.txt
+uv pip install --python $PREFIX/envs/libero/bin/python -r ora/environment/backends/libero_pro/installation/requirements-x86_64.txt
 ```
 
 On exit, robosuite prints an `EGLError` from its context destructor. It is
@@ -414,20 +470,20 @@ git -C $PREFIX/sources/cap-x submodule update --init --recursive \
 uv venv --python 3.11 --seed $PREFIX/envs/perception
 uv pip install --python $PREFIX/envs/perception/bin/python \
   torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
-uv pip install --python $PREFIX/envs/perception/bin/python -r ops/x86/requirements-perception.txt
+uv pip install --python $PREFIX/envs/perception/bin/python -r ora/agent/model_services/installation/requirements-x86_64.txt
 curl -fL -o $PREFIX/models/sam3.pt https://modelscope.cn/models/facebook/sam3/resolve/master/sam3.pt
 echo "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e  $PREFIX/models/sam3.pt" | sha256sum -c -
 ```
 
 ModelScope serves the same `sam3.pt` (3.45 GB) that the services pin, with no
 login. Hugging Face `facebook/sam3` is gated; use it only if you already have
-access. With the `B2_SAM_*` / `B2_GRASP_*` keys in `.env`:
+access. With the `ORA_SAM_*` / `ORA_GRASP_*` keys in `.env`:
 
 ```bash
 set -a; . ./.env; set +a
-./scripts/model-services start
-./scripts/model-services status     # non-zero until both are ready (~3 min)
-./scripts/model-services qualify    # prints the readiness report path
+./scripts/ora services start
+./scripts/ora services status    # non-zero until both are ready (~3 min)
+./scripts/ora services qualify   # prints the readiness report path
 ```
 
 ### 9.4 RoboDojo (Isaac Sim 5.1)
@@ -449,13 +505,22 @@ $PREFIX/syslibs`) and export
 `LD_LIBRARY_PATH=$PREFIX/syslibs/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH`
 before `graphics-compat` and in every shell that runs RoboDojo.
 
+The code-mode sandbox interpreter that RoboDojo's default policy runs programs
+with (`ora setup` component `code-mode`), from its hash-pinned lock:
+
+```bash
+uv venv --python 3.11 $PREFIX/envs/code-mode
+uv pip install --python $PREFIX/envs/code-mode/bin/python --require-hashes --no-deps \
+  --only-binary :all: --compile-bytecode -r ora/agent/code_mode/sandbox-requirements.txt
+```
+
 `doctor` checks the source, assets and task inventory (expect `fail=0`); it
 skips Isaac imports, which the card qualification exercises. See the
 [RoboDojo installation reference](../../ora/environment/backends/robodojo/installation/INSTALL.md).
 
 ### 9.5 `.env`
 
-`ora setup --env` writes these keys, the `B2_*` service keys and
+`ora setup --env` writes these keys, the `ORA_SAM_*` / `ORA_GRASP_*` service keys and
 `ORA_GPU_PREFIX`. `ora run` binds the host itself. For the explicit
 sequence, also set `ORA_EXECUTION_HOST=single-gpu`:
 
@@ -475,41 +540,50 @@ CUROBO_PYTHON=/home/you/.local/share/ora/gpu/envs/robotwin/bin/python
 ROBODOJO_ROOT=/home/you/.local/share/ora/gpu/robodojo-runtime/source/RoboDojo
 ROBODOJO_ASSET_ROOT=/home/you/.local/share/ora/gpu/robodojo-runtime/assets/Assets
 ROBODOJO_PYTHON=/home/you/.local/share/ora/gpu/robodojo-runtime/env/bin/python
+CUROBO_V2_ROOT=/home/you/.local/share/ora/gpu/robodojo-runtime/source/RoboDojo/third_party/curobo
+CUROBO_V2_PYTHON=/home/you/.local/share/ora/gpu/robodojo-runtime/env/bin/python
+ORA_TIMING_PYTHON=/home/you/.local/share/ora/gpu/envs/motion-timing/bin/python
+ORA_CODE_MODE_PYTHON=/home/you/.local/share/ora/gpu/envs/code-mode/bin/python
 ```
 
 Set all three `ROBODOJO_*` values: when they are unset, the runtime falls
-back to `~/robodojo-runtime`. LIBERO's planner reuses RoboTwin's CuRobo, so
-`CUROBO_PYTHON` points at the RoboTwin interpreter.
+back to `~/robodojo-runtime`. LIBERO's planner is cuRobo V2 from the RoboDojo
+runtime, so `CUROBO_V2_PYTHON` is the RoboDojo interpreter and
+`CUROBO_V2_ROOT` the cuRobo checkout it imports; `CUROBO_PYTHON` points at the
+RoboTwin interpreter, whose CuRobo v0.7.8 RoboTwin uses. `ORA_TIMING_PYTHON` is a separate small interpreter: `uv venv
+--python 3.11` and the pins of `ora/environment/planners/timing/requirements.py`.
+`ORA_CODE_MODE_PYTHON` is the code-mode sandbox's interpreter; when it is unset,
+ORA uses `envs/code-mode/bin/python` under `ORA_GPU_PREFIX` (else
+`~/.local/share/ora/gpu`), where setup builds it.
 
 ### 9.6 One task by hand
 
 ```bash
 set -a; . ./.env; set +a
-E="uv run --locked python -m ora.orchestrator"
 REPORT=$(ls -t outputs/model-services/qualification/*.json | head -1)
 
 # LIBERO: no qualification
-$E.benchmark_spec compose libero libero_goal 0 --seed 0 --experiment ora-interactive \
+./scripts/ora spec libero compose libero_goal 0 --seed 0 --experiment ora-interactive \
   --resource-profile libero-gpu0 --service-report $REPORT --cohort single-gpu-libero
 
 # RoboTwin: scan one task for one seed the expert solves, then compose with it
-$E.robotwin_evaluation prepare --robotwin-root $ROBOTWIN_ROOT --robotwin-python $ROBOTWIN_PYTHON \
+./scripts/ora qualify robotwin prepare --robotwin-root $ROBOTWIN_ROOT --robotwin-python $ROBOTWIN_PYTHON \
   --tasks click_bell --task-config demo_randomized --candidate-count 4 --accepted-per-task 1 \
   --slots robotwin-gpu0
-$E.robotwin_evaluation qualify --plan <printed plan.json> --confirm QUALIFY-ROBOTWIN:<printed hash>
-$E.benchmark_spec compose robotwin click_bell --task-config demo_randomized --seed <accepted seed> \
+./scripts/ora qualify robotwin qualify --plan <printed plan.json> --confirm QUALIFY-ROBOTWIN:<printed hash>
+./scripts/ora spec robotwin compose click_bell --task-config demo_randomized --seed <accepted seed> \
   --qualification <printed seed-manifests/click_bell.json> --experiment ora-interactive \
   --resource-profile robotwin-gpu0 --service-report $REPORT --cohort single-gpu-robotwin
 
 # RoboDojo: card once per GPU/driver/installation, task once per task
-$E.robodojo_lane_qualification card general_pickup --gpu 0 --resource-profile robodojo-gpu0 --yes
-$E.robodojo_lane_qualification task general_pickup --gpu 0 --resource-profile robodojo-gpu0 \
+./scripts/ora qualify robodojo card general_pickup --gpu 0 --resource-profile robodojo-gpu0 --yes
+./scripts/ora qualify robodojo task general_pickup --gpu 0 --resource-profile robodojo-gpu0 \
   --card <card-qualification.json> --yes
-$E.robodojo_spec compose general_pickup --experiment ora-interactive --gpu 0 \
+./scripts/ora spec robodojo compose general_pickup --experiment ora-interactive --gpu 0 \
   --resource-profile robodojo-gpu0 --task-qualification <task-qualification.json> \
   --service-report $REPORT --cohort single-gpu-robodojo
 
-./scripts/ora preflight outputs/ora-interactive/specs/<spec>.json
+./scripts/ora plan preflight outputs/ora-interactive/specs/<spec>.json
 ./scripts/ora interactive --spec outputs/ora-interactive/specs/<spec>.json --confirm-launch
 ```
 

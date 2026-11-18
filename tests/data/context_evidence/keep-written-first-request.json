@@ -1,0 +1,142 @@
+{
+ "action_step_inventory": [
+  {
+   "action_step_index": 0,
+   "complete": false,
+   "inline_images": 3,
+   "message_count": 2,
+   "message_end": 5,
+   "message_start": 3,
+   "mutation": null,
+   "mutation_tool_call_id": null,
+   "observation_step": 0,
+   "post_observation_step": null,
+   "receipt_action_id": null,
+   "receipt_event_id": null,
+   "session_round": 1,
+   "source_event_ids": [
+    "agent-event-000001",
+    "agent-event-000002"
+   ]
+  }
+ ],
+ "active_inline_images": 3,
+ "camera_delivery": {
+  "camera_images": "exchange_window_v1",
+  "retrieval": "observe.ref",
+  "schema": "ora.camera-delivery.v1",
+  "tail_observations": null
+ },
+ "checkpoint_slot_count": 0,
+ "context_management": {
+  "aged_argument_bytes": null,
+  "aged_preview_bytes": 256,
+  "aged_result_bytes": 8192,
+  "aged_result_preview": "structured",
+  "backstop_exact_tail_exchanges": 2,
+  "camera_images": "exchange_window_v1",
+  "camera_tail_observations": null,
+  "causal_exact_tail_action_steps": 3,
+  "checkpoint_max_estimated_tokens": 1600,
+  "checkpoint_target_estimated_tokens": 1200,
+  "compaction_trigger_tokens": null,
+  "compaction_unit": "exchange",
+  "emergency_fallback_ratio": 0.6,
+  "emergency_target_ratio": 0.5,
+  "episode_checkpoint_trigger_ratio": 0.15,
+  "episode_checkpoint_trigger_tokens": null,
+  "exact_tail_exchanges": 6,
+  "exchange_aging_trigger_ratio": 0.5,
+  "exchange_aging_trigger_tokens": 100000,
+  "image_estimate_tokens": 530,
+  "reasoning_binding": "strict",
+  "reasoning_replay": "all",
+  "reasoning_tail_exchanges": null,
+  "schema": "ora.native-context-management.v10"
+ },
+ "emergency_checkpoint_sha256": null,
+ "emergency_compaction_count": 0,
+ "emergency_exact_transcript_ref": null,
+ "emergency_exchange_coverage": {
+  "kept_exchange": null,
+  "summarized_exchanges": 0,
+  "through_exchange_index": null,
+  "unit": "exchange"
+ },
+ "emergency_summarized_through_action_step": null,
+ "episode_checkpoint_count": 0,
+ "episode_checkpointed_through_action_step": null,
+ "exact_tail": {
+  "anchor_exchange": null,
+  "exchange_inventory": [],
+  "exchanges": 6,
+  "from_exchange": 0,
+  "total_exchanges": 0,
+  "unit": "exchange"
+ },
+ "exchange_aging": {
+  "admission": {
+   "authority": "provider_reported_input_tokens",
+   "basis": "projection_entry_provider_usage",
+   "batch_exchanges": 6,
+   "new_exchanges_since_last_aging": 0,
+   "provider_input_tokens": null,
+   "provider_projection_epoch": null,
+   "provider_wire_request_sha256": null,
+   "reason": "provider_usage_unavailable",
+   "status": "not_admitted",
+   "watermark_tokens": 100000
+  },
+  "aged_exchanges": 0,
+  "aged_observation_groups": 0,
+  "aging_count": 0,
+  "delivered": {
+   "arguments": 0,
+   "camera_images": 0,
+   "observations": 0,
+   "reasoning": 0,
+   "tool_images": 0,
+   "tool_results": 0
+  },
+  "delivered_camera_images_externalized": 0,
+  "delivered_tool_images_externalized": 0,
+  "exact_tail_exchanges": 6,
+  "exchanges": 0,
+  "kept_exchange": null,
+  "reasoning_rebound_messages": 0,
+  "reasoning_replay": "all",
+  "reasoning_unbound_messages": 0,
+  "reasoning_withheld_exchanges": 0,
+  "schema": "ora.context-exchange-aging.v1"
+ },
+ "hard_backstop": null,
+ "hard_input_tokens": 1013760,
+ "lifecycle_media_externalized_through_action_step": null,
+ "lossless_invariants_after_sha256": "feab2b5b9e5f7707bc8e880317dae2a863bc0ad76289091ef969d41f1673e11b",
+ "lossless_invariants_before_sha256": "feab2b5b9e5f7707bc8e880317dae2a863bc0ad76289091ef969d41f1673e11b",
+ "pressure_externalized_through_action_step": null,
+ "projection_epoch": 0,
+ "projection_transitions": [],
+ "protected_inline_media_action_steps": [
+  0
+ ],
+ "provider_usage_anchor_applies_to_projection_epoch": false,
+ "provider_usage_anchor_projection_epoch": null,
+ "provider_usage_anchor_tokens": null,
+ "provider_usage_anchor_wire_request_sha256": null,
+ "provider_wire_request_sha256": "2eaf3ef5f1ff6ee60eea15f9b083dedbec24c2451da16e7e30331f18914efcc6",
+ "request_estimate": {
+  "basis": "harness_estimate",
+  "hard_input_tokens": 1013760,
+  "tokens": 25142
+ },
+ "resolved_compaction_trigger_tokens": 608256,
+ "resolved_episode_checkpoint_trigger_tokens": 152064,
+ "resolved_exchange_aging_trigger_tokens": 100000,
+ "resolved_inline_image_target": null,
+ "resolved_media_retention_policy": "append_only_until_compaction_v1",
+ "resolved_near_tail_action_steps": 0,
+ "retained_exact_causal_action_steps": 0,
+ "schema": "ora.native-context-projection.v6",
+ "token_estimate_status": "provider_usage_unavailable"
+}

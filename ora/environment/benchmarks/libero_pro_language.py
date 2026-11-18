@@ -6,7 +6,7 @@ and LIBERO-10 four ways (``_task``, ``_swap``, ``_lan``, ``_object``; see
 order with the ``(:language ...)`` field of its four core BDDL files at
 ``LIBERO_PRO_DATA_REVISION``. That field is the instruction a core-cell
 RunSpec delivers (``runtime.expected_task_language``) and launch preflight
-compares it with the BDDL it loads (``orchestrator/libero_preflight.py``), so a
+compares it with the BDDL it loads (``orchestrator/backends/libero_pro/preflight.py``), so a
 row that drifts from the data is refused before a run, never delivered. A base
 cell delivers the official file-name language instead (``base_task_language``).
 

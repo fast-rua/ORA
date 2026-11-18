@@ -110,6 +110,10 @@ def validate_runtime_driver(version: str, *, graphics_compatibility: Mapping[str
                 raise RoboDojoBenchmarkError("Vulkan driver compatibility changed device identity or failed to repair the limit")
 
 
+class QualificationMissingError(RoboDojoBenchmarkError, FileNotFoundError):
+    """A referenced qualification is absent, distinct from malformed evidence."""
+
+
 def _read_record(
     reference: Mapping[str, Any], *, workspace_root: Path, label: str,
 ) -> tuple[dict[str, Any], Path]:
@@ -124,6 +128,8 @@ def _read_record(
     try:
         data = path.read_bytes()
         value = json.loads(data)
+    except FileNotFoundError as exc:
+        raise QualificationMissingError(f"{label} is unavailable: {path}") from exc
     except (OSError, ValueError) as exc:
         raise RoboDojoBenchmarkError(f"{label} is unavailable") from exc
     if hashlib.sha256(data).hexdigest() != reference["sha256"]:
@@ -135,6 +141,7 @@ def _read_record(
 
 def _validate_record_identity(
     value: Mapping[str, Any], *, schema: str, harness_commit: str, label: str,
+    allow_kernel_drift: bool = False,
 ) -> dict[str, Any]:
     """Schema, pass, commit lineage and worker-kernel content, for any layer.
 
@@ -173,15 +180,19 @@ def _validate_record_identity(
         added = worker_kernel_extension(
             recorded_kernel, measured_commit=lineage, plan_commit=harness_commit,
         )
-    if added is None:
+    if added is None and not allow_kernel_drift:
         raise RoboDojoBenchmarkError(
             f"RoboDojo worker kernel changed since its {label} ({lineage})"
         )
     return {
-        "mode": "manifest_extension_byte_identical" if added else "identical_digest",
+        "mode": ("unqualified_kernel_warning" if added is None else
+                 "manifest_extension_byte_identical" if added else "identical_digest"),
         "measured_commit": lineage, "plan_commit": harness_commit,
         "recorded_worker_kernel_sha256": recorded_kernel,
-        "plan_worker_kernel_sha256": plan_kernel, "added_paths": list(added),
+        "plan_worker_kernel_sha256": plan_kernel, "added_paths": list(added or ()),
+        **({"warnings": [{"code": "worker_kernel_mismatch", "record": label,
+                          "recorded_worker_kernel_sha256": recorded_kernel,
+                          "plan_worker_kernel_sha256": plan_kernel}]} if added is None else {}),
     }
 
 
@@ -259,6 +270,7 @@ def _validate_compiled_model(model: Any, *, label: str) -> None:
 
 def load_infrastructure_qualification(
     runtime: Mapping[str, Any], *, workspace_root: Path, harness_commit: str,
+    allow_kernel_drift: bool = False,
 ) -> dict[str, Any]:
     """Verify combined infrastructure evidence, without a behavioral oracle.
 
@@ -277,7 +289,7 @@ def load_infrastructure_qualification(
         label="infrastructure qualification",
     )
     admission = _validate_record_identity(
-        value, schema=QUALIFICATION_SCHEMA, harness_commit=harness_commit,
+        value, schema=QUALIFICATION_SCHEMA, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         label="infrastructure qualification",
     )
     if value.get("source_revisions") != source_revisions(runtime):
@@ -308,6 +320,7 @@ def load_infrastructure_qualification(
 
 def load_card_qualification(
     runtime: Mapping[str, Any], *, workspace_root: Path, harness_commit: str,
+    allow_kernel_drift: bool = False,
     reference: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Admit the per-card, per-installation half of the same evidence.
@@ -333,7 +346,7 @@ def load_card_qualification(
         binding, workspace_root=workspace_root, label="card qualification",
     )
     admission = _validate_record_identity(
-        value, schema=CARD_QUALIFICATION_SCHEMA, harness_commit=harness_commit,
+        value, schema=CARD_QUALIFICATION_SCHEMA, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         label="card qualification",
     )
     if value.get("source_revisions") != source_revisions(runtime):
@@ -376,6 +389,7 @@ def load_card_qualification(
 
 def load_task_qualification(
     runtime: Mapping[str, Any], *, workspace_root: Path, harness_commit: str,
+    allow_kernel_drift: bool = False,
     card: Mapping[str, Any], card_reference: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Admit the per-task, per-scene half and its binding to one card record.
@@ -403,7 +417,7 @@ def load_task_qualification(
         workspace_root=workspace_root, label="task qualification",
     )
     admission = _validate_record_identity(
-        value, schema=TASK_QUALIFICATION_SCHEMA, harness_commit=harness_commit,
+        value, schema=TASK_QUALIFICATION_SCHEMA, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         label="task qualification",
     )
     if value.get("source_revisions") != source_revisions(runtime):
@@ -533,6 +547,7 @@ def _joined(field: str, value: Any) -> Any:
 
 def load_layered_qualification(
     runtime: Mapping[str, Any], *, workspace_root: Path, harness_commit: str,
+    allow_kernel_drift: bool = False,
 ) -> dict[str, Any]:
     """Admit the card/task pair and project it as one qualification view.
 
@@ -544,11 +559,11 @@ def load_layered_qualification(
 
     reference = runtime["infrastructure_qualification"]
     card = load_card_qualification(
-        runtime, workspace_root=workspace_root, harness_commit=harness_commit,
+        runtime, workspace_root=workspace_root, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         reference=reference["card"],
     )
     task = load_task_qualification(
-        runtime, workspace_root=workspace_root, harness_commit=harness_commit,
+        runtime, workspace_root=workspace_root, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         card=card, card_reference=reference["card"],
     )
     return {
@@ -594,6 +609,7 @@ def load_layered_qualification(
 
 def load_qualification(
     runtime: Mapping[str, Any], *, workspace_root: Path, harness_commit: str,
+    allow_kernel_drift: bool = False,
 ) -> dict[str, Any]:
     """Load whichever qualification contract this Runtime's binding names."""
 
@@ -602,12 +618,12 @@ def load_qualification(
         from .robodojo_revalidation import SCHEMA, read_reference, load
         record, _ = read_reference(runtime["infrastructure_qualification"], workspace_root)
         if record.get("schema") == SCHEMA:
-            return load(runtime, workspace_root=workspace_root, harness_commit=harness_commit)
+            return load(runtime, workspace_root=workspace_root, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift)
         return load_infrastructure_qualification(
-            runtime, workspace_root=workspace_root, harness_commit=harness_commit,
+            runtime, workspace_root=workspace_root, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
         )
     return load_layered_qualification(
-        runtime, workspace_root=workspace_root, harness_commit=harness_commit,
+        runtime, workspace_root=workspace_root, harness_commit=harness_commit, allow_kernel_drift=allow_kernel_drift,
     )
 
 

@@ -1,0 +1,70 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_pose",
+  "description": "Execute one pose-only mutation, either from direct pose inputs or preview_id alone. It cannot open or close the gripper. Submission is not proof that the pose was reached; the next automatic actual observation reports the physical result.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "xyz_m": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "delta_mm": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "delta_frame": {
+        "type": "string",
+        "enum": [
+          "world",
+          "grip_site"
+        ],
+        "default": "world"
+      },
+      "approach_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "jaw_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "preview_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

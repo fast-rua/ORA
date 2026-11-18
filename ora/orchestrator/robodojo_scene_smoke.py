@@ -21,18 +21,19 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import subprocess
 import time
 from typing import Any, Mapping, Sequence
 
 from ora.environment.factory import build_environment_session
-from ora.orchestrator.action_executor import execute_runtime_action
-from ora.orchestrator.cli import (
+from ora.orchestrator.episode.action_executor import execute_runtime_action
+from ora.orchestrator.episode.execution_state import bind_execution_state
+from ora.orchestrator.leases import (
     assign_resource_lease, claim_resource_lease, release_resource_lease,
 )
 from ora.orchestrator.paths import PROJECT_ROOT, experiment_workspace
-from ora.orchestrator.robodojo_card_qualification import _prepare, _sensor_evidence
-from ora.orchestrator.spec import json_sha256
+from ora.orchestrator.backends.robodojo.card_qualification import _prepare, _sensor_evidence
+from ora.orchestrator.backends.robodojo.probe_episode import nvidia_smi
+from ora.orchestrator.spec.values import json_sha256
 
 PLAN_SCHEMA = "ora.robodojo-b2-smoke-plan.v1"
 REPORT_SCHEMA = "ora.robodojo-b2-smoke.v1"
@@ -83,8 +84,7 @@ def smoke_plan(runtime: Mapping[str, Any], prepared: Mapping[str, Any]) -> dict[
 
 
 def _worker_gpus(pid: int) -> list[str]:
-    rows = subprocess.check_output(["nvidia-smi", "--query-compute-apps=pid,gpu_uuid", "--format=csv,noheader,nounits"],
-                                   text=True, timeout=15)
+    rows = nvidia_smi(["--query-compute-apps=pid,gpu_uuid", "--format=csv,noheader,nounits"])
     return sorted({row.split(",")[1].strip() for row in rows.splitlines() if row.split(",")[0].strip() == str(pid)})
 
 
@@ -124,7 +124,7 @@ def smoke(task: str, *, gpu: str, experiment: str, resource_profile: str | None 
     the reset's ``task_instruction`` is the official instruction of that
     layout, which the lane gate binds when the layout generates it.
     """
-    from ora.orchestrator.robodojo_spec import qualification_runtime
+    from ora.orchestrator.backends.robodojo.spec import qualification_runtime
 
     layout = {} if layout_id is None else {"layout_id": layout_id}
     runtime = qualification_runtime(task, gpu=gpu, resource_profile=resource_profile, rounds=rounds,
@@ -164,6 +164,9 @@ def smoke(task: str, *, gpu: str, experiment: str, resource_profile: str | None 
         session = build_environment_session(
             runtime_config=runtime, output_root=root / "environment", task=task, seed=0,
             max_sim_steps=min(1000, int(runtime["native_action_limit"]) * 10), action_codec="motion_action_v3")
+        # The worker keeps no execution state (P5): every request, its startup ping included, carries the
+        # supervisor's, so the smoke binds an owner before start like the card and task probes do.
+        bind_execution_state(session)
         reset = dict(session.start())
         report["reset"] = reset
         save()

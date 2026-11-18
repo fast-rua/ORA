@@ -1,6 +1,6 @@
 """Per-task RoboDojo physics device: one host-safe owner, no simulator imports.
 
-Nine RoboDojo scenes resolve IsaacLab ``cpu``
+Twelve RoboDojo scenes resolve IsaacLab ``cpu``
 physics by default; every other task keeps ``cuda:0``. ``cpu`` names the
 IsaacLab simulation and tensor device, not pure CPU dynamics: upstream
 ``BaseEnv.setup_physics`` calls ``overwrite_gpu_setting(1)`` on every device,
@@ -27,7 +27,7 @@ CPU_PHYSICS_DEVICE = "cpu"
 #: Every device a RoboDojo runtime may declare; the first is the default.
 PHYSICS_DEVICES = (CUDA_PHYSICS_DEVICE, CPU_PHYSICS_DEVICE)
 
-#: Why each scene kind needs CPU physics (upstream ee67a146, IsaacLab afca7b09).
+#: Why each scene kind needs CPU physics (upstream f57e163, IsaacLab afca7b09).
 CPU_PHYSICS_REASONS: Mapping[str, str] = MappingProxyType({
     "articulation": (
         "scene ArticulationObject.initialize reads dof_properties through numpy, which crashes "
@@ -39,17 +39,23 @@ CPU_PHYSICS_REASONS: Mapping[str, str] = MappingProxyType({
     ),
     "fluid": "upstream SceneManager never creates Fluid objects on a CUDA physics device",
 })
-#: The nine CPU-physics scenes and their scene kind. A task absent here is ``cuda:0``.
+#: The twelve CPU-physics scenes and their scene kind. A task absent here is ``cuda:0``.
+#: The three ``*_random`` variants (admitted 2026-11-14) keep their base task's
+#: kind: their upstream configs and every eval layout hold the same Articulation
+#: (toaster; laptop) or Fluid section as the base task.
 CPU_PHYSICS_SCENES: Mapping[str, str] = MappingProxyType({
     "fill_egg_holder": "articulation",
     "make_toast": "articulation",
+    "make_toast_random": "articulation",
     "press_by_number": "articulation",
     "store_laptop_and_headphones": "articulation",
+    "store_laptop_and_headphones_random": "articulation",
     "swap_blocks": "articulation",
     "match_and_pick_from_conveyor": "conveyor",
     "pick_from_conveyor_by_image": "conveyor",
     "pour_by_language": "fluid",
     "pour_liquid_into_cup": "fluid",
+    "pour_liquid_into_cup_random": "fluid",
 })
 #: Task -> reason, the reviewed default-activation table.
 CPU_PHYSICS_TASKS: Mapping[str, str] = MappingProxyType({
@@ -72,7 +78,7 @@ def scene_kind_for(task: str) -> str:
 
 #: The qualification-only physics scene probe's worker report, shared by the
 #: worker (``backends/robodojo/physics_scene_probe.py``) and its host launcher
-#: (``orchestrator/robodojo_physics_probe.py``), which must not import a
+#: (``orchestrator/backends/robodojo/physics_probe.py``), which must not import a
 #: process-isolated simulator backend.
 WORKER_REPORT_SCHEMA = "ora.robodojo-physics-scene-probe-worker.v1"
 WORKER_REPORT_NAME = "probe-worker.json"

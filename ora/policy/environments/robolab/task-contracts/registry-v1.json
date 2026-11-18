@@ -1,0 +1,1451 @@
+{
+ "schema": "ora.robotwin-task-contract-registry.v1",
+ "note": "Generation v1 of the RoboLab-120 roster. `tasks` holds the reviewed contracts the resolver delivers (three admitted 2026-10-18); `pending_review` holds the contracts generated 2026-11-05 per predicate family, whose seed-0 witnesses are pending: the resolver withholds them (contract_review_pending) and launch preflight refuses the task until `ora dev robolab-tasks promote` moves a fully checked review into `tasks`. Public clauses state the termination's end conditions qualitatively; numeric limits, private targets and predicate weaknesses stay in the reviews.",
+ "verification_method": "Whole predicate, task and helper source read at the pinned revision; predicate span hashed by AST FunctionDef lineno..end_lineno; private witnesses evaluate the official predicate on seed 0 after direct state edits or scripted moves.",
+ "candidate_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "tasks": {
+  "AnimalsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/AnimalsInBinTask-completion-v1.md",
+   "sha256": "b87b87697ff71bd11595a1d692c875ddf88b557ac3d7806c7fc92f03c1e921f4",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/AnimalsInBinTask-review-v1.json"
+  },
+  "AppleAndYogurtInBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/AppleAndYogurtInBowlTask-completion-v1.md",
+   "sha256": "b99929edd01537d601b33257e7da5bc725474897a170c5fbc4b3314fa8dc787d",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/AppleAndYogurtInBowlTask-review-v1.json"
+  },
+  "BBQSauceInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BBQSauceInBinTask-completion-v1.md",
+   "sha256": "9719a7312b18b4d9ab42c09667aee0dff7f4e323b43fc06b0c056c5125bc15b0",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BBQSauceInBinTask-review-v1.json"
+  },
+  "BagelsOnPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BagelsOnPlateTask-completion-v1.md",
+   "sha256": "035e68fef9c489d9ca74e77234c3668d7ec057a588459ef2bf9bce72aefa72b9",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BagelsOnPlateTask-review-v1.json"
+  },
+  "BananaInBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananaInBowlTask-completion-v1.md",
+   "sha256": "d3778ffbcef7fb142fb931463e02b4c32e328968898a76d3cacc34622e37e293",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananaInBowlTask-review-v1.json"
+  },
+  "BananaOnPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananaOnPlateTask-completion-v1.md",
+   "sha256": "bcd1acfb46d3c3a73e4799f0fad38aba264916cd7a3b357740c8512023794735",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananaOnPlateTask-review-v1.json"
+  },
+  "BananaThenRubiksCubeTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananaThenRubiksCubeTask-completion-v1.md",
+   "sha256": "35956a83ab242005d7274c5718c980cf6345c6ef7c7cfb0b20ace01d9a5eae6d",
+   "clause_count": 3,
+   "check_success_sha256": "d88f403d9785568442194fa9765de2345eef65f15c7ba00f32953ae661772df0",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:objects_placed_in_container_in_order, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananaThenRubiksCubeTask-review-v1.json"
+  },
+  "BananasInBinOneMoreTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananasInBinOneMoreTask-completion-v1.md",
+   "sha256": "2e8d0daebfa3b9f8e48c0159e63815f0562061fc6046c6aed04b22fea947e22d",
+   "clause_count": 3,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananasInBinOneMoreTask-review-v1.json"
+  },
+  "BananasInBinThreeTotalTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananasInBinThreeTotalTask-completion-v1.md",
+   "sha256": "dd90587a18cf1c4759d6fed51cd93f1d0a0c8b042d71c8f67f6a681f30e0d81e",
+   "clause_count": 3,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananasInBinThreeTotalTask-review-v1.json"
+  },
+  "BananasInCrateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananasInCrateTask-completion-v1.md",
+   "sha256": "33ac777b6ad1a0fb4c776a8ecfbbd8a7bf75d2a7c732d8847413d84ea0192400",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananasInCrateTask-review-v1.json"
+  },
+  "BananasOutOfBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BananasOutOfBinTask-completion-v1.md",
+   "sha256": "7840e82f06331b91036b3d9e89641ffd5cfb88ec76ce20c17faa229fe629c892",
+   "clause_count": 2,
+   "check_success_sha256": "421cb5a57e0ad6aaae5aebfb1962fe9e3b9f5d486c68f764c0f270c133c97a51",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BananasOutOfBinTask-review-v1.json"
+  },
+  "BigPumpkinInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BigPumpkinInBinTask-completion-v1.md",
+   "sha256": "4599b808f3fff541b85c1f6071d230c638e0a2e77353e8f865b9a78bda884a58",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BigPumpkinInBinTask-review-v1.json"
+  },
+  "BlackItemsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BlackItemsInBinTask-completion-v1.md",
+   "sha256": "35148d06ca1d9126a3e73433ec83d509b12fb82b4e08134ea3596c94123e4c38",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BlackItemsInBinTask-review-v1.json"
+  },
+  "BlockStackingOrderAgnosticTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BlockStackingOrderAgnosticTask-completion-v1.md",
+   "sha256": "0e926de4992c27b500ee32e090ec55949a33d9b4cc47db85a5e4cc43f2e8d0dc",
+   "clause_count": 1,
+   "check_success_sha256": "1e9ac9a24db0e580ea6ab4e16ff4f5d87aece7894ab21ecaf125d6603fe2bf92",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/predicate_logic.py:check_stacked, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BlockStackingOrderAgnosticTask-review-v1.json"
+  },
+  "BlockStackingSpecifiedOrderTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BlockStackingSpecifiedOrderTask-completion-v1.md",
+   "sha256": "6f4ba3f765c172435affa5b0be08522ff5041ce474a82a76ba876a791b7c4a8a",
+   "clause_count": 1,
+   "check_success_sha256": "1e9ac9a24db0e580ea6ab4e16ff4f5d87aece7894ab21ecaf125d6603fe2bf92",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/predicate_logic.py:check_stacked, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BlockStackingSpecifiedOrderTask-review-v1.json"
+  },
+  "BlocksInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BlocksInBinTask-completion-v1.md",
+   "sha256": "61e64da7092f9c5a70572d3e1d994101c5e29dbaa889226f1671c6003070af8f",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BlocksInBinTask-review-v1.json"
+  },
+  "BowlInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BowlInBinTask-completion-v1.md",
+   "sha256": "13bcc54bcb3b38da19f072243b8b87152431dc6c15de261243f2f41d17c04204",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BowlInBinTask-review-v1.json"
+  },
+  "BowlStackingLeftOnRightTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BowlStackingLeftOnRightTask-completion-v1.md",
+   "sha256": "cdde2025e6c9fee029346a86b5ae80d1b5637bb899d1d41becc120dc47c2554e",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BowlStackingLeftOnRightTask-review-v1.json"
+  },
+  "BowlStackingRightOnLeftTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/BowlStackingRightOnLeftTask-completion-v1.md",
+   "sha256": "42a602d7034568d66a866ac1bb85f0482c8448a384d35ff2526a88649c6a34ed",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/BowlStackingRightOnLeftTask-review-v1.json"
+  },
+  "ButterAboveRaisinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ButterAboveRaisinTask-completion-v1.md",
+   "sha256": "2a36231ac56e79aa3a0001f866d2665d13cd528774cd5e03fdf15af6d898604b",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ButterAboveRaisinTask-review-v1.json"
+  },
+  "CannedFoodInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CannedFoodInBinTask-completion-v1.md",
+   "sha256": "2f39532c61e34bbb772e980e60b883de63e12c5848d03bab9c85dbae7e448509",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CannedFoodInBinTask-review-v1.json"
+  },
+  "ClampInRightBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ClampInRightBinTask-completion-v1.md",
+   "sha256": "9ccd1ff7de5ddb08c26bc19f3629bef88099caea03d1efb176a28af5a39d9b98",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ClampInRightBinTask-review-v1.json"
+  },
+  "CleanUpToysTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CleanUpToysTask-completion-v1.md",
+   "sha256": "f4c413b7cf20f0e39cc068eccdb3880219b8db23e01ed4bf47e485a998cac991",
+   "clause_count": 3,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CleanUpToysTask-review-v1.json"
+  },
+  "ClearOrganicObjectsTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ClearOrganicObjectsTask-completion-v1.md",
+   "sha256": "7540b029f43bdff3eb3390b2f525aa4b1d850a9d7e109a5db1c68467680c224f",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ClearOrganicObjectsTask-review-v1.json"
+  },
+  "ClutterPlasticTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ClutterPlasticTask-completion-v1.md",
+   "sha256": "8d7532eb50bd29ccb9857600a31bcfedbc78e9a74cbdfe12a5e65e26e881cf79",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ClutterPlasticTask-review-v1.json"
+  },
+  "ClutterPumpkinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ClutterPumpkinTask-completion-v1.md",
+   "sha256": "088d5b1267416e121ec41fe9cb83db6d06593309408529db2c2dd79e90d78d19",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ClutterPumpkinTask-review-v1.json"
+  },
+  "CoffeePotInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CoffeePotInBinTask-completion-v1.md",
+   "sha256": "bc19b8dd3340bfaca7733df3b2a0fd5e2483c6fc0bfa0621555331f355c283d1",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CoffeePotInBinTask-review-v1.json"
+  },
+  "CondimentsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CondimentsInBinTask-completion-v1.md",
+   "sha256": "eb08b26c97b5cdcbd18c4cc8efa54f97c9ae16e4bb12a527f2ddae53faea0c3f",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CondimentsInBinTask-review-v1.json"
+  },
+  "CookingClearPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CookingClearPlateTask-completion-v1.md",
+   "sha256": "72992c776a25f88e54d921f8c93d48ce5053b7ddad4058dae1ea0a4ed2d8937a",
+   "clause_count": 2,
+   "check_success_sha256": "421cb5a57e0ad6aaae5aebfb1962fe9e3b9f5d486c68f764c0f270c133c97a51",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CookingClearPlateTask-review-v1.json"
+  },
+  "CookingPickPastaToolTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CookingPickPastaToolTask-completion-v1.md",
+   "sha256": "970ec790bb4286fd7895f15255c4227735dd182c7bd1d5955e112a8aa7e23138",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CookingPickPastaToolTask-review-v1.json"
+  },
+  "CubesAndBlocksInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/CubesAndBlocksInBinTask-completion-v1.md",
+   "sha256": "d425fe8dcd920374a66fdcfc874a59223980d7299d6695c6725e921e55d35216",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/CubesAndBlocksInBinTask-review-v1.json"
+  },
+  "DishesInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/DishesInBinTask-completion-v1.md",
+   "sha256": "656e133186cb55e956563c3f7e30f57bb84f97e714af408a520a49867f77a025",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/DishesInBinTask-review-v1.json"
+  },
+  "ElectronicsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ElectronicsInBinTask-completion-v1.md",
+   "sha256": "3114c7d0df9cf1eaf8f69baa43c5028576a38921745e4c673153f9dc10caadc4",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ElectronicsInBinTask-review-v1.json"
+  },
+  "FoodPacking1BoxesTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking1BoxesTask-completion-v1.md",
+   "sha256": "fe6448e5b30f5b50948916144383580b27f29ff22b53887690a4f37435b14da5",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking1BoxesTask-review-v1.json"
+  },
+  "FoodPacking1CansTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking1CansTask-completion-v1.md",
+   "sha256": "fbde8fab83a5e3272c9fc46ad81750694936c2bc23a7ecf96a362ec8c143dff9",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking1CansTask-review-v1.json"
+  },
+  "FoodPacking2BoxesTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking2BoxesTask-completion-v1.md",
+   "sha256": "fe6448e5b30f5b50948916144383580b27f29ff22b53887690a4f37435b14da5",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking2BoxesTask-review-v1.json"
+  },
+  "FoodPacking2CansTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking2CansTask-completion-v1.md",
+   "sha256": "fbde8fab83a5e3272c9fc46ad81750694936c2bc23a7ecf96a362ec8c143dff9",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking2CansTask-review-v1.json"
+  },
+  "FoodPacking3BoxesTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking3BoxesTask-completion-v1.md",
+   "sha256": "fe6448e5b30f5b50948916144383580b27f29ff22b53887690a4f37435b14da5",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking3BoxesTask-review-v1.json"
+  },
+  "FoodPacking3CansTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPacking3CansTask-completion-v1.md",
+   "sha256": "fbde8fab83a5e3272c9fc46ad81750694936c2bc23a7ecf96a362ec8c143dff9",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPacking3CansTask-review-v1.json"
+  },
+  "FoodPackingByColorTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FoodPackingByColorTask-completion-v1.md",
+   "sha256": "25448b17955440c098b0afb9ca3a93f0d14b4aad3c0e55ee09a0ba0444eba86c",
+   "clause_count": 2,
+   "check_success_sha256": "1cb503c3e3c13e73d42cbb01e702ded630bdf87c16214017dff59448467cd6e7",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_groups_in_containers, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FoodPackingByColorTask-review-v1.json"
+  },
+  "FruitsGreenLimesOnPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsGreenLimesOnPlateTask-completion-v1.md",
+   "sha256": "905003d143e7a5e83bddf5f0a4323458082299b2375831a5591e40f2ec803b65",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsGreenLimesOnPlateTask-review-v1.json"
+  },
+  "FruitsMovingOrangeOrLimeTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsMovingOrangeOrLimeTask-completion-v1.md",
+   "sha256": "b582346261b03d66ca38c0cca46a52f30df143f37802492cf2b8f9b5987fd3c4",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsMovingOrangeOrLimeTask-review-v1.json"
+  },
+  "FruitsMovingTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsMovingTask-completion-v1.md",
+   "sha256": "726dc851bd16f283d284968abf18ebdd61f22d7bdc4cd871313d48f763dfb9af",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsMovingTask-review-v1.json"
+  },
+  "FruitsOnPlate3Task": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsOnPlate3Task-completion-v1.md",
+   "sha256": "444693348ef77b3e910667cc486fe520173a7244363dfb74e88079ce95dae883",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsOnPlate3Task-review-v1.json"
+  },
+  "FruitsOnPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsOnPlateTask-completion-v1.md",
+   "sha256": "39547078b43d02284c1efa562b424bbb3369e5b2c83b7d0b1e33400c53d77d5e",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsOnPlateTask-review-v1.json"
+  },
+  "FruitsOnionTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsOnionTask-completion-v1.md",
+   "sha256": "6a62ea8942fd68980f203061d7575a4d738ddef82e56d759c5dbcc5ade1ccc71",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsOnionTask-review-v1.json"
+  },
+  "FruitsOnionToPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsOnionToPlateTask-completion-v1.md",
+   "sha256": "4f4c4ccc6eebb29e4159dccf7693835b9bc58efe5beb6ccdf45a370cf714ec32",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsOnionToPlateTask-review-v1.json"
+  },
+  "FruitsOrangesOnPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/FruitsOrangesOnPlateTask-completion-v1.md",
+   "sha256": "4534b401a325a83e17b6f6438d2e91c6ee4b5335044786aec03fbcc04377df52",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/FruitsOrangesOnPlateTask-review-v1.json"
+  },
+  "GrabABagelTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/GrabABagelTask-completion-v1.md",
+   "sha256": "87daea72249d40692db33001716a471390e7187a95e238e52720f9d01e76d76f",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/GrabABagelTask-review-v1.json"
+  },
+  "GrabAFruitTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/GrabAFruitTask-completion-v1.md",
+   "sha256": "b16bc64e7327b8ea5dfdd55e24f6113a4754ad61e437f17f872e33fb3eb49605",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/GrabAFruitTask-review-v1.json"
+  },
+  "GreenSpoonsInPotTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/GreenSpoonsInPotTask-completion-v1.md",
+   "sha256": "2fda2f5b774f817a955691185efb8857fc041e25a3f1fac6b3ca1d4056d81c7d",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/GreenSpoonsInPotTask-review-v1.json"
+  },
+  "HammersInLeftBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/HammersInLeftBinTask-completion-v1.md",
+   "sha256": "d93818bc285722271a7138ade4832535032e89fd92675010db2f4edcca2580e3",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/HammersInLeftBinTask-review-v1.json"
+  },
+  "JugsOnShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/JugsOnShelfTask-completion-v1.md",
+   "sha256": "5ff444775bc73456bdc96bd64516b95a7e08cf7a9d98bd9dce8e85c3f429c09e",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/JugsOnShelfTask-review-v1.json"
+  },
+  "KeyboardOutOfBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/KeyboardOutOfBinTask-completion-v1.md",
+   "sha256": "15ba8354e50f6a529a9fd1d101b5f1c9473a81320353dd91dd59538c51fee571",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/KeyboardOutOfBinTask-review-v1.json"
+  },
+  "LargerObjectRaisinBoxInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/LargerObjectRaisinBoxInBinTask-completion-v1.md",
+   "sha256": "35fc57896e260f1297a18a79717c5c4b4b6dc55fa4aa45f9e8eafeb4199ae64b",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/LargerObjectRaisinBoxInBinTask-review-v1.json"
+  },
+  "MarkerInMugTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MarkerInMugTask-completion-v1.md",
+   "sha256": "c3369bcb3c191f92f36c0db8764cb68e228b4819ce6fb88594bf33081308b4b3",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MarkerInMugTask-review-v1.json"
+  },
+  "MouseOnKeyboardTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MouseOnKeyboardTask-completion-v1.md",
+   "sha256": "29f099288096d906abee947629bbafa20045e997c6feec2b5c4f9afa6fdd7765",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MouseOnKeyboardTask-review-v1.json"
+  },
+  "MoveBananaToBagelPlateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MoveBananaToBagelPlateTask-completion-v1.md",
+   "sha256": "f8cf6a83cde4e30ce12de9c399e29668fb17ab23d5ceeee80cb7cfb5f543c11f",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MoveBananaToBagelPlateTask-review-v1.json"
+  },
+  "MustardAboveRaisinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MustardAboveRaisinTask-completion-v1.md",
+   "sha256": "e0fa5f16cba5b28adaecc70d4ddd892cd5bc85da89875e3293944468ac44b162",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MustardAboveRaisinTask-review-v1.json"
+  },
+  "MustardInLeftBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MustardInLeftBinTask-completion-v1.md",
+   "sha256": "ae8ebba7444a012fd59b9c76fda209cf6c8eae9e1ac8863d43b5e3f548cf7a9e",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MustardInLeftBinTask-review-v1.json"
+  },
+  "MustardInRightBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/MustardInRightBinTask-completion-v1.md",
+   "sha256": "fe469f23c72e99d9b61bc8f1f3b839649277a3f7d4aa73beb52d74bacb3ea611",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/MustardInRightBinTask-review-v1.json"
+  },
+  "NonHammerToolsInRightBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/NonHammerToolsInRightBinTask-completion-v1.md",
+   "sha256": "c41de468672e74f1dfb591eb6a60074293c40b2b9b5ba2ee603de889ca0d2b31",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/NonHammerToolsInRightBinTask-review-v1.json"
+  },
+  "OneBottleInSquarePailTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/OneBottleInSquarePailTask-completion-v1.md",
+   "sha256": "c1e8027783722017415ac7f4ef8fcb0c7c731d0dc2bbb9a040e2c24b407c2246",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/OneBottleInSquarePailTask-review-v1.json"
+  },
+  "OneBottleOnShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/OneBottleOnShelfTask-completion-v1.md",
+   "sha256": "93441413ebc7df79348737ea68df0c55636be9099afe086ee0449e779ca3c68d",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/OneBottleOnShelfTask-review-v1.json"
+  },
+  "PhoneOrRemoteInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PhoneOrRemoteInBinTask-completion-v1.md",
+   "sha256": "37281cac3f434269f72f3b7d8da90dae07059361ab10b8be20f2e9eb9670e865",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PhoneOrRemoteInBinTask-review-v1.json"
+  },
+  "PickDrillTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PickDrillTask-completion-v1.md",
+   "sha256": "f852b2c565356018987dfd89bf43756ac9f95f33bba7e1f5305bd2c28ba5e1cf",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PickDrillTask-review-v1.json"
+  },
+  "PickGlassesTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PickGlassesTask-completion-v1.md",
+   "sha256": "792f523666fb509ff4ede7cbb97f20a593a5f4c1ff334c4ae76d9b57bc49492c",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PickGlassesTask-review-v1.json"
+  },
+  "PickOrangeObjectTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PickOrangeObjectTask-completion-v1.md",
+   "sha256": "77b51ea56094c1aba112f20ac9a602921fbe72abee984362939750f211f0102b",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PickOrangeObjectTask-review-v1.json"
+  },
+  "PickUpBluePitcherTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PickUpBluePitcherTask-completion-v1.md",
+   "sha256": "bb1cf617facde7687966310565cd66cee16709bdba70378c05abf551327af6cb",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PickUpBluePitcherTask-review-v1.json"
+  },
+  "PickUpGreenObjectTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PickUpGreenObjectTask-completion-v1.md",
+   "sha256": "e9297389485dc5a08a8174c9d490319c9d59b3504a385ae2dece255c9c63fec5",
+   "clause_count": 2,
+   "check_success_sha256": "573c2f3e06f07274f3922660206381886370cb5848a8d5d72931849e82dbd9a3",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_picked_up, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PickUpGreenObjectTask-review-v1.json"
+  },
+  "PinkSpoonInPotTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PinkSpoonInPotTask-completion-v1.md",
+   "sha256": "6684a71099d53112d24f89c2e019765847a202d7c83ac763ffa13965fa61833b",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PinkSpoonInPotTask-review-v1.json"
+  },
+  "PlasticBottlesInSquarePailTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PlasticBottlesInSquarePailTask-completion-v1.md",
+   "sha256": "6561cc3336bd330cdbf4b0ed8765f3e962356e716f363d1ada4e6f017aeb0545",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PlasticBottlesInSquarePailTask-review-v1.json"
+  },
+  "PutBowlOnShelfTopTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PutBowlOnShelfTopTask-completion-v1.md",
+   "sha256": "8d03baca5b8c73b02644bff31b942b8586ee69bfdbcf77c9c2074b96cf932dc1",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PutBowlOnShelfTopTask-review-v1.json"
+  },
+  "PutMugsOnShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PutMugsOnShelfTask-completion-v1.md",
+   "sha256": "0fff9b7e304f0a354eae592dfcf294cb27a0fac9499ec41016ee18bc1b8c9030",
+   "clause_count": 2,
+   "check_success_sha256": "3baa3371c150ffbd43eb3a45a55d54dedab1c915058948560ecc312a53ce7981",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_top, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PutMugsOnShelfTask-review-v1.json"
+  },
+  "PutTwoMugsOnShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/PutTwoMugsOnShelfTask-completion-v1.md",
+   "sha256": "d42fbd12dee3a53c9f082cb078bcc94d69c82fc6b6c727e7d21cfd30850e82d7",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/PutTwoMugsOnShelfTask-review-v1.json"
+  },
+  "RecycleCartonTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RecycleCartonTask-completion-v1.md",
+   "sha256": "82a6678ba602ffc68beab4e57c32521671b9e3a27de53bef4c0a42ea3e8a0273",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RecycleCartonTask-review-v1.json"
+  },
+  "RecycleCartonsOnBoxTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RecycleCartonsOnBoxTask-completion-v1.md",
+   "sha256": "2eda6d92ea185b3a4d6d379f2e70e8a441d5f25e1390b1e259253b35d585eb2d",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RecycleCartonsOnBoxTask-review-v1.json"
+  },
+  "RecycleCartonsVerticalCrateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RecycleCartonsVerticalCrateTask-completion-v1.md",
+   "sha256": "c80e41d819b059ada350bc6c4babc2c915af7c72c9535548e572f5b5c53dfd48",
+   "clause_count": 2,
+   "check_success_sha256": "88bd4e3ec26980a9a9ac5e956e8de66466bfe7fa7060ae7d19989239a3b04125",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_inside, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RecycleCartonsVerticalCrateTask-review-v1.json"
+  },
+  "RedDishesInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RedDishesInBinTask-completion-v1.md",
+   "sha256": "638d1be55fcd54d2cf03fe1b3443ca0a71ac78657398db0e6587aac6ab084423",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RedDishesInBinTask-review-v1.json"
+  },
+  "RedItemsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RedItemsInBinTask-completion-v1.md",
+   "sha256": "c5c6fb6486ce6894eb9bf69185121021625bc0354b4464f7fc20d90c016acfab",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RedItemsInBinTask-review-v1.json"
+  },
+  "ReorientAllMugsTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ReorientAllMugsTask-completion-v1.md",
+   "sha256": "1da40f68cb597a7dce472a7d6c0196be057bcdb1c101ae71a96746511e92e3b0",
+   "clause_count": 2,
+   "check_success_sha256": "7e95b9b5f350cfd864ae095e76e476deb842d2e445b7720df4299a680c3352c8",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_upright, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ReorientAllMugsTask-review-v1.json"
+  },
+  "ReorientJugTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ReorientJugTask-completion-v1.md",
+   "sha256": "ce49badad11247a7f18cc6821f99d565cda57850ce8cdbceb34a73965013b1ba",
+   "clause_count": 2,
+   "check_success_sha256": "7e95b9b5f350cfd864ae095e76e476deb842d2e445b7720df4299a680c3352c8",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_upright, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ReorientJugTask-review-v1.json"
+  },
+  "ReorientRedMugTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ReorientRedMugTask-completion-v1.md",
+   "sha256": "c0fa4def3e72226c282328a5262b0f5567c1a58f7be2cf67523727271a4d175c",
+   "clause_count": 2,
+   "check_success_sha256": "7e95b9b5f350cfd864ae095e76e476deb842d2e445b7720df4299a680c3352c8",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_upright, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ReorientRedMugTask-review-v1.json"
+  },
+  "ReorientWhiteMugsTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ReorientWhiteMugsTask-completion-v1.md",
+   "sha256": "199098fbea8a3fa55dc23b2f3e8a88c6522800c4c7bad67aab5b0cfe94e2fd62",
+   "clause_count": 2,
+   "check_success_sha256": "7e95b9b5f350cfd864ae095e76e476deb842d2e445b7720df4299a680c3352c8",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_upright, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ReorientWhiteMugsTask-review-v1.json"
+  },
+  "RubiksCubeAndBananaTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeAndBananaTask-completion-v1.md",
+   "sha256": "dce11ddd6060362ade89c5915f5201a7493cb2ef9b97fce81b067a700d1800a9",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeAndBananaTask-review-v1.json"
+  },
+  "RubiksCubeBehindBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeBehindBowlTask-completion-v1.md",
+   "sha256": "27b7963129e3e6b82ed8bb1bdc33a2749db6de1eb02e926d83a74ba78164e4d1",
+   "clause_count": 2,
+   "check_success_sha256": "4a73b0d54d8ec48f3ab2dcd2cb386997bb6a16f1354071a97fc4e3d12aa6a9ea",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_behind, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeBehindBowlTask-review-v1.json"
+  },
+  "RubiksCubeInFrontOfBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeInFrontOfBowlTask-completion-v1.md",
+   "sha256": "e61e521005cbc0d3c61f38e4cb8b29c33dc56875762dfc0b98b9a3ef2386b891",
+   "clause_count": 2,
+   "check_success_sha256": "ee7b8dd6585f7b5cc26cff9b632589c58b884e7bed5d17ff38a6edd4760b1fab",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_front_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeInFrontOfBowlTask-review-v1.json"
+  },
+  "RubiksCubeLeftOfBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeLeftOfBowlTask-completion-v1.md",
+   "sha256": "3003f8f2ee3caab9ab87435015946dde4ba48c23277f81c94460ec2afb42f01e",
+   "clause_count": 2,
+   "check_success_sha256": "268772bdbf4b18e9a2d333ee1734e6d87d1ed7a6ac759550e4f93ca3efbc4ef6",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_left_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeLeftOfBowlTask-review-v1.json"
+  },
+  "RubiksCubeOrBananaTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeOrBananaTask-completion-v1.md",
+   "sha256": "5ffac13893c9285429829159a4e6cbe726f92f3bde540469b5a9e29f7fc4df99",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeOrBananaTask-review-v1.json"
+  },
+  "RubiksCubeRightOfBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeRightOfBowlTask-completion-v1.md",
+   "sha256": "0cacbe131c9c634e4dd74bfc1ecfbe485a570c2884d51103c2c880aee4c1cf21",
+   "clause_count": 2,
+   "check_success_sha256": "193136247f1a7e5d7d0c56db9633b11f6a96cc5aab4c20032ccac40fc6969528",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_right_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeRightOfBowlTask-review-v1.json"
+  },
+  "RubiksCubeTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeTask-completion-v1.md",
+   "sha256": "c70952decbeb4ad8bbbfcad76095dca54a5d2bd01eea81a5296f2f9dca369862",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeTask-review-v1.json"
+  },
+  "RubiksCubeThenBananaTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubeThenBananaTask-completion-v1.md",
+   "sha256": "6457f23e5dd28688966dc469be62b26f61c2ade3d93d6017655fad3c298b33fd",
+   "clause_count": 3,
+   "check_success_sha256": "d88f403d9785568442194fa9765de2345eef65f15c7ba00f32953ae661772df0",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:objects_placed_in_container_in_order, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubeThenBananaTask-review-v1.json"
+  },
+  "RubiksCubesInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/RubiksCubesInBinTask-completion-v1.md",
+   "sha256": "0a5cd4858c13d2bda8f2071f1a8291c6a171c54ad3067213dd71546ebe1f0b62",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/RubiksCubesInBinTask-review-v1.json"
+  },
+  "SauceBottlesCrateTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SauceBottlesCrateTask-completion-v1.md",
+   "sha256": "6827536c69d4dce988f42843ad97a9456d862d9756b625aea9a39e8a6175622c",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SauceBottlesCrateTask-review-v1.json"
+  },
+  "SmallPumpkinInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SmallPumpkinInBinTask-completion-v1.md",
+   "sha256": "ee21d5584044d2da557ebf858dbeb26dcf7764efbea02fdd8c04b064bbfaf20f",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SmallPumpkinInBinTask-review-v1.json"
+  },
+  "SmallerObjectButterInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SmallerObjectButterInBinTask-completion-v1.md",
+   "sha256": "20918701845c8a08dc375c9a29e53771a6466c6ebc7e80f8ea65a07eaaf12a7c",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SmallerObjectButterInBinTask-review-v1.json"
+  },
+  "SmartphoneInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SmartphoneInBinTask-completion-v1.md",
+   "sha256": "5c7de096c001c60957e4343ac5257be93533ef7bd017706bbe4980feeb495f1f",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SmartphoneInBinTask-review-v1.json"
+  },
+  "SpoonInMugTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SpoonInMugTask-completion-v1.md",
+   "sha256": "7822e4af6f627918d69e315e8d26cc37acfc87ffb0e5d0cf8041974e47d15a88",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SpoonInMugTask-review-v1.json"
+  },
+  "SpoonsInPotTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/SpoonsInPotTask-completion-v1.md",
+   "sha256": "1a00b1f4caf104fb4b444cb341f8cd2bd38a9e8e2a0eb0f3cf5167703856f85c",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/SpoonsInPotTask-review-v1.json"
+  },
+  "Stack3RubiksCubeTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/Stack3RubiksCubeTask-completion-v1.md",
+   "sha256": "bdce500ea762802628c960e3e15756c6f5c33d02f65a185165b12f6e462bf296",
+   "clause_count": 1,
+   "check_success_sha256": "1e9ac9a24db0e580ea6ab4e16ff4f5d87aece7894ab21ecaf125d6603fe2bf92",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/predicate_logic.py:check_stacked, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/Stack3RubiksCubeTask-review-v1.json"
+  },
+  "StackWhiteMugsTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/StackWhiteMugsTask-completion-v1.md",
+   "sha256": "d7dbf13101b1b0d5a46a5e177b8195857c6c4336044553c35c5da0017c82e988",
+   "clause_count": 1,
+   "check_success_sha256": "1e9ac9a24db0e580ea6ab4e16ff4f5d87aece7894ab21ecaf125d6603fe2bf92",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/predicate_logic.py:check_stacked, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/StackWhiteMugsTask-review-v1.json"
+  },
+  "StackYellowOnRedTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/StackYellowOnRedTask-completion-v1.md",
+   "sha256": "61893c2fda925c69d3a079297e6b630a19748aad65d1384e554a20923296977e",
+   "clause_count": 1,
+   "check_success_sha256": "1e9ac9a24db0e580ea6ab4e16ff4f5d87aece7894ab21ecaf125d6603fe2bf92",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/predicate_logic.py:check_stacked, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/StackYellowOnRedTask-review-v1.json"
+  },
+  "TakeMeasuringSpoonOutTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/TakeMeasuringSpoonOutTask-completion-v1.md",
+   "sha256": "e7495c31bf525bbf5f796e3a70b1fcb802621066db948eede886d9f1362ccb87",
+   "clause_count": 2,
+   "check_success_sha256": "421cb5a57e0ad6aaae5aebfb1962fe9e3b9f5d486c68f764c0f270c133c97a51",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/TakeMeasuringSpoonOutTask-review-v1.json"
+  },
+  "TakeMugsOffOfShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/TakeMugsOffOfShelfTask-completion-v1.md",
+   "sha256": "244ff972ceca17639395d28c04bbdb4deae5f2f74a118eb26e71d04820dfc164",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/TakeMugsOffOfShelfTask-review-v1.json"
+  },
+  "TakeSpatulaOffShelfTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/TakeSpatulaOffShelfTask-completion-v1.md",
+   "sha256": "9f5d345e653aebd563e05557a9f4b86c12885be32f61f2c037df81ea9652fbbb",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/TakeSpatulaOffShelfTask-review-v1.json"
+  },
+  "ThrowAwayAppleTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ThrowAwayAppleTask-completion-v1.md",
+   "sha256": "281a1ae0e9e427e72f8821f7614f141dce3d3b58912a373d8de9a9887f5f4bc8",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ThrowAwayAppleTask-review-v1.json"
+  },
+  "ThrowAwaySnacksTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ThrowAwaySnacksTask-completion-v1.md",
+   "sha256": "498cee09e1f2cb3fcd1ed947be53bf8f1bc556404a5eb8d060a3084d204ba8e8",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ThrowAwaySnacksTask-review-v1.json"
+  },
+  "ToolOrganizationBothTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToolOrganizationBothTask-completion-v1.md",
+   "sha256": "ead2587630e8edeae72c678fef9a3c3942472a0ce9b0d94e9ea129517290c3c2",
+   "clause_count": 3,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToolOrganizationBothTask-review-v1.json"
+  },
+  "ToolOrganizationTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToolOrganizationTask-completion-v1.md",
+   "sha256": "d93818bc285722271a7138ade4832535032e89fd92675010db2f4edcca2580e3",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToolOrganizationTask-review-v1.json"
+  },
+  "ToolsPickingAllHammersTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToolsPickingAllHammersTask-completion-v1.md",
+   "sha256": "2c79fe102ca400b3c69f7a86198cc6c332d0a24fddfe6f9a20258a79c077effc",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToolsPickingAllHammersTask-review-v1.json"
+  },
+  "ToolsPickingDrillTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToolsPickingDrillTask-completion-v1.md",
+   "sha256": "5113c9d141aa29e53092f253e9432c63834a0b399b8a72f78b2403349a9ae04f",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToolsPickingDrillTask-review-v1.json"
+  },
+  "ToolsPickingHammerTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToolsPickingHammerTask-completion-v1.md",
+   "sha256": "be2df426be0cc4d5d2435be3efda7cdece1691bb9690ef768989d9d8c4a89abd",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToolsPickingHammerTask-review-v1.json"
+  },
+  "ToyInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/ToyInBinTask-completion-v1.md",
+   "sha256": "ed81894343a2476c1caa1e5a8f8568c3a040d7b20525ed2dd6ef695c072b3074",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/ToyInBinTask-review-v1.json"
+  },
+  "UnstackRubiksCubeTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/UnstackRubiksCubeTask-completion-v1.md",
+   "sha256": "cdf0f2b0aa8bbb0354959350dd776f02582e5b202ae2c139ac2bb1a8fc89e46d",
+   "clause_count": 2,
+   "check_success_sha256": "53cbeced69142d8339faf10f6c483c86d1b0b236b7caf3f4f4daca838d89281a",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_outside_of_and_on_surface, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/UnstackRubiksCubeTask-review-v1.json"
+  },
+  "UtensilsInMugTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/UtensilsInMugTask-completion-v1.md",
+   "sha256": "132e8398ce4847bf724b4480a83bb291e572df01ddb3785d7c4dfdcb11fa6151",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/UtensilsInMugTask-review-v1.json"
+  },
+  "WhiteMugInCenterOfTableTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/WhiteMugInCenterOfTableTask-completion-v1.md",
+   "sha256": "dba74529ab4236eee38b3ad9c1885baf71b03b08197e74608b1fad35e7aa8891",
+   "clause_count": 2,
+   "check_success_sha256": "dd3918677f37c1444dee78bb3e34152a5cf67e195816120f1fa32e3d1ea68f68",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_on_center, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/WhiteMugInCenterOfTableTask-review-v1.json"
+  },
+  "WhiteMugsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/WhiteMugsInBinTask-completion-v1.md",
+   "sha256": "934b65f0d178c4531c9067b3d869d569ef0bc1595863078516bc083c5a4ee125",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/WhiteMugsInBinTask-review-v1.json"
+  },
+  "WoodSpatulaToBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/WoodSpatulaToBowlTask-completion-v1.md",
+   "sha256": "82abde1de35911fedee5631f909a5d7977a54367c8af8a0dcc15f7bf6a6b64c9",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/WoodSpatulaToBowlTask-review-v1.json"
+  },
+  "YellowAndWhiteObjectsInBinTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/YellowAndWhiteObjectsInBinTask-completion-v1.md",
+   "sha256": "20816018019d36530c9a0e8eeeeada9af623dc965b02eb3c72513e76e527828a",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/YellowAndWhiteObjectsInBinTask-review-v1.json"
+  },
+  "YogurtInBowlTask": {
+   "path": "ora/policy/environments/robolab/task-contracts/YogurtInBowlTask-completion-v1.md",
+   "sha256": "9445dde6d6b97600f08a53db13516be347fbfeedc68afe01d1db23e1b585f150",
+   "clause_count": 2,
+   "check_success_sha256": "cde983d26a1071a6ad4b211df35610768f92658af527681c4581ceee7ac54666",
+   "check_success_sha256_method": "SHA256 of exact UTF-8 AST FunctionDef lineno..end_lineno span of robolab/core/task/conditionals.py:object_in_container, preserving trailing newline.",
+   "verified_revisions": [
+    "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+   ],
+   "verdict": "reviewed_semantic_projection_with_explicit_scoring_gaps",
+   "semantic_review": "ora/policy/environments/robolab/task-contracts/reviews/YogurtInBowlTask-review-v1.json"
+  }
+ },
+ "pending_review": {}
+}

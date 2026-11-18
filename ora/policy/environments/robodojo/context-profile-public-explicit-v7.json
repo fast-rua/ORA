@@ -1,0 +1,29 @@
+{
+  "schema": "ora.environment-prompt-profile.v1",
+  "profile_id": "robodojo_public_explicit_v7",
+  "default": false,
+  "match": {
+    "environment_id": "robodojo",
+    "embodiment_id": "arx_x5",
+    "robot_models": [
+      "ARX_X5",
+      "ARX_X5"
+    ],
+    "controller": "CUROBO_IK_JOINT_INTERPOLATION",
+    "public_cameras": [
+      "head",
+      "left_wrist",
+      "right_wrist"
+    ]
+  },
+  "sources": {
+    "environment_policy": "ora/policy/environments/robodojo/boundary-v3.md",
+    "embodiment_policy": "ora/policy/embodiments/arx-x5/manual-public-geometry-v5.md"
+  },
+  "compiled_embodiment": {
+    "descriptor": "ora/policy/embodiments/arx-x5/descriptor-public-geometry-v6.json",
+    "review": "ora/policy/embodiments/arx-x5/wording-review-public-geometry-v5.json",
+    "card_sha256": "9cf4670748efefb45602c4729de5034f931773a28fde1832b2168b8a03ea31c2",
+    "runtime_verification": "loaded_robot_geometry_before_policy_v1"
+  }
+}

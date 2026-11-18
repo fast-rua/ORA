@@ -2,10 +2,12 @@
 
 Robot facts: RoboDojo Assets a14409d7fae673c00499e01fd88b4457df6351b1,
 Assets/Robots/x5/robot_config.yml (SHA-256
-9de4f63b84c0f730623c09af7a2d530d84973981397280b6e4b626b50ba6f1c9).
+9de4f63b84c0f730623c09af7a2d530d84973981397280b6e4b626b50ba6f1c9), the same
+bytes at the pinned Assets 1127bda94f172d757386945af3eb3a6754d1a4e6.
 The dual fixed-base composition is env_cfg/robot/dual_x5.yml in RoboDojo
-ee67a1468510da7624a089164402359f2afc72c8. Geometry here never implies
-collision-free motion, contact, retention, or a known physical jaw aperture.
+f57e1633ffed59761bc8e568cfe7530c4b33381c (unchanged since ee67a146). Geometry
+here never implies collision-free motion, contact, retention, or a known
+physical jaw aperture.
 """
 
 from __future__ import annotations

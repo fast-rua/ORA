@@ -3,7 +3,7 @@
 Qualification only (CPU-physics lane, 2026-10-04). No policy, Provider or
 ToolSurface reaches this module, and no worker entry point imports it, so it is
 outside the worker kernel and its edits stale no card or gate.
-``ora.orchestrator.robodojo_physics_probe`` builds the worker
+``ora.orchestrator.backends.robodojo.physics_probe`` builds the worker
 configuration from the default runtime of a task on one leased slot, starts
 this module with the RoboDojo interpreter and judges what it records; see that
 module for the operator command.
@@ -26,7 +26,7 @@ Contract:
   This is qualification evidence and never policy-visible.
 * ``--in-place-restart`` additionally restarts round 1 in place and reads each
   rigid object's gravity and collision flags before and after: the CPU
-  in-place restart hazard of ``robodojo_physics_attestation``. Report only.
+  in-place restart hazard of ``backends.robodojo.physics_attestation``. Report only.
 * ``--probe-only-native-action-limit`` admits an unadmitted task into this
   process only (the two fluid scenes used it before their 2026-10-04
   admission), with its upstream ``step_lim``; the Runtime's admission table is
@@ -434,8 +434,13 @@ def run_worker(config: Mapping[str, Any], output: Path, *, ticks: int, sample_ev
         report["probe_only_native_action_limit"] = admission
         try:
             session = (session_factory or _session)(config=config, output_root=Path(config["output_root"]))
-            report.update(run_probe(session, ticks=ticks, sample_every=sample_every,
-                                    in_place_restart=in_place_restart, readers=readers))
+            from contextlib import nullcontext
+            from ora.contracts.execution_state import SCHEMA
+            scope = (session.execution_request({"schema": SCHEMA, "values": {}})
+                     if callable(getattr(session, "execution_request", None)) else nullcontext())
+            with scope:
+                report.update(run_probe(session, ticks=ticks, sample_every=sample_every,
+                                        in_place_restart=in_place_restart, readers=readers))
             report["completed"] = True
         except Exception as exc:  # noqa: BLE001 - recorded for the host report, then the plant is closed
             report.update(error=f"{type(exc).__name__}: {exc}", traceback=traceback.format_exc())

@@ -64,6 +64,18 @@ def _error_envelope(error: Exception) -> dict[str, Any]:
     return {"kind": "fault", "type": type(error).__name__, "message": str(error)}
 
 
+def _refuse_unsupported_action(session: Any, action: Mapping[str, Any]) -> None:
+    """Only RoboDojo executes joint trajectories and rate-limited gripper commands; others refuse them typed."""
+    from ora.contracts.joint_trajectory import requires_joint_trajectory_backend
+
+    if (requires_joint_trajectory_backend(action)
+            and not type(session).__module__.startswith("ora.environment.backends.robodojo.")):
+        raise EnvironmentRefusal(
+            "this environment backend executes neither follow_joint_trajectory nor a rate-limited set_gripper "
+            "(unsupported_action_for_backend)", field="action", received=action.get("action"),
+            allowed=["move_pose", "move_free_space", "set_gripper with open or close", "recover_motion", "wait"])
+
+
 def _load_config(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict) or value.get("schema") != RPC_SCHEMA:
@@ -92,7 +104,26 @@ def _build_session(config: Mapping[str, Any]) -> Any:
     if backend == "robodojo":
         from ora.environment.backends.robodojo.session import RobodojoSession
 
-        return RobodojoSession(config=config, output_root=output_root)
+        # This process ends with its session rather than waiting out Kit's teardown (session.close).
+        return RobodojoSession(config=config, output_root=output_root, exit_process_on_close=True)
+    if backend == "robodojo_play":
+        # One of ORA's own RoboDojo free-play scenes (``ora play --env robodojo``).
+        from ora.environment.backends.robodojo.play_scenes.session import RobodojoPlaySession
+
+        return RobodojoPlaySession(config=config, output_root=output_root)
+    if backend == "robolab":
+        from ora.environment.backends.robolab.session import RobolabSession
+
+        # As RoboDojo: the process ends with its session; Kit's in-process teardown can lose the card's Vulkan device.
+        return RobolabSession(config=config, output_root=output_root, exit_process_on_close=True)
+    if backend == "yam":
+        from ora.environment.backends.yam.session import YamSession
+
+        return YamSession(config=config, output_root=output_root)
+    if backend == "robocasa":
+        from ora.environment.backends.robocasa.session import RoboCasaSession
+
+        return RoboCasaSession(config=config, output_root=output_root)
     if backend == "robotwin":
         from ora.environment.backends.robotwin.session import RoboTwinLiveSession
 
@@ -120,6 +151,8 @@ def _build_session(config: Mapping[str, Any]) -> Any:
             # The reach check's other-arm screen (0059 M6); the session
             # validates the value, so it passes through uncoerced.
             reach_check_inter_arm_screen=config.get("reach_check_inter_arm_screen", False),
+            # A scene of ORA's own play scene sets; absent for every RoboTwin task.
+            play_scene_set=config.get("play_scene_set"),
         )
     if backend == "libero_pro":
         from ora.environment.backends.libero_pro.session import LiberoProSession
@@ -226,6 +259,7 @@ def _dispatch(session: Any, config: Mapping[str, Any], method: str, params: Mapp
         action = params.get("action")
         if not isinstance(action, Mapping):
             raise WorkerProtocolError("execute.action must be an object")
+        _refuse_unsupported_action(session, action)
         return session.execute(action), False
     if method == "align_plan":
         request = params.get("request")
@@ -251,6 +285,23 @@ def _dispatch(session: Any, config: Mapping[str, Any], method: str, params: Mapp
                 "environment backend does not support jaw-state measurement"
             )
         return measure(), False
+    if method == "operator_view":
+        # Operator-only pixels (a free-play Supervisor's operator view): written as a file under
+        # the run, never put into the JSON line; None when the backend has no operator camera.
+        from ora.environment.base import validate_operator_view
+
+        destination = Path(str(params.get("destination", ""))).resolve()
+        if not _inside(destination, Path(str(config["shared_root"])).resolve()):
+            raise WorkerProtocolError("operator view destination escapes the run workspace")
+        view = getattr(session, "operator_view", None)
+        result = validate_operator_view(view()) if callable(view) else None
+        if result is None:
+            return None, False
+        temporary = destination.with_name(destination.name + ".tmp")
+        temporary.write_bytes(result["png"])
+        temporary.replace(destination)
+        return {"path": str(destination), "camera": result["camera"], "width": result["width"],
+                "height": result["height"]}, False
     if method == "status":
         return session.status(), False
     if method == "is_terminal":
@@ -309,6 +360,7 @@ def serve(socket_path: Path, config_path: Path) -> int:
                         break
                     response: dict[str, Any]
                     request_id: Any = None
+                    execution = None
                     try:
                         if len(line.encode()) > MAX_MESSAGE_BYTES:
                             raise WorkerProtocolError("request exceeds size limit")
@@ -322,7 +374,13 @@ def serve(socket_path: Path, config_path: Path) -> int:
                         params = request.get("params")
                         if not isinstance(method, str) or not isinstance(params, Mapping):
                             raise WorkerProtocolError("invalid RPC request shape")
-                        result, should_close = _dispatch(session, config, method, params)
+                        request_scope = getattr(session, "execution_request", None)
+                        if callable(request_scope):
+                            execution = request_scope(request.get("execution_state"))
+                            with execution:
+                                result, should_close = _dispatch(session, config, method, params)
+                        else:
+                            result, should_close = _dispatch(session, config, method, params)
                         response = {
                             "schema": RPC_SCHEMA,
                             "session_id": session_id,
@@ -340,6 +398,8 @@ def serve(socket_path: Path, config_path: Path) -> int:
                             "ok": False,
                             "error": _error_envelope(exc),
                         }
+                    if execution is not None and execution.updates is not None:
+                        response["execution_state"] = execution.updates
                     writer.write(json.dumps(response, ensure_ascii=False, separators=(",", ":")) + "\n")
                     writer.flush()
     finally:

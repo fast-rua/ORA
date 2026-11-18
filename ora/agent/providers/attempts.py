@@ -8,7 +8,7 @@ import time
 from typing import Any, Mapping, Sequence
 
 from ora.agent.contracts import PolicySessionError
-from ora.agent.evidence.trajectory import canonical_bytes
+from ora.agent.evidence.canonical import canonical_bytes
 
 from .stream_failures import STREAM_BREAK_RETRIES
 
@@ -91,6 +91,11 @@ def _failure_evidence(
     return {**json.loads(redacted), "credentials_redacted": redacted != original}
 
 
+def _seconds_or_none(value: Any) -> float | None:
+    """A length the exception carries, as a float; None when it carries none."""
+    return float(value) if type(value) in (int, float) else None
+
+
 def record_attempt_failure(provider: Any, exc: Exception, *, body: Mapping[str, Any],
                            model_call_id: str, attempt: int, credential_index: int,
                            next_index: int | None, started: float, started_monotonic: float,
@@ -112,6 +117,20 @@ def record_attempt_failure(provider: Any, exc: Exception, *, body: Mapping[str, 
            if provider.recovery_policy != "legacy_v1" else {}),
         # Transport-phase breaks after content so far in this logical call.
         **({"stream_breaks": exc.stream_breaks} if type(getattr(exc, "stream_breaks", None)) is int else {}),
+        # first_token_deadline_v1: the attempt limit that fired, if one did, and its length.
+        **({"attempt_timeout": exc.attempt_timeout, "attempt_timeout_s": exc.attempt_timeout_s}
+           if getattr(exc, "attempt_timeout", None) in {"first_token", "stall"} else {}),
+        # first_token_deadline_v1: first-token timeouts so far in this logical call.
+        **({"first_token_timeouts": exc.first_token_timeouts}
+           if type(getattr(exc, "first_token_timeouts", None)) is int else {}),
+        # first_token_deadline_v1: attempts so far that failed before their first event, and
+        # the no-content window: an attempt that starts inside it is retried.
+        **({"no_content_failures": exc.no_content_failures,
+            "no_content_window_s": _seconds_or_none(getattr(exc, "no_content_window_s", None))}
+           if type(getattr(exc, "no_content_failures", None)) is int else {}),
+        # first_token_deadline_v1, a failure before content: the window's age when its attempt started.
+        **({"no_content_elapsed_s": exc.no_content_elapsed_s}
+           if type(getattr(exc, "no_content_elapsed_s", None)) is float else {}),
         # A gateway-reported upstream break: no partial events, yet a break.
         **({"upstream_stream_break": True} if getattr(exc, "upstream_stream_break", False) is True else {}),
         # Worker-redacted partials no longer show the echo they carried.

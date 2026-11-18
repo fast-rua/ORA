@@ -1,0 +1,17 @@
+{
+ "type": "object",
+ "description": "over_limit_guard (phase guard).",
+ "properties": {
+  "over_limit": {
+   "enum": [
+    "refuse",
+    "send_and_record"
+   ],
+   "description": "refuse: context_exhausted; send_and_record: sent with a warning record."
+  }
+ },
+ "required": [
+  "over_limit"
+ ],
+ "additionalProperties": false
+}

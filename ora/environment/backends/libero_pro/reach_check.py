@@ -14,10 +14,9 @@ Frame, units and controlled point (environment-compatibility audit):
   target: ``planned_motion._grip_target_planner_pose`` turns it into the
   ``panda_hand`` pose in the robot base frame, using the measured world poses
   of the base, hand and grip site (one owner of that conversion, reused here).
-* The isolated CuRobo worker (``curobo_worker.Worker.solve_ik``) solves it with
-  the IK solver of the MotionGen planner ``move_pose`` uses -- ``franka.yml``,
-  ``panda_joint1..7`` in radians, ``world_model: none`` -- seeded from the
-  measured joints or, for a chained query, from the earlier query's solution.
+* The planner worker solves it with the IK solver of the planner ``move_pose``
+  uses -- ``panda_joint1..7`` in radians, in that planner's world model -- seeded from
+  the measured joints or, for a chained query, from the earlier query's solution.
 * The answer is judged at the controlled point: CuRobo's forward kinematics of
   the solution, mapped back through the same measured base and hand-to-grip
   transforms, against the requested grip-site pose with the arrival bound
@@ -29,12 +28,21 @@ Frame, units and controlled point (environment-compatibility audit):
 
 What it covers: joint position limits and Panda self-collision as CuRobo's
 robot model encodes them, with the solver's own seed count and thresholds, in
-one IK attempt per query. What it does not: the table, objects or any scene
-geometry (CuRobo has no world model here); a trajectory (``plan_single`` also
+one IK attempt per query. What it does not: a trajectory (``plan_single`` also
 optimises one, over up to four attempts); the bounded OSC route ``move_pose``
 takes within 50 mm and 15 degrees, which no IK screens; payload and contact.
 So it is not ``move_pose``'s admission (``matches_move_pose_admission:
 false``), and a finite seed search can miss a solution.
+
+The scene depends on the planner's world model, and the answer names it.
+``none`` knows no table, object or scene (``IK_MODEL_ROBOT_ONLY``, ``CLAIM_BOUNDARY_ROBOT_ONLY``).
+``public_depth_voxel_v1`` solves each pose in the collision world a plan to it
+would use (``world_inputs.py``, the worker's ``solve_ik``,
+``controllers/depth_world.py``): the current depth of both cameras with the
+robot removed, the goal hand's region cleared, a held load attached to the
+hand and unseen space free, refusing a pose whose fingertips lie more than
+``support_tolerance_m`` below the support (``IK_MODEL_DEPTH_WORLD``,
+``CLAIM_BOUNDARY_DEPTH_WORLD``).
 """
 
 from __future__ import annotations
@@ -42,24 +50,49 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 from ora.contracts.reach_check import START_UNREACHABLE
-from ora.environment.controllers.curobo_motion import CUROBO_REQUIRED_VERSION
+from ora.environment.controllers.depth_world import PUBLIC_DEPTH_VOXEL_V1, WORLD_MODEL
 from ora.environment.controllers.hybrid_motion import libero_local_endpoint_tolerances
 
 from .common import LiberoProError
 
-IK_MODEL = "libero_curobo_ik_robot_only_v1"
+#: The planner's IK solver without a world, and in its public-depth collision
+#: world. The names and claims describe behaviour, not the planner library (the
+#: planner binding and evidence record that), so the backbone can change under them.
+IK_MODEL_ROBOT_ONLY = "libero_reach_ik_robot_only_v1"
+IK_MODEL_DEPTH_WORLD = "libero_reach_ik_depth_world_v1"
 ARMS = ("right",)
 #: The planned route's own FK cross-check (``planned_motion._validate_planned_start``).
 CALIBRATION_TOLERANCE = (0.005, 0.05)
 _POSITION_M, _ORIENTATION_RAD = libero_local_endpoint_tolerances()
-CLAIM_BOUNDARY = (
-    f"One CuRobo {CUROBO_REQUIRED_VERSION} IK solve per pose by the IK solver of the planner that move_pose's "
+CLAIM_BOUNDARY_ROBOT_ONLY = (
+    "One IK solve per pose by the IK solver of the planner that move_pose's "
     "global segment uses, seeded from the measured joints or a chained query's solution, with joint limits "
     "and Panda self-collision only: no table, object or scene model. The solution's grip site is checked "
     f"against the {_POSITION_M:g} m / {_ORIENTATION_RAD:g} rad arrival bound. It plans no trajectory and does "
     "not model the bounded OSC route, so move_pose can still refuse or fail to reach a pose reported "
     "reachable, and a pose reported unreachable may still be reachable: the seed search is finite."
 )
+_SUPPORT_TOLERANCE_CM = PUBLIC_DEPTH_VOXEL_V1.support_tolerance_m * 100.0
+CLAIM_BOUNDARY_DEPTH_WORLD = (
+    "One IK solve per pose by the IK solver of the global planner move_pose uses, seeded from the measured "
+    "joints or a chained query's solution, with joint limits, "
+    "Panda self-collision and a collision world built from the current depth images of both cameras: the "
+    "robot removed, the space around the goal hand cleared, a held object moving with the hand, and space "
+    f"no camera sees counted as free. A pose with a fingertip more than {_SUPPORT_TOLERANCE_CM:g} cm below the "
+    "supporting surface under it is unsolved. The solution's grip site is checked against the "
+    f"{_POSITION_M:g} m / {_ORIENTATION_RAD:g} rad arrival bound. It plans no trajectory and does not model "
+    "the bounded OSC route, so move_pose can still refuse or fail to reach a pose reported reachable, and a "
+    "pose reported unreachable may still be reachable: the seed search is finite."
+)
+
+
+def ik_model_and_claim(world_model: str) -> tuple[str, str]:
+    """The ``ik_model`` and ``claim_boundary`` a planner of this world model answers with."""
+    if world_model == "none":
+        return IK_MODEL_ROBOT_ONLY, CLAIM_BOUNDARY_ROBOT_ONLY
+    if world_model == WORLD_MODEL:
+        return IK_MODEL_DEPTH_WORLD, CLAIM_BOUNDARY_DEPTH_WORLD
+    raise LiberoProError(f"no reach-check claim for CuRobo world model {world_model!r}")
 
 
 def _blank(reason: str) -> dict[str, Any]:
@@ -116,6 +149,7 @@ def reach_check_batch(
         "queries": [{"target_pose_base_xyzw": session._grip_target_planner_pose(
                         state, [float(item) for item in query["pose_xyzw"]])[0],
                      "from_index": query["from_index"]} for query in queries],
+        **session._world_input(state, "reach"),
     })
     if _clock(session, environment, session._motion_state()) != before:
         raise LiberoProError("read-only reach check observed the simulation advance")
@@ -150,8 +184,9 @@ def reach_check_batch(
                      "position_error_m": position, "orientation_error_rad": rotation,
                      "joint_limit_margin_rad": joint_limit_margin_rad(joints, limits),
                      "joint_delta_rad": joint_delta_rad(joints, seed)})
-    return {"ik_model": IK_MODEL, "matches_move_pose_admission": False,
-            "claim_boundary": CLAIM_BOUNDARY, "results": rows}
+    ik_model, claim = ik_model_and_claim(str(getattr(planner, "world_model", "none")))
+    return {"ik_model": ik_model, "matches_move_pose_admission": False,
+            "claim_boundary": claim, "results": rows}
 
 
 def _quaternion(transform: Any) -> list[float]:
@@ -177,12 +212,15 @@ class LiberoReachCheckMixin:
         """Answer ``ora.reach-check-request.v1`` over the ``align_plan`` bridge.
 
         LIBERO declares no ``align_plan`` tool and serves no alignment request:
-        any other schema is refused as a backend fault, exactly as before this
-        method existed, so serving the reach check exposes nothing new.
+        any other schema but a dry run's plan is refused as a backend fault, exactly
+        as before this method existed, so serving the reach check exposes nothing new.
         """
         from ora.contracts.reach_check import REQUEST_SCHEMA, ReachCheckRequestDrift
+        from ora.contracts.action_plan import is_request
         from ora.environment.controllers.reach_check import check_reach
 
+        if is_request(request):  # a dry run's plan of one action (``action_plan.py``)
+            return self.plan_action(request["action"])
         if not isinstance(request, Mapping) or request.get("schema") != REQUEST_SCHEMA:
             raise LiberoProError(
                 "LIBERO serves only the internal reach check on the read-only IK bridge, not align_plan"
@@ -198,4 +236,7 @@ class LiberoReachCheckMixin:
             raise LiberoProError(str(error)) from error
 
 
-__all__ = ["CLAIM_BOUNDARY", "IK_MODEL", "LiberoReachCheckMixin", "reach_check_batch"]
+__all__ = [
+    "CLAIM_BOUNDARY_DEPTH_WORLD", "CLAIM_BOUNDARY_ROBOT_ONLY", "IK_MODEL_DEPTH_WORLD", "IK_MODEL_ROBOT_ONLY", "LiberoReachCheckMixin",
+    "ik_model_and_claim", "reach_check_batch",
+]

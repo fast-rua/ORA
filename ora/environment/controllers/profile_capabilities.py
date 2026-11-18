@@ -65,7 +65,7 @@ CONTACT_RECOVERY_SINCE = 10
 IK_CONSTRAINT_FEEDBACK_SINCE = 10
 
 #: The oldest registered profile version this tree executes and composes:
-#: the RunSpec resolver (``orchestrator/spec_runtime.py``) and the RoboTwin
+#: the RunSpec resolver (``orchestrator/spec/runtime.py``) and the RoboTwin
 #: session refuse an older one, and a recorded RoboTwin run bound to an older
 #: one is evaluated at its own source commit. It is the contact-recovery v10
 #: profile, which every maintained RoboTwin composition binds. The older

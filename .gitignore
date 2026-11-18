@@ -61,9 +61,8 @@ yarn-error.log*
 # when outputs/ is the repository's own directory.
 /.runtime-tmp/
 
-# Generated experiment workspaces. Keep only the empty root in Git.
-outputs/*
-!outputs/.gitkeep
+# Generated experiment workspaces. Nothing under outputs/ is tracked; the Runtime creates it.
+/outputs/
 
 # External simulator checkouts belong outside this repository. If a temporary
 # in-repo checkout is unavoidable, keep it under external/ so it cannot collide
@@ -72,3 +71,6 @@ external/RoboTwin/
 *.pid
 *.log
 *.tmp
+
+# A run's source overlay (ora/orchestrator/spec/source_overlay.py), written by whoever prepared the checkout
+.ora-source-overlay.json

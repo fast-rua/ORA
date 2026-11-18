@@ -1,0 +1,53 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_base",
+  "description": "Drive the mobile base to a new pose on the floor.\nUse when: the target fixture or object is out of reach or out of view from where the base stands, or the task asks you to go somewhere. Arm targets stay valid after the base moves: every pose is in the fixed world frame.\nEffect: world mutation. The base servo drives the holonomic base (forward, sideways and turning together) to the target and stops it there; the arm holds its joints relative to the base and the gripper directive is unchanged. Give either an absolute world target (x_m, y_m, yaw_deg: the frame of the measured base pose in public_robot_facts.mobile_base) or a relative one (forward_m, left_m, turn_deg: forward along the base's current heading, left perpendicular to it, turn counter-clockwise positive). The base drives at most 0.6 m/s and turns at most 57.3 deg/s, slowing near the target, and stops within 0.03 m and 2.3 deg of it after 4 settled control ticks, or earlier if its footprint presses against a fixture. Every 50 ms control tick it runs spends one native action, like an arm motion. Before anything moves, the base's footprint and the arm it carries at its joints (and a held object), along the servo's path to the target, its drive and turn together, are checked against the current depth images of both cameras: a move that would put either into a point they show is refused (plan_rejected, base_path_in_collision, no native action spent; admission_refusal gives robot_part (base, arm or held_object), path_fraction, obstacle_height_m and obstacle_xy_m). An arm the move would carry into something, such as a hand inside a fridge or a cabinet, must be retracted with move_pose first. The floor, the robot's own body and what already lies at the base where it stands are left out, and what no camera sees counts as free.\nReturns: status=submitted immediately. The next receipt reports the base result: moved x/y/yaw, the remaining_error, its stop_reason, and failure_code blocked when its footprint pressed against a fixture (stop_reason base_contact) or controller_stalled when it stopped closing on the target (no_progress).\nDoes not: plan around furniture, move the arm toward anything, change the torso height (move_pose raises or lowers it only when the arm alone cannot reach; public_robot_facts.mobile_base.torso_height_m), or choose where to stand: a move_pose refusal suggests base poses (admission_refusal.base_suggestions, each a ready target), else pick a pose from the observation.\nOn error: Refused: a mix of absolute and relative fields, or non-finite numbers (invalid_arguments); a target farther than 6.0 m from the current base pose (invalid_arguments, naming the bound); a footprint or carried arm that would meet what the depth images show on the way (base_path_in_collision, above); the episode's terminal boundary (episode_terminal). If blocked, back off with a relative move and approach from another side.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "x_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Absolute target base x in the world frame (metres). Use with y_m and yaw_deg. Null means omitted."
+      },
+      "y_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Absolute target base y in the world frame (metres). Use with x_m and yaw_deg. Null means omitted."
+      },
+      "yaw_deg": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Absolute target base heading in the world frame (degrees, counter-clockwise from +x). Use with x_m and y_m. Null means omitted."
+      },
+      "forward_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Relative move along the current heading (metres, negative backs up). Null means omitted."
+      },
+      "left_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Relative sideways move to the base's left (metres, negative goes right). Null means omitted."
+      },
+      "turn_deg": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Relative turn (degrees, counter-clockwise positive). Null means omitted."
+      }
+    }
+  }
+}

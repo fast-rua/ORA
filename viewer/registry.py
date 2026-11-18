@@ -6,19 +6,11 @@ import json
 import os
 import re
 from datetime import datetime, timezone
-from functools import lru_cache
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
-from ora.orchestrator.control_audit import audit_libero_run
-from ora.orchestrator.experiment_identity import load_catalog, project_identity
-
-
-@lru_cache(maxsize=1)
-def _identity_catalog() -> dict[str, Any]:
-    """Tracked identity metadata is fixed for this Viewer source process."""
-    return load_catalog()
+from viewer.rounds import LATE_SUCCESS
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -92,6 +84,12 @@ def _official_success(
     return None
 
 
+def _success_after_official_limit(
+    status: Mapping[str, Any], result: Mapping[str, Any], evaluation: Mapping[str, Any]
+) -> bool:
+    return any(source.get("success_after_official_limit") is True for source in (result, status, evaluation))
+
+
 def _started_unix_s(root: Path, launch: Mapping[str, Any], result: Mapping[str, Any]) -> float | None:
     for source, field in (
         (result, "started_unix_s"),
@@ -130,8 +128,6 @@ class RunRegistration:
     evaluation: str
     sealed: bool
     official_success: bool | None
-    control_validity: str
-    control_issues: tuple[str, ...]
     session_cadence: str | None
     round_count: int | None
     round_success_count: int | None
@@ -140,8 +136,7 @@ class RunRegistration:
     source_commit: str
     video_cached: bool | None
     started_unix_s: float | None
-
-    experiment_identity: dict[str, Any] = field(default_factory=dict)
+    success_after_official_limit: bool = False
 
     def public(self) -> dict[str, Any]:
         value = asdict(self)
@@ -222,11 +217,9 @@ def register_run(root: Path, *, inspect_video: bool = True) -> RunRegistration:
             cached = bool(trajectory_video_status(root)["cached"])
         except (OSError, RuntimeError, ValueError):
             cached = False
-    control_audit = audit_libero_run(root)
     return RunRegistration(
         root=root,
         run_id=root.name,
-        experiment_identity=project_identity(plan, _identity_catalog()),
         experiment=str(plan.get("experiment") or root.parent.parent.name),
         config=str(plan.get("config") or "—"),
         milestone=str(plan.get("milestone") or "—"),
@@ -243,10 +236,7 @@ def register_run(root: Path, *, inspect_video: bool = True) -> RunRegistration:
         evaluation=evaluation_status,
         sealed=sealed,
         official_success=_official_success(status, result, evaluation),
-        control_validity=str(control_audit["control_validity"]),
-        control_issues=tuple(
-            str(item) for item in control_audit.get("issues", [])
-        ),
+        success_after_official_limit=_success_after_official_limit(status, result, evaluation),
         session_cadence=(str(session.get("cadence")) if session.get("cadence") else None),
         round_count=round_count,
         round_success_count=round_success_count,
@@ -347,7 +337,8 @@ def visible_runs(
         and (
             not outcome
             or (outcome == "success" and run.official_success is True)
-            or (outcome == "failure" and run.official_success is False)
+            or (outcome == "failure" and run.official_success is False and not run.success_after_official_limit)
+            or (outcome == LATE_SUCCESS and run.success_after_official_limit)
             or (outcome == "unscored" and run.official_success is None)
         )
     ]

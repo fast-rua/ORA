@@ -1,0 +1,60 @@
+{
+ "type": "object",
+ "description": "reasoning_replay (phase age, after exchange_aging): which assistant messages are sent with their provider continuation state (the reasoning the Provider replays). Whatever the mode, every exchange the hard backstop ages is sent without it, and so is a message whose arguments an aging replaced unless binding rebinds it.",
+ "properties": {
+  "mode": {
+   "enum": [
+    "all",
+    "unaged_exchanges",
+    "recent_exchanges"
+   ],
+   "description": "all: every assistant message an aging leaves unchanged keeps it; unaged_exchanges: an aging withholds it from the exchanges it ages, in that rewrite; recent_exchanges: only the latest tail_exchanges to 2 x tail_exchanges - 1 exchanges keep it, older ones lose it in strides of the window."
+  },
+  "tail_exchanges": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 1,
+   "default": null,
+   "description": "recent_exchanges: the window; the other modes: null."
+  },
+  "binding": {
+   "enum": [
+    "strict",
+    "rebind_unsigned"
+   ],
+   "description": "An assistant message whose arguments an aging replaced. strict (also when absent): it is sent without its continuation state, which was bound to the original. rebind_unsigned: it keeps it, bound to the rewritten message, when the state is unsigned (OpenAI-compatible reasoning_content); a signed one (Anthropic) is still withheld."
+  }
+ },
+ "required": [
+  "mode",
+  "tail_exchanges"
+ ],
+ "additionalProperties": false,
+ "oneOf": [
+  {
+   "properties": {
+    "mode": {
+     "const": "recent_exchanges"
+    },
+    "tail_exchanges": {
+     "type": "integer"
+    }
+   }
+  },
+  {
+   "properties": {
+    "mode": {
+     "enum": [
+      "all",
+      "unaged_exchanges"
+     ]
+    },
+    "tail_exchanges": {
+     "const": null
+    }
+   }
+  }
+ ]
+}

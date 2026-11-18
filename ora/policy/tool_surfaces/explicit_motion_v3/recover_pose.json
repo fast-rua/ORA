@@ -1,0 +1,44 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "recover_pose",
+  "description": "Plan the right arm to a named robot-only recovery configuration while preserving the gripper command.\nUse when: a planner or execution failure, or a poor configuration, makes ordinary waypoint correction inappropriate; choose previous to return to the joints measured at the start of the last motion action, or home for a deliberate return to the source-bound start configuration.\nEffect: world mutation through the qualified global CuRobo recovery route. One robot decision. Its global route runs at move_pose's default speed, timed and wrist-checked as move_pose describes.\nReturns: the submitted strategy; the next receipt and fresh observation report actual planning, residuals and preservation evidence. The later receipt separates refusal, arrival and recoverable non-arrival; available contact feedback includes requested versus measured motion, force/progress evidence and truthful unknown values.\nDoes not: reset the episode, restore moved objects or evaluator state, release the gripper, reverse an old trajectory, act as an emergency stop, or guarantee escape from contact.\nOn error: Refused: a strategy other than previous and home; an unknown field; the episode's terminal boundary (episode_terminal). An unavailable recovery state is not a refusal: the receipt reports planner_failed with recovery_state_unavailable; try the other strategy only when physically sensible, otherwise finish_episode names the accepted outcomes. Cost: previous undoes only the last motion action, so the arm travels about as far as that action did (measured median 9 mm on LIBERO); home travels to the start configuration wherever the task stands (measured median 260 mm, about six ordinary pose commands) and gives up the approach already made. Prefer previous when the last motion left a poor configuration; choose home only when the configuration before that motion is unusable too.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "strategy": {
+        "description": "previous returns to the joints measured at the start of the last motion action; home returns to the source-bound start configuration.",
+        "enum": [
+          "previous",
+          "home"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "strategy"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "recover_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

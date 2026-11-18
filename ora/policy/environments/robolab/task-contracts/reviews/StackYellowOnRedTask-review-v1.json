@@ -1,0 +1,105 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "StackYellowOnRedTask",
+ "status": "reviewed",
+ "reviewer": "Claude source, predicate and witness review",
+ "reviewed_at": "2026-10-18",
+ "scope": "robolab StackYellowOnRedTask at the pinned revision; seed 0 witness only. Semantic projection of the official predicate, not physical qualification of other seeds or scenes.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Stack the yellow block on the red block",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/stack_yellow_on_red.py",
+   "sha256": "68a73fd9f0a0ccb95e190d45e9b0eea25d9d24e856469b01e671489c56e5f695"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/StackYellowOnRedTask-s0-witness.json",
+   "sha256": "aa9fdd885ddbd2d9e8977e89aca1de6eba9931a25b3456fb4ec6aa3a57ab971e"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read Terminations.success (stacked bottom_to_top), check_stacked, above_top/above_bottom and in_contact."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene toys_cleanup.usda with blocks, cubes, figurines, birdhouse and bin; only the red and yellow blocks matter."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Stack test uses world-frame bounding boxes of the two blocks and their contact sensor."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "Evaluated every control step; RoboLab freezes the episode at success and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "Both blocks are visible in the over-shoulder and wrist cameras."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness: yellow block dropped onto the red block with the robot held away gives the success termination on seed 0."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness: yellow beside red and the reset state give false."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "stacked(objects=[red_block, yellow_block], order=bottom_to_top): yellow in contact with red and above its top (or bottom) face.",
+   "interpretation": "Yellow block on top of the red block, touching it.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "scoring_gap",
+   "source_basis": "Terminations.success uses stacked only; no gripper_detached term.",
+   "interpretation": "The termination does not require releasing the yellow block.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "A predicate weakness is documented for review, not delivered as an exploit; the instruction's intent (a stack) is unchanged."
+  }
+ ],
+ "public_clauses": [
+  "The yellow block must end up on top of the red block, touching it."
+ ],
+ "counterexamples": [
+  {
+   "case": "Yellow block on the table beside the red block: false.",
+   "expected": "witness case yellow_beside_red"
+  }
+ ],
+ "limitations": "Witness covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout; source-derived negative cases marked as such were not executed.",
+ "forbidden_public_claims": []
+}

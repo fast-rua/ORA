@@ -1,0 +1,191 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "PickDrillTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-16",
+ "scope": "robolab PickDrillTask at the pinned revision; generated per predicate family (picked_up); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Pick up the cordless drill.",
+ "family": "picked_up",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/pick_drill.py",
+   "sha256": "c8f15d8e12b5e26cbcf309239c00a9b804236e1cc596d2816d54e6b2d1e9c781"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/mugs4_measuringcup_drill_bowl.usda",
+   "sha256": "896438ef74ffb4124a5636989baeaa167baf95c9984dc3348b7e14d94289c474"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/PickDrillTask-s0-witness.json",
+   "sha256": "971bba0d8e316fea9904bae0fc1a05178fdf3fee7346dcd0ea947949fa08b0a6"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read PickDrillTask terminations: success = object_picked_up(object='cordless_drill', surface='table', distance=0.03), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene mugs4_measuringcup_drill_bowl.usda: cordless_drill among 8 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Gripper contact (any finger body) and every box corner above the table's top face by the lift margin, with the centroid over the table's footprint."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (1) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 971bba0d8e31)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 971bba0d8e31): held_and_lifted -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 971bba0d8e31): reset_state -> False; lifted_not_held -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_picked_up(object='cordless_drill', surface='table', distance=0.03): object_grabbed (gripper contact) and object_above(table, z_margin=distance): every box corner above the table's top face by the margin, centroid over its footprint.",
+   "interpretation": "Held and lifted clear of the table.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0,
+    1
+   ]
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_picked_up and its predicate_logic helpers.",
+   "interpretation": "Contact force bar and lift margin withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The cordless drill must be held in the gripper and lifted so that all of it is clear above the table top, still over the table.",
+  "The task completes while it is held: once set down or dropped, it does not count."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "lifted_not_held: false.",
+   "expected": "witness case lifted_not_held"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": true,
+  "subtasks": "pick_drill(groups=['conditions'], logical=all) score=1.0",
+  "notes": [
+   "the subtasks score a grasp only; the termination also requires the lift"
+  ]
+ },
+ "compatibility": {
+  "status": "ready",
+  "blocked": [],
+  "notes": []
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "lifted_not_held",
+    "expected": false,
+    "ops": [
+     {
+      "op": "lift",
+      "object": "cordless_drill",
+      "dz": 0.15
+     }
+    ],
+    "ticks": 2
+   },
+   {
+    "case": "held_and_lifted",
+    "expected": true,
+    "ops": [
+     {
+      "op": "grasp",
+      "object": "cordless_drill",
+      "order": [
+       0,
+       2,
+       1
+      ]
+     }
+    ],
+    "ticks": 40
+   }
+  ],
+  "visibility_objects": [
+   "cordless_drill"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks",
+  "plan_fix": "2026-11-15: the generated grasp put the drill's thinnest side (5.8 cm, lying flat) on the jaw line with only its near 2 cm between the pads, which missed the drill's body: the jaw closed on nothing (11-05 witness and the 11-15 probe). With its first local axis on the jaw line and its thickness along the approach (order [0, 2, 1]) the closing pads meet the drill and stall on it."
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1794790220.3631358,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/PickDrillTask-s0-witness.json",
+  "sha256": "971bba0d8e316fea9904bae0fc1a05178fdf3fee7346dcd0ea947949fa08b0a6",
+  "plan_sha256": "623a2d273eaf1a50791bc5023694a6deae00a1cf3a068145f03fea19d9114c2e"
+ }
+}

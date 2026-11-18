@@ -15,6 +15,7 @@ Positions are world metres; measured quaternions are [x,y,z,w]. Transform local 
 ## End-effector axes
 
 `right_grip_site` local approach [0, 0, 1]; jaw-closing line [1, 0, 0]. Current world directions are supplied with measured state.
+Local +approach points out of the gripper, from the palm toward the fingertips.
 
 ## Motion capabilities
 
@@ -23,8 +24,8 @@ The ToolSurface owns motion, workspace, window and acceptance limits. Holding a 
 ## Gripper semantics
 
 `right_gripper`: nominal maximum jaw separation 0.08 m.
-At reference finger qpos [0, 0] m, finger collision extent along local approach from the controlled point is [-44.4683, 9.249] mm.
-The separate pad occupies [-11.6, 4.4] mm on that axis; pad and whole-finger extrema differ.
+At reference finger qpos [0, 0] m, the fingertips end 9.249 mm beyond the controlled point along +approach, and the fingers reach back 44.4683 mm from it toward the wrist.
+The separate pads run from 11.6 mm behind to 4.4 mm beyond the controlled point along +approach; pad and whole-finger extrema differ. Each pad is 8 mm thick along the jaw-closing line and 16 mm wide along local Y.
 
 ## Sensors and cameras
 

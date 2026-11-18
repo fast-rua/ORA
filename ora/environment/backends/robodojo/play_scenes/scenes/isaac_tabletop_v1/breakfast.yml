@@ -1,0 +1,68 @@
+# ORA free-play scene isaac-tabletop-v1/breakfast: a breakfast table.
+#
+# RoboDojo task-config format (Articulation / Clutter / Rigid blocks with xlim/ylim, rotate_deg and
+# relative_plane), read only by ORA's layout generator (benchmarks/robodojo_play_layouts.py), which writes a
+# saved layout per seed in RoboDojo's Eval_Layout record format. Table-relative xlim/ylim are
+# episode-frame metres; a block whose relative_plane names another label is placed in that
+# object's yawed frame on top of it (or with its bottom zlim above the parent's base).
+# gripper_keep_out: every table-level footprint keeps clearance_m from the home-pose gripper
+# footprints of the two ARX X5 arms (zones: x/y ranges on the table plane).
+# Only RoboDojo assets. No reward, no instruction, no task: free play.
+
+gripper_keep_out:
+  clearance_m: 0.08
+  zones:
+    - {xlim: [-0.387, -0.212], ylim: [-0.48, -0.194]}
+    - {xlim: [0.212, 0.388], ylim: [-0.48, -0.194]}
+
+Articulation:
+  - common: {xlim: [-0.34, -0.31], ylim: [0.098, 0.100], rotate_rand: true, rotate_deg: [-4, 4], relative_plane: Table}
+    category: [{name: toaster, index: [0, 1, 2, 4]}]
+    select_mode: {nums: 1, mode: unique, label: [toaster]}
+
+  - common: {xlim: [0.33, 0.36], ylim: [0.065, 0.075], rotate_rand: true, rotate_deg: [-8, 8], relative_plane: Table}
+    category: [{name: egg_holder, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [egg_holder]}
+
+Clutter:
+  - common: {xlim: [-0.005, 0.005], ylim: [-0.060, -0.045], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: plate, index: [0]}]
+    physics: {mass: 0.35, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [plate]}
+
+Rigid:
+  # two eggs in the front compartments of the (lid-open) egg carton
+  - common: {xlim: [-0.0226, -0.0226], ylim: [-0.023, -0.023], zlim: [0.009, 0.009], rotate_rand: false, relative_plane: egg_holder, place_tag: none}
+    category: [{name: egg, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [egg_0]}
+  - common: {xlim: [0.0226, 0.0226], ylim: [-0.023, -0.023], zlim: [0.009, 0.009], rotate_rand: false, relative_plane: egg_holder, place_tag: none}
+    category: [{name: egg, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [egg_1]}
+
+  # two bread slices on the plate, the second one offset on top of the first
+  - common: {xlim: [-0.012, 0.012], ylim: [-0.012, 0.012], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: plate, place_tag: up}
+    category: [{name: bread, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [bread_0]}
+  - common: {xlim: [0.012, 0.022], ylim: [0.008, 0.018], rotate_rand: true, rotate_deg: [15, 35], relative_plane: bread_0, place_tag: up}
+    category: [{name: bread, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [bread_1]}
+
+  - common: {xlim: [-0.30, -0.26], ylim: [-0.058, -0.052], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: mug, index: [3, 8, 11]}]
+    select_mode: {nums: 1, mode: unique, label: [mug]}
+
+  - common: {xlim: [0.18, 0.20], ylim: [0.060, 0.090], rotate_rand: true, rotate_deg: [-15, 15], relative_plane: Table}
+    category: [{name: juice_carton, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [juice_carton]}
+
+  - common: {xlim: [0.30, 0.36], ylim: [-0.060, -0.050], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: Table}
+    category: [{name: yogurt, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [yogurt]}
+
+  - common: {xlim: [-0.02, 0.02], ylim: [-0.295, -0.282], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: Table}
+    category: [{name: bowl, index: [11]}]
+    select_mode: {nums: 1, mode: unique, label: [bowl]}
+
+  - common: {xlim: [-0.008, 0.008], ylim: [-0.008, 0.008], zlim: [0.03, 0.03], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: bowl, place_tag: up}
+    category: [{name: grapes, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [grapes]}

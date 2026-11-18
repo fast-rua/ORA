@@ -1,0 +1,220 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "FruitsGreenLimesOnPlateTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab FruitsGreenLimesOnPlateTask at the pinned revision; generated per predicate family (on_surface); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Put all the green fruit on the plate",
+ "family": "on_surface",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/fruits_green_limes_on_plate.py",
+   "sha256": "7101de14929bf0b4753865f7c13573c7d668369180230eff00302d65fffeb194"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/fruits_out_of_basket.usda",
+   "sha256": "2c9da47e527e91582e51780d9dceb1e061810dd1d8aa06ecb2079fd0a92eec69"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/FruitsGreenLimesOnPlateTask-s0-witness.json",
+   "sha256": "b9a93659952f3699b5393e1b042a70986116717b4666959c40979fc059ccb939"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read FruitsGreenLimesOnPlateTask terminations: success = object_on_top(object=['lime01', 'lime01_01'], reference_object='clay_plates', logical='all', require_gripper_detached=True), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene fruits_out_of_basket.usda: lime01, lime01_01, clay_plates among 16 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Support is the contact force from the surface on the object (upward, inside the support cone) plus the object's box centroid inside the surface's world-AABB footprint; height is not bounded."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (3) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 b9a93659952f)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 b9a93659952f): all_on -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 b9a93659952f): reset_state -> False; beside -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_on_top(object=['lime01', 'lime01_01'], reference_object='clay_plates', logical='all', require_gripper_detached=True): is_supported_on_surface (contact force from the surface above 0.1 N, upward, within 45 degrees of vertical) and centroid_in_footprint (box centroid xy inside the surface's world AABB).",
+   "interpretation": "Supported by the clay plate, centered over it.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "object_identity",
+   "source_basis": "The instruction 'Put all the green fruit on the plate' refers by descriptor; the termination names ['lime01', 'lime01_01'].",
+   "interpretation": "Which objects the descriptor covers is the task's own inference.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Naming the objects would answer the task (no privileged information); the public clauses keep the instruction's descriptor (all the green fruit)."
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_on_top and its predicate_logic helpers.",
+   "interpretation": "Support force bar, support cone and footprint slack withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "All the green fruit must end up resting on the clay plate, each supported by the clay plate itself with its center over it.",
+  "Let go of them there: the task is not complete while the gripper still touches any of them."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "beside: false.",
+   "expected": "witness case beside"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": false,
+  "subtasks": "pick_and_place_on_surface(groups=['lime01', 'lime01_01'], logical=all) score=1.0",
+  "notes": []
+ },
+ "compatibility": {
+  "status": "ready_with_note",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "longer_horizon",
+    "detail": "official limit 1350 native actions (90 s at 15 Hz; 4050 under the default extended budget), against 900 for the longest task admitted before"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "beside",
+    "expected": false,
+    "ops": [
+     {
+      "op": "place",
+      "object": "lime01",
+      "beside": "clay_plates"
+     }
+    ],
+    "ticks": 40
+   },
+   {
+    "case": "all_on",
+    "expected": true,
+    "ops": [
+     {
+      "op": "place",
+      "object": "lime01",
+      "onto": "clay_plates",
+      "slot": 0,
+      "slots": 2
+     },
+     {
+      "op": "place",
+      "object": "lime01_01",
+      "onto": "clay_plates",
+      "slot": 1,
+      "slots": 2
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "lime01",
+   "lime01_01",
+   "clay_plates"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793855411.4814403,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/FruitsGreenLimesOnPlateTask-s0-witness.json",
+  "sha256": "b9a93659952f3699b5393e1b042a70986116717b4666959c40979fc059ccb939",
+  "plan_sha256": "16e4f7e88813a797d7a570fcaea1d9c24e5e5d71c6a52e73f66abd15e3f635e8"
+ }
+}

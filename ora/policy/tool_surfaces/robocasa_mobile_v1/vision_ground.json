@@ -1,0 +1,849 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "vision_ground",
+  "description": "Retrieve and present up to three inspectable candidate regions for one short text description in the current native-resolution RGB-D observation. Use when: the task names an object or part and the Agent should reduce the scene-level visual search space before making its own semantic identity decision. Effect: read-only with respect to the world and creates separate observation-bound target_ref artifacts for every returned candidate; the service proposes regions but the Agent remains the selection authority. Returns: zero to three ranked candidates with target_ref, backend-local score, bounding box and visible-depth summary, followed by image 0 as the numbered full-scene overview and one labelled 1024x800 raw/mask candidate card per result in T0/T1/T2 order; compare the enlarged raw appearances and select the intended target_ref yourself. Does not: make a black-box semantic decision, certify that any candidate is the named object, add sensor resolution, treat backend score as calibrated probability, expose object ground truth, or prove reachability or grasp success. On error: Refused: max_candidates outside 1 to 3, before any request is sent; text that is empty after trimming or longer than 120 characters; a camera outside this tool's enum; no grounding service (grounding_unavailable); a request the grounding service rejects (invalid_arguments, with the service's detail). Rephrase the visible description to obtain a better candidate set, switch current camera, inspect with observe, or use point-based vision_segment for an instance the Agent can already identify. Selection check: compare the requested task referent with every candidate crop and the original view; rank 0 and a high score do not authenticate identity. Separate an instance hypothesis from an observed property. Failed grasping is not evidence that the intended object is static or that a different object is the target. Revise a mistaken association when the visible evidence contradicts it. Boundary and mask/depth diagnostics describe observability, not semantic truth. Localization also carries a single-view support estimate: support_z_m is the height of the surface the target stands on, fitted to depth pixels just outside its mask and evaluated under it; height_above_support_m is the visible top's height above that surface; mid_height_z_m is the midpoint between them; support_point_count counts the pixels that support the fit, and the three heights are null when no support is visible. center_xyz_m is a visible-surface median, so from an oblique or overhead camera it sits near the top; for a parallel-jaw side grasp, use mid_height_z_m as the height reference instead. The estimate is not ground truth: a neighbouring object, a container wall or a hidden base can bias it. Localization also carries a footprint estimate: footprint_center_xyz_m is the centre of the box that bounds the target's measured outline in its own principal frame (z is the median visible height), footprint_extent_m is that box's two sides, longest first, view_tilt_deg is the angle between the camera-to-target ray and straight down, and footprint_view says whether the view was overhead (at most 20 degrees) or oblique. From an oblique camera only the near side is visible, so center_xyz_m, the AABB and the footprint all sit horizontally toward the camera, by up to half the target's depth; an occluding neighbour can also cut the outline short. From an overhead view the outline is the whole top, and the footprint centre is the target's horizontal centre, handles included. An oblique measurement carries overhead_view_pose: a copyable move_pose target that puts the wrist camera 30 cm above the footprint centre looking straight down, with the current jaw yaw; after that move, run this tool again on the wrist camera and use the overhead footprint_center_xyz_m. Placement: measure the receiving surface from overhead before you grasp, while nothing you hold hides it; measure the object from overhead before grasping and, after the close, keep offset = object footprint centre minus the grip-site position; to set the object on the receiver, send the grip site to the receiver's footprint centre minus that offset (horizontal components), holding the yaw. overhead_view_pose is not a reachability or collision check, and the footprint is not ground truth.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "camera": {
+        "description": "Exact current native-resolution RGB-D camera in which to ground the text.",
+        "enum": [
+          "agentview",
+          "wrist"
+        ],
+        "type": "string"
+      },
+      "max_candidates": {
+        "default": 3,
+        "description": "Maximum ranked regions to return, 1 to 3, default 3. Three is what the grounding service answers per call, so a larger number is refused before the request is sent rather than returned as an error you cannot act on. Every returned region gets its own close-up preview; nothing caps previews across a step, and no count of images already in the conversation refuses this call. Fewer regions answer faster: three cost roughly 479 milliseconds against 244 for one. Null means omitted.",
+        "maximum": 3,
+        "minimum": 1,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "text": {
+        "description": "Short visible object or part description used to retrieve an inspectable candidate set; use task language or a concrete visual rephrasing, never a simulator identifier.",
+        "maxLength": 120,
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "camera",
+      "text"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "$defs": {
+      "backend": {
+        "additionalProperties": false,
+        "properties": {
+          "config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "backend_score": {
+            "type": "number"
+          },
+          "bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "localization": {
+            "$ref": "#/$defs/localization"
+          },
+          "mask_summary": {
+            "$ref": "#/$defs/mask_summary"
+          },
+          "overlay_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "rank": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "target_ref": {
+            "pattern": "^target-[0-9a-f]{24}$",
+            "type": "string"
+          },
+          "candidate_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "target_ref",
+          "backend_score",
+          "bbox_xyxy",
+          "mask_summary",
+          "localization",
+          "overlay_sha256",
+          "candidate_id"
+        ],
+        "type": "object"
+      },
+      "candidate_preview": {
+        "additionalProperties": false,
+        "properties": {
+          "crop_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "image_index": {
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "rank": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "render_dimensions": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "resampling": {
+            "const": "bicubic_visual_enlargement_no_new_source_detail",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "source_dimensions": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "target_ref": {
+            "pattern": "^target-[0-9a-f]{24}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_index",
+          "rank",
+          "target_ref",
+          "sha256",
+          "source_dimensions",
+          "source_bbox_xyxy",
+          "crop_xyxy",
+          "render_dimensions",
+          "resampling"
+        ],
+        "type": "object"
+      },
+      "depth_summary": {
+        "additionalProperties": false,
+        "properties": {
+          "max": {
+            "type": "number"
+          },
+          "median": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "median",
+          "max"
+        ],
+        "type": "object"
+      },
+      "diagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "model": {
+            "$ref": "#/$defs/model"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "returned_candidate_count": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "returned_candidate_count"
+        ],
+        "type": "object"
+      },
+      "latency": {
+        "additionalProperties": false,
+        "properties": {
+          "roundtrip": {
+            "type": "number"
+          },
+          "service_inference": {
+            "type": "number"
+          },
+          "service_queue": {
+            "type": "number"
+          },
+          "service_total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "roundtrip",
+          "service_queue",
+          "service_inference",
+          "service_total"
+        ],
+        "type": "object"
+      },
+      "localization": {
+        "additionalProperties": false,
+        "properties": {
+          "aabb_max_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "aabb_min_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "center_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "depth_inlier_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "depth_valid_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "extent_xyz_m": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "frame": {
+            "const": "world",
+            "type": "string"
+          },
+          "inlier_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "largest_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "largest_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mask_pixel_count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "method": {
+            "type": "string"
+          },
+          "middle_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "middle_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "primary_component_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "principal_axes_world": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3,
+              "type": "array"
+            }
+          },
+          "principal_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "principal_extents_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "scope": {
+            "const": "visible_mask_depth",
+            "type": "string"
+          },
+          "smallest_extent_axis_world": {
+            "$ref": "#/$defs/nullable_vector3"
+          },
+          "smallest_extent_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "localized",
+              "insufficient_depth"
+            ],
+            "type": "string"
+          },
+          "valid_depth_component_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "valid_depth_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "support_z_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "height_above_support_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "mid_height_z_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "support_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "support_height_basis": {
+            "type": "string",
+            "enum": [
+              "single_view_depth_ring_estimate_not_ground_truth"
+            ]
+          },
+          "footprint_center_xyz_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "footprint_extent_m": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "view_tilt_deg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "footprint_view": {
+            "enum": [
+              "overhead",
+              "oblique",
+              null
+            ]
+          },
+          "overhead_view_pose": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "position_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "orientation_xyzw": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "camera": {
+                "type": "string"
+              },
+              "camera_height_m": {
+                "type": "number"
+              },
+              "claim_boundary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "camera",
+              "camera_height_m",
+              "claim_boundary"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "method",
+          "frame",
+          "scope",
+          "mask_pixel_count",
+          "valid_depth_point_count",
+          "valid_depth_component_count",
+          "inlier_point_count",
+          "depth_valid_fraction",
+          "primary_component_fraction",
+          "depth_inlier_fraction",
+          "center_xyz_m",
+          "aabb_min_xyz_m",
+          "aabb_max_xyz_m",
+          "extent_xyz_m",
+          "principal_axis_world"
+        ],
+        "type": "object"
+      },
+      "mask_summary": {
+        "additionalProperties": false,
+        "properties": {
+          "area_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "bbox_xyxy": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array"
+          },
+          "centroid_uv": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "depth_m": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/depth_summary"
+              }
+            ]
+          },
+          "depth_valid_fraction": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "pixel_count": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pixel_count",
+          "area_fraction",
+          "bbox_xyxy",
+          "centroid_uv",
+          "depth_valid_fraction",
+          "depth_m"
+        ],
+        "type": "object"
+      },
+      "model": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_sha256": {
+            "type": "string"
+          },
+          "config_sha256": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "source_commit",
+          "checkpoint_sha256"
+        ],
+        "type": "object"
+      },
+      "nullable_vector3": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          }
+        ]
+      },
+      "overlay": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "image_index": {
+            "const": 0,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sha256",
+          "width",
+          "height",
+          "image_index"
+        ],
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "backend": {
+        "$ref": "#/$defs/backend"
+      },
+      "camera": {
+        "enum": [
+          "agentview",
+          "wrist"
+        ],
+        "type": "string"
+      },
+      "candidate_previews": {
+        "items": {
+          "$ref": "#/$defs/candidate_preview"
+        },
+        "maxItems": 3,
+        "type": "array"
+      },
+      "candidates": {
+        "items": {
+          "$ref": "#/$defs/candidate"
+        },
+        "maxItems": 3,
+        "type": "array"
+      },
+      "diagnostics": {
+        "$ref": "#/$defs/diagnostics"
+      },
+      "grounding_ref": {
+        "pattern": "^grounding-query-[0-9a-f]{24}$",
+        "type": "string"
+      },
+      "observation_id": {
+        "type": "string"
+      },
+      "overlay": {
+        "$ref": "#/$defs/overlay"
+      },
+      "status": {
+        "enum": [
+          "candidates",
+          "no_candidate"
+        ],
+        "type": "string"
+      },
+      "success": {
+        "const": true,
+        "type": "boolean"
+      },
+      "text": {
+        "type": "string"
+      },
+      "perception_evidence": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "ora.perception-selection-evidence.v1"
+          },
+          "prompt_kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "point"
+            ]
+          },
+          "source_image_size": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "point_uv": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "point_inside_returned_mask": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "semantic_identity_verified": {
+            "type": "boolean",
+            "const": false
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "target_ref": {
+                  "type": "string"
+                },
+                "mask_touches_image_boundary": {
+                  "type": "boolean"
+                },
+                "mask_pixel_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "depth_valid_fraction": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "depth_inlier_fraction": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "primary_component_fraction": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "visible_extent_xyz_m": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "target_ref",
+                "mask_touches_image_boundary",
+                "mask_pixel_count",
+                "depth_valid_fraction",
+                "depth_inlier_fraction",
+                "primary_component_fraction",
+                "visible_extent_xyz_m"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "schema",
+          "prompt_kind",
+          "source_image_size",
+          "point_uv",
+          "point_inside_returned_mask",
+          "semantic_identity_verified",
+          "targets"
+        ],
+        "additionalProperties": false
+      },
+      "image_mapping": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "image_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "role": {
+              "type": "string"
+            },
+            "camera": {
+              "type": "string"
+            },
+            "candidate_id": {
+              "type": "string"
+            },
+            "target_ref": {
+              "type": "string"
+            },
+            "observation_step": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "image_index",
+            "role",
+            "camera",
+            "candidate_id",
+            "target_ref",
+            "observation_step"
+          ]
+        }
+      }
+    },
+    "required": [
+      "success",
+      "status",
+      "observation_id",
+      "camera",
+      "text",
+      "grounding_ref",
+      "backend",
+      "candidates",
+      "diagnostics",
+      "candidate_previews",
+      "overlay",
+      "perception_evidence"
+    ],
+    "type": "object"
+  }
+}

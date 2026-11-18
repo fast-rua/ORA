@@ -19,14 +19,15 @@ from pathlib import Path
 
 import pytest
 
-from tests.support.locked_tree import write_tree_lock
-from tests.support.surface_copies import scratch_profile_root
-from ora.agent.composition import baseline, tool_surface
+from tests.support.orchestrator.locked_tree import write_tree_lock
+from tests.support.agent.surface_copies import scratch_profile_root
+from ora.agent.composition import baseline
+from ora.agent.composition.surface import profile_catalog, tool_surface
 from ora.agent.composition.embodiment import EmbodimentDescriptorError
-from ora.agent.composition.embodiment_geometry import bind_public_geometry_descriptor
-from ora.agent.composition.locked_assets import locked_asset
-from ora.agent.composition.task_contract_review import load_review_record
-from ora.orchestrator import policy_lock, policy_pins
+from ora.agent.composition.embodiment.geometry import bind_public_geometry_descriptor
+from ora.agent.composition.locked_assets import locked_asset, locked_paths
+from ora.agent.composition.task_contract.review import load_review_record
+from ora.orchestrator.spec import policy_lock, policy_pins
 
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVATION = json.loads((ROOT / "tests/data/default-expectations.json").read_text(encoding="utf-8"))
@@ -57,12 +58,14 @@ def test_inline_hashes_left_are_external_human_review_generated_or_frozen():
     # The ratchet only turns one way: frozen assets keep theirs, composed ones never gain one.
     assert any(row["kind"] == "frozen" for row in rows)
     assert not any(row["kind"] == "frozen" and row["composed"] for row in rows)
-    # Unit L3: a composed descriptor pins external sources only; a wording review only its card.
+    # Unit L3: a composed descriptor pins external sources only; a wording review only its card (the maintainer's
+    # approval beside it is who, a day and words, no pin).
     composed = {row["path"] for row in rows if row["composed"]}
     for path in composed:
         value = json.loads((ROOT / path).read_text())
         if "/wording-review-" in path:
-            assert set(value) == {"schema", "decision", "reviewer", "card_sha256", "scope"}, path
+            assert set(value) - {"approval"} == {"schema", "decision", "reviewer", "card_sha256", "scope"}, path
+            assert set(value.get("approval") or {}) <= {"by", "date", "words"}, path
         if "embodiment-descriptor" in str(value.get("schema", "")):
             for source in value["provenance"]["sources"]:
                 assert not ({"revision", "sha256"} & set(source)) if "local_path" in source else (
@@ -71,7 +74,7 @@ def test_inline_hashes_left_are_external_human_review_generated_or_frozen():
 
 def test_the_composable_set_is_what_this_tree_can_load():
     holders = policy_pins.composable_pin_holders(ROOT)
-    for manifest in tool_surface.PROFILE_CATALOG.values():
+    for manifest in profile_catalog.PROFILE_CATALOG.values():
         assert holders[manifest.resolve().relative_to(ROOT).as_posix()] == "tool_surface_manifest"
     for catalog in baseline.BASELINE_CATALOGS.values():
         assert holders[catalog] == "baseline_catalog"
@@ -84,9 +87,9 @@ def test_the_composable_set_is_what_this_tree_can_load():
     assert not {path.relative_to(ROOT).as_posix() for path in frozen_catalogs} & set(holders)
     # Unit L3: the descriptors and wording reviews those assets bind, and the
     # ARX descriptor the RoboDojo embodiment activation compiles.
-    from ora.orchestrator.robodojo_embodiment import DESCRIPTOR_PATH
+    from ora.orchestrator.backends.robodojo.embodiment import DESCRIPTOR_PATH
     assert holders[DESCRIPTOR_PATH.relative_to(ROOT).as_posix()] == "embodiment_descriptor"
-    for manifest in tool_surface.PROFILE_CATALOG.values():
+    for manifest in profile_catalog.PROFILE_CATALOG.values():
         geometry = (json.loads(manifest.read_text()).get("view_config") or {}).get("public_geometry_descriptor")
         if geometry:
             assert holders[geometry] in {"embodiment_descriptor", "geometry_descriptor"}
@@ -131,10 +134,16 @@ def test_frozen_assets_keep_their_inline_pins():
             for key in ("motion_profile", "control_profile"):
                 if key in instance.get("runtime", {}):
                     assert set(instance["runtime"][key]) == {"path", "sha256"}, path
+    # A frozen RoboDojo registry from before the path-only stage keeps its inline record pins; one written
+    # path-only (registry-v9) names records and layers that policy.lock still pins, so its bytes stay identified.
+    locked = locked_paths(ROOT)
     for frozen in ACTIVATION["frozen_task_contracts"].values():
         if frozen["path"].startswith("ora/policy/environments/robodojo/") and (ROOT / frozen["path"]).is_file():
-            assert all("record_sha256" in entry
-                       for entry in json.loads((ROOT / frozen["path"]).read_text())["tasks"].values())
+            entries = list(json.loads((ROOT / frozen["path"]).read_text())["tasks"].values())
+            assert frozen["path"] in locked
+            assert all("record_sha256" in entry for entry in entries) or all(
+                set(entry) == {"record", "layer"} and {entry["record"], entry["layer"]} <= locked
+                for entry in entries)
 
 
 # ---- the loaders -----------------------------------------------------------------
@@ -183,30 +192,30 @@ def test_every_converted_loader_refuses_an_inline_pin(monkeypatch, tmp_path):
         baseline.load_native_baseline(ROOT)
 
 
-def _definitions() -> dict:
-    return {"tools": [{"name": "inspect", "description": "x", "inputSchema": {"type": "object"}}]}
+def _tool() -> dict:
+    return {"schema": "ora.toolkit-tool.v1", "name": "inspect", "description": "x",
+            "inputSchema": {"type": "object"}, "resultSchema": None}
 
 
-def _manifest(base: object) -> dict:
+def _manifest(tool: object) -> dict:
     return {
-        "schema": "ora.tool-surface-profile.v1", "profile_id": "scratch_surface",
-        "revision": 1, "runtime_id": "native_atomic_causal", "base_definitions": base,
-        "tool_order": ["inspect"], "components": {}, "description_order": [], "schema_order": [],
-        "result_order": [], "mutation_tools": [], "lifecycle_tools": [], "capabilities": [],
+        "schema": "ora.toolkit-surface.v1", "profile_id": "scratch_surface", "revision": 1,
+        "runtime_id": "native_atomic_causal", "tools": ["inspect"], "mutation_tools": [],
+        "lifecycle_tools": [], "capabilities": ["policy_tool_help_v1"], "tool_descriptions": {"inspect": tool},
     }
 
 
-@pytest.mark.parametrize("base,message", [
-    ({"ref": "base.json", "sha256": "0" * 64}, "must be a path string"),
-    ("../../../../../outside.json", "unavailable"),
+@pytest.mark.parametrize("tool,message", [
+    ({"ref": "inspect.json", "sha256": "0" * 64}, "must name each file by a path string"),
+    ("../../../../../outside.json", "outside the source tree"),
     ("unlocked.json", "is not in policy.lock"),
 ])
-def test_the_tool_surface_loader_refuses_inline_escaping_or_unlocked_components(monkeypatch, tmp_path, base, message):
+def test_the_tool_surface_loader_refuses_inline_escaping_or_unlocked_components(monkeypatch, tmp_path, tool, message):
     root = scratch_profile_root(monkeypatch, tmp_path, {
-        "scratch/base.json": _definitions(), "scratch/manifest.json": _manifest(base),
+        "scratch/inspect.json": _tool(), "scratch/manifest.json": _manifest(tool),
     })
-    (root / "scratch/unlocked.json").write_text(json.dumps(_definitions()))  # written after the lock
-    monkeypatch.setitem(tool_surface.PROFILE_CATALOG, "scratch_surface", root / "scratch/manifest.json")
+    (root / "scratch/unlocked.json").write_text(json.dumps(_tool()))  # written after the lock
+    monkeypatch.setitem(profile_catalog.PROFILE_CATALOG, "scratch_surface", root / "scratch/manifest.json")
     with pytest.raises(tool_surface.ToolSurfaceError, match=message):
         tool_surface.resolve_tool_surface("scratch_surface")
 
@@ -217,20 +226,20 @@ def test_lock_check_catches_a_stale_lock_after_an_asset_edit(tmp_path):
     root = tmp_path / "repository"
     surfaces = root / "ora/policy/tool_surfaces/scratch"
     surfaces.mkdir(parents=True)
-    (surfaces / "base.json").write_text(json.dumps(_definitions()))
-    (surfaces / "manifest.json").write_text(json.dumps(_manifest("base.json")))
+    (surfaces / "inspect.json").write_text(json.dumps(_tool()))
+    (surfaces / "manifest.json").write_text(json.dumps(_manifest("inspect.json")))
     for args in (("init", "-q"), ("add", "."), ("-c", "user.name=F", "-c", "user.email=f@example.invalid",
                                                  "commit", "-qm", "fixture")):
         subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
     policy_lock.write_lock(root)
     assert policy_lock.check_lock(root).clean
-    edited = _definitions()
-    edited["tools"][0]["description"] = "edited"
-    (surfaces / "base.json").write_text(json.dumps(edited))
+    edited = _tool()
+    edited["description"] = "edited"
+    (surfaces / "inspect.json").write_text(json.dumps(edited))
     drift = policy_lock.check_lock(root)
-    assert drift.changed == ("ora/policy/tool_surfaces/scratch/base.json",)
+    assert drift.changed == ("ora/policy/tool_surfaces/scratch/inspect.json",)
     # The loader still reads the edited bytes and records their hash; the gate is the lock check.
-    asset = locked_asset(root, "ora/policy/tool_surfaces/scratch/base.json", label="base")
+    asset = locked_asset(root, "ora/policy/tool_surfaces/scratch/inspect.json", label="inspect")
     assert json.loads(asset.data) == edited
     policy_lock.write_lock(root)
     assert policy_lock.check_lock(root).clean
@@ -291,9 +300,9 @@ def test_the_model_visible_digest_reads_a_profile_descriptor_in_either_form(tmp_
     ``scripts/dev/compare-model-visible`` applies this checkout's ``model_visible``
     to trees on both sides of the conversion.
     """
-    from ora.orchestrator.model_visible import model_visible_items
-    from ora.orchestrator.spec import resolve_run_spec
-    from tests.support.run_specs import native_spec
+    from ora.orchestrator.evaluation.model_visible import model_visible_items
+    from ora.orchestrator.spec.run_spec import resolve_run_spec
+    from tests.support.orchestrator.run_specs import native_spec
 
     plan = resolve_run_spec(native_spec("libero_pro"), root=ROOT)
     items = model_visible_items(plan, root=ROOT)["embodiment"]
@@ -375,12 +384,12 @@ def test_the_strip_verifies_a_wording_review_against_its_descriptor(monkeypatch,
     assert json.loads(plan.text) == {key: value for key, value in json.loads(text).items() if key != "descriptor_sha256"}
 
 
-def test_a_wording_review_that_pins_descriptor_bytes_is_refused(monkeypatch, tmp_path):
-    """The review attests the card text; a descriptor_sha256 beside it is refused, never verified."""
+def _robodojo_profile(tmp_path):
+    """The RoboDojo explicit-v6 context profile, its environments and the ARX X5 embodiment copied under ``tmp_path``;
+    returns a resolver of it there and the profile."""
     import shutil
-    from ora.agent.composition.environment_context import (
-        EnvironmentContextError, resolve_environment_prompt_profile,
-    )
+    from ora.agent.composition.embodiment.environment_context import resolve_environment_prompt_profile
+    from ora.agent.composition.embodiment.moved_sources import resolve as resolve_moved
     from ora.environment.benchmarks.robodojo import public_context
 
     profile_path = "ora/policy/environments/robodojo/context-profile-public-explicit-v6.json"
@@ -389,13 +398,47 @@ def test_a_wording_review_that_pins_descriptor_bytes_is_refused(monkeypatch, tmp
         shutil.copytree(ROOT / relative, tmp_path / relative)
     for source in json.loads((ROOT / profile["compiled_embodiment"]["descriptor"]).read_text())["provenance"]["sources"]:
         if "local_path" in source:
-            (tmp_path / source["local_path"]).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(ROOT / source["local_path"], tmp_path / source["local_path"])
+            # Where the source audit finds it: a moved source at its new place.
+            found = resolve_moved(ROOT, source["local_path"]).relative_to(ROOT.resolve())
+            (tmp_path / found).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / found, tmp_path / found)
     shutil.copyfile(ROOT / "policy.lock", tmp_path / "policy.lock")
-    resolve_environment_prompt_profile(public_context(), project_root=tmp_path, profile_id=profile["profile_id"])
+    return lambda: resolve_environment_prompt_profile(public_context(), project_root=tmp_path,
+                                                      profile_id=profile["profile_id"]), profile
+
+
+def test_a_wording_review_that_pins_descriptor_bytes_is_refused(monkeypatch, tmp_path):
+    """The review attests the card text; a descriptor_sha256 beside it is refused, never verified."""
+    from ora.agent.composition.embodiment.environment_context import EnvironmentContextError
+
+    resolve, profile = _robodojo_profile(tmp_path)
+    resolve()
     review = tmp_path / profile["compiled_embodiment"]["review"]
     value = json.loads(review.read_text())
     value["descriptor_sha256"] = hashlib.sha256((tmp_path / profile["compiled_embodiment"]["descriptor"]).read_bytes()).hexdigest()
     review.write_text(json.dumps(value))
     with pytest.raises(EnvironmentContextError, match="wording review does not accept"):
-        resolve_environment_prompt_profile(public_context(), project_root=tmp_path, profile_id=profile["profile_id"])
+        resolve()
+
+
+def test_a_wording_review_may_carry_the_maintainer_s_approval_of_the_card(tmp_path):
+    """Beside the source review, ``approval`` records the maintainer's approval of the card text: who, the day and
+    their words (the six cards of 2026-11-06: "措辞可以"). It is optional, and a malformed one is refused."""
+    from ora.agent.composition.embodiment.environment_context import EnvironmentContextError
+
+    resolve, profile = _robodojo_profile(tmp_path)
+    review = tmp_path / profile["compiled_embodiment"]["review"]
+    value = json.loads(review.read_text())
+    assert value["approval"] == {"by": "maintainer", "date": "2026-11-06", "words": "措辞可以"}
+    resolve()
+    review.write_text(json.dumps({key: item for key, item in value.items() if key != "approval"}))
+    resolve()
+    for approval in ({"by": "codex_source_review", "date": "2026-11-06", "words": "ok"},
+                     {"by": "maintainer", "date": "11/06/2026", "words": "ok"},
+                     {"by": "maintainer", "date": "2026-11-06", "words": " "},
+                     {"by": "maintainer", "date": "2026-11-06"},
+                     {"by": "maintainer", "date": "2026-11-06", "words": "ok", "card_sha256": value["card_sha256"]},
+                     "措辞可以", None):
+        review.write_text(json.dumps({**value, "approval": approval}, ensure_ascii=False))
+        with pytest.raises(EnvironmentContextError, match="wording review does not accept"):
+            resolve()

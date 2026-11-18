@@ -49,12 +49,6 @@ __all__ = [
     "validate_motion_backend_capabilities",
     "write_motion_plan_artifact",
 ]
-from .curobo_motion import (
-    CUROBO_REQUIRED_VERSION,
-    CuroboPlannerClient,
-    CuroboPlannerError,
-    validate_curobo_response,
-)
 from .hybrid_motion import (
     HYBRID_MOTION_PROFILE_SCHEMA,
     HybridMotionProfileError,
@@ -65,8 +59,6 @@ from .hybrid_motion import (
 )
 
 __all__ += [
-    "CUROBO_REQUIRED_VERSION", "CuroboPlannerClient", "CuroboPlannerError",
-    "validate_curobo_response",
     "HYBRID_MOTION_PROFILE_SCHEMA", "HybridMotionProfileError",
     "aggregate_motion_contact", "load_hybrid_motion_profile",
     "validate_hybrid_motion_profile",

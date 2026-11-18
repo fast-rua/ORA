@@ -1,0 +1,64 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "preview_move",
+  "description": "Render a candidate grip-site pose without acting. Supply absolute xyz_m or delta_mm plus optional orientation axes. The returned preview_id is bound to the current actual observation. Candidate images are not actual world state.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "xyz_m": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "delta_mm": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "delta_frame": {
+        "type": "string",
+        "enum": [
+          "world",
+          "grip_site"
+        ],
+        "default": "world"
+      },
+      "approach_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "jaw_world": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": null
+}

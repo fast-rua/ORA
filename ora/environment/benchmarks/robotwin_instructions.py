@@ -20,7 +20,7 @@ same objects from the seen pool. For those episodes the official sentence is
 the default instruction; an explicit episode name still overrides it.
 
 This is separate from ``robotwin.py`` because the seed scan
-(``orchestrator/robotwin_evaluation.py::source_dependencies``) binds that file
+(``orchestrator/backends/robotwin/evaluation_seeds.py::source_dependencies``) binds that file
 as an execution dependency; the instruction text is not one.
 """
 

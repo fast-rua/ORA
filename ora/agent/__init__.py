@@ -2,6 +2,7 @@
 
 from .contracts import (
     ActionProposal,
+    ExecutedActions,
     ContextProjectionPipeline,
     LifecycleRequest,
     ModelProvider,
@@ -21,6 +22,7 @@ from .contracts import (
 
 __all__ = [
     "ActionProposal",
+    "ExecutedActions",
     "ContextProjectionPipeline",
     "LifecycleRequest",
     "ModelProvider",

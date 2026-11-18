@@ -1,15 +1,10 @@
-"""Backend-neutral Cartesian reachability: forward kinematics in, verdict out.
+"""Backend-neutral Cartesian error and differential-IK primitives.
 
-These primitives answer "can this arm hold this pose" from a forward-kinematics
-callable and joint limits alone. They take no adapter and no session, so they
-cannot reach a motion planner even by accident -- which is the point. Probing
-reachability through the planner is what made ``motion.probe`` 91% of tool
-wall-clock in the v7 hanging-mug run.
-
-They lived under ``backends/robotwin/`` only because that is where they were
-first written. Nothing in them is RoboTwin-specific: a backend that can report
-its end-effector pose at a chosen joint vector, and its joint limits, can use
-them unchanged.
+The pose error twist, a numerical Jacobian and one bounded damped-least-squares
+step, from a forward-kinematics callable alone: what a local Cartesian servo and a
+residual check need. Answering "can this arm hold this pose" belongs to the
+shared planner's IK (``motion_planner.py``), and a single-seed descent no longer
+stands in for it.
 """
 
 from __future__ import annotations
@@ -148,103 +143,3 @@ def bounded_dls_joint_delta(
     if not np.isfinite(delta).all():
         _reject("dls_non_finite", "Cartesian DLS produced non-finite joints")
     return delta
-
-
-def solve_reachability(
-    *, target_pose_xyzw: Sequence[float], seed_joints: Sequence[float],
-    fk_public_pose: Callable[[Sequence[float]], Sequence[float]],
-    joint_limits: Sequence[Sequence[float]],
-    position_tolerance_m: float, orientation_tolerance_rad: float,
-    maximum_iterations: int = 60, damping: float = 0.01,
-    maximum_joint_step_rad: float = 0.15,
-) -> dict[str, Any]:
-    """Answer reachability with inverse kinematics and nothing else.
-
-    The pieces were all present -- forward kinematics, a numerical Jacobian,
-    joint limits, one damped-least-squares step -- and nothing composed them,
-    so the only available answer to "can the arm reach this pose" came from the
-    motion planner. Probing reachability that way is what made ``motion.probe``
-    91% of tool wall-clock in the v7 hanging-mug run.
-
-    This function takes forward kinematics and limits, never an adapter or a
-    session, so it cannot reach ``plan_global`` or ``plan_batch_global`` even by
-    accident. A solved pose is reachable by this model of the arm; it is not a
-    claim that a collision-free path to it exists, and callers must say so.
-
-    Refusal is reported, never raised and never silently clamped: a caller that
-    reads ``reachable`` alone still gets a correct answer, and one that reads
-    ``reason`` learns whether the limit was a joint stop, a singular
-    configuration or an iteration budget.
-    """
-
-    limits = np.asarray(joint_limits, dtype=np.float64)
-    joints = np.asarray(seed_joints, dtype=np.float64).copy()
-    if (limits.ndim != 2 or limits.shape[1] != 2
-            or limits.shape[0] != joints.shape[0]
-            or not np.isfinite(limits).all() or not np.isfinite(joints).all()):
-        _reject("reachability_input", "reachability solver input is invalid")
-    if position_tolerance_m <= 0.0 or orientation_tolerance_rad <= 0.0:
-        _reject("reachability_tolerance", "reachability tolerances must be positive")
-
-    reason: str | None = None
-    error = np.zeros(6, dtype=np.float64)
-    iterations = 0
-    for iterations in range(1, int(maximum_iterations) + 1):
-        error = cartesian_pose_error_twist(
-            target_pose_xyzw, fk_public_pose(joints),
-        )
-        position_error = float(np.linalg.norm(error[:3]))
-        orientation_error = float(np.linalg.norm(error[3:]))
-        if (position_error <= position_tolerance_m
-                and orientation_error <= orientation_tolerance_rad):
-            reason = None
-            break
-        jacobian = numerical_cartesian_jacobian(
-            joints, fk_public_pose=fk_public_pose, epsilon_rad=1e-5,
-        )
-        if float(np.linalg.matrix_rank(jacobian)) < 1.0:
-            reason = "singular"
-            break
-        delta = bounded_dls_joint_delta(
-            error, jacobian, damping=damping,
-            maximum_translation_step_m=max(position_tolerance_m * 10.0, 0.02),
-            maximum_rotation_step_rad=max(orientation_tolerance_rad * 10.0, 0.1),
-            maximum_joint_step_rad=maximum_joint_step_rad,
-        )
-        proposed = joints + delta
-        clamped = np.clip(proposed, limits[:, 0], limits[:, 1])
-        if np.allclose(clamped, joints, atol=1e-12):
-            # Every remaining step is absorbed by a joint stop: the arm cannot
-            # move further toward this pose, and reporting the clamped
-            # configuration as a solution would be a false positive.
-            joints = clamped
-            reason = "joint_limit"
-            break
-        joints = clamped
-    else:
-        reason = "not_converged"
-
-    error = cartesian_pose_error_twist(target_pose_xyzw, fk_public_pose(joints))
-    position_error = float(np.linalg.norm(error[:3]))
-    orientation_error = float(np.linalg.norm(error[3:]))
-    solved = (
-        reason is None
-        and position_error <= position_tolerance_m
-        and orientation_error <= orientation_tolerance_rad
-    )
-    result: dict[str, Any] = {
-        "reachable": bool(solved),
-        "joints": [float(value) for value in joints],
-        "iterations": int(iterations),
-        "position_error_m": position_error,
-        "orientation_error_rad": orientation_error,
-        "claim_boundary": (
-            "Inverse kinematics for this arm model only: one damped-least-squares "
-            "descent from the seed configuration, with no collision model of any "
-            "kind. A reachable pose is not a collision-free path and not a "
-            "successful motion, and this verdict is not the backend planner's."
-        ),
-    }
-    if not solved:
-        result["reason"] = reason or "not_converged"
-    return result

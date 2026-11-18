@@ -19,9 +19,9 @@
     "embodiment_policy": "ora/policy/embodiments/franka-panda/manual-public-geometry-v3.md"
   },
   "compiled_embodiment": {
-    "descriptor": "ora/policy/embodiments/franka-panda/descriptor-public-geometry-direct-v1-controller-feedback-v1-session-split-v1.json",
+    "descriptor": "ora/policy/embodiments/franka-panda/descriptor-public-geometry-direct-v1-controller-feedback-v1-session-split-v1-flat-surface-v1.json",
     "review": "ora/policy/embodiments/franka-panda/wording-review-public-geometry-direct-v1-controller-feedback-v1-session-split-v1.json",
-    "card_sha256": "79044a12f177a5413358ab6fa86cba9c44fedcaa9bb233553e482cb06bdf5e9b",
+    "card_sha256": "40d0381516369e022954ec1495ea2d39dbf2b84e7a7edd0e83b2ee9b7e234423",
     "runtime_verification": "loaded_robot_geometry_before_policy_v1"
   }
 }

@@ -19,17 +19,17 @@ from ora.agent import (
     policy_outcome_from_mapping,
 )
 from ora.agent.context import ContextBundle, ContextSlot, ContextSource
-from ora.agent.native.gateway import NativeToolGateway
+from ora.agent.session_core.gateway import NativeToolGateway
 from ora.environment import (
     EnvironmentDefinitionError, environment_definitions, resolve_runtime_descriptor,
 )
 from ora.orchestrator import EpisodeCoordinator
 from ora.orchestrator.faults import classify_harness_fault
-from ora.orchestrator.interaction import (
+from ora.orchestrator.episode.interaction import (
     EpisodeInteractionState,
     InteractionStateError,
 )
-from ora.agent.tools.robot import RobotToolRuntime
+from ora.agent.toolkit.host.runtime.factory import build_tool_runtime
 
 
 def test_policy_turn_is_immutable_and_runtime_projection_is_detached(tmp_path: Path) -> None:
@@ -115,7 +115,7 @@ def test_post_dispatch_fault_is_unknown_and_never_replayed() -> None:
 def test_environment_registry_is_explicit_and_descriptor_rejects_drift() -> None:
     definitions = environment_definitions()
     assert [item.environment_id for item in definitions] == [
-        "libero_pro", "robodojo", "robotwin", "synthetic",
+        "libero_pro", "robocasa", "robodojo", "robolab", "robotwin", "synthetic", "yam",
     ]
     descriptor = resolve_runtime_descriptor({
         "kind": "libero_pro",
@@ -141,6 +141,12 @@ def test_environment_registry_is_explicit_and_descriptor_rejects_drift() -> None
 
 def test_host_layers_do_not_import_process_isolated_simulator_backends() -> None:
     root = Path(__file__).resolve().parents[2]
+    # The motion host consumes only the existing numerical suite. Its dedicated
+    # subprocess test proves that this import loads no Isaac/Omni/Kit modules.
+    numerical_import = (
+        "ora/orchestrator/backends/robodojo/qualification.py",
+        "ora.environment.backends.robodojo.motion_qualification",
+    )
     violations = []
     for package in (root / "ora/orchestrator", root / "viewer"):
         for path in package.rglob("*.py"):
@@ -156,6 +162,7 @@ def test_host_layers_do_not_import_process_isolated_simulator_backends() -> None
                 imported = [module] if module else names
                 if any(
                     name.startswith("ora.environment.backends")
+                    and (path.relative_to(root).as_posix(), name) != numerical_import
                     for name in imported
                 ):
                     violations.append(path.relative_to(root).as_posix())
@@ -200,7 +207,7 @@ def test_gateway_and_direct_calls_share_one_tool_runtime() -> None:
 
 def test_removed_compatibility_modules_are_not_shipped() -> None:
     root = Path(__file__).resolve().parents[2]
-    assert EpisodeCoordinator.__module__ == "ora.orchestrator.coordinator"
+    assert EpisodeCoordinator.__module__ == "ora.orchestrator.episode.coordinator"
     removed_paths = (
         root / "control/__init__.py",
         root / "environment/__init__.py",
@@ -216,20 +223,31 @@ def test_removed_compatibility_modules_are_not_shipped() -> None:
         root / "ora/agent/claude_code/__init__.py",
         root / "ora/agent/managed/__init__.py",
         root / "ora/agent/wire/__init__.py",
+        root / "ora/agent/tools/runtime/move_to.py",
+        # The tool runtime frame moved to ora/agent/toolkit/host/runtime (P21); the package is retired, not forwarded.
+        root / "ora/agent/tools",
     )
     assert all(not path.exists() for path in removed_paths)
+    # Composition and context keep only their facades and the few modules that
+    # serve every sub-package at their roots; the flat module paths are retired.
+    assert sorted(path.name for path in (root / "ora/agent/composition").glob("*.py")) == [
+        "__init__.py", "baseline.py", "context_scheme.py", "inspection.py", "locked_assets.py", "ora_local.py",
+    ]
+    assert sorted(path.name for path in (root / "ora/agent/context").glob("*.py")) == [
+        "__init__.py", "causal_value.py",
+    ]
     fresh = subprocess.run(
         [
             sys.executable,
             "-c",
             (
-                "from ora.orchestrator.context_manifest import "
+                "from ora.orchestrator.evaluation.context_manifest import "
                 "build_context_manifest; "
-                "import ora.agent.native.gateway, "
-                "ora.agent.providers.native, "
+                "import ora.agent.session_core.gateway, "
+                "ora.agent.providers.factory, "
                 "ora.agent.providers.profiles, "
                 "ora.agent.composition, "
-                "ora.agent.composition.environment_context"
+                "ora.agent.composition.embodiment.environment_context"
             ),
         ],
         cwd=Path(__file__).resolve().parents[2],
@@ -257,7 +275,7 @@ def test_mutation_proposal_is_discarded_when_evidence_write_fails(
     manual.write_text("# Manual\n\n## Safety\nRead first.\n", encoding="utf-8")
     control = tmp_path / "control"
     control.mkdir()
-    runtime = RobotToolRuntime(
+    runtime = build_tool_runtime(
         control_root=control,
         manual_path=manual,
         event_path=tmp_path / "events.jsonl",
@@ -265,6 +283,9 @@ def test_mutation_proposal_is_discarded_when_evidence_write_fails(
             "x": [-1.0, 1.0], "y": [-1.0, 1.0], "z": [0.0, 2.0],
         },
         allowed_tools=["robot.submit_action"],
+        state_root=None,
+        profile_id="robot_runtime_v2",
+        component_overrides=None,
     )
     assert not hasattr(runtime, "call")
 
@@ -274,7 +295,7 @@ def test_mutation_proposal_is_discarded_when_evidence_write_fails(
 
     runtime._submit = stage  # type: ignore[method-assign]
     monkeypatch.setattr(
-        "ora.agent.tools.robot._append",
+        "ora.agent.toolkit.host.runtime.base._append",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("disk full")),
     )
     with pytest.raises(OSError, match="disk full"):
@@ -311,23 +332,13 @@ def test_namespace_dependencies_and_coordinator_are_backend_neutral() -> None:
                         violations.append(f"{path.relative_to(root)}:{node.lineno}:{name}")
     assert violations == []
 
-    coordinator = (root / "ora/orchestrator/coordinator.py").read_text(
+    coordinator = (root / "ora/orchestrator/episode/coordinator.py").read_text(
         encoding="utf-8"
     )
     assert "CodexPlanner" not in coordinator
     assert "NativePlanner" not in coordinator
     assert 'policy["kind"]' not in coordinator
     assert "environment.backends" not in coordinator
-
-    native_session = (root / "ora/agent/native/session.py").read_text(
-        encoding="utf-8"
-    )
-    native_loop = (root / "ora/agent/native/tool_loop.py").read_text(
-        encoding="utf-8"
-    )
-    assert "def _run_turn_loop" not in native_session
-    assert "provider.complete" in native_loop
-    assert "gateway.execute" in native_loop
 
     deprecated_imports = (
         "control",
@@ -348,8 +359,87 @@ def test_namespace_dependencies_and_coordinator_are_backend_neutral() -> None:
         "ora.native_context",
         "ora.native_planner",
         "ora.agent.native.planner",
+        # The Python Native agent core and its Context pipeline, removed from ORA
+        # (they remain in the robot-harness repository).
+        "ora.agent.native",
+        "ora.agent.context.native",
+        # Its direct providers, split into one module per wire protocol.
+        "ora.agent.providers.native",
+        "ora.agent.context.lossless_layers",
+        "ora.agent.context.lossless_semantic",
+        "ora.agent.context.lossless_render",
+        "ora.agent.context.tail_aging",
+        "ora.agent.context.deferred_eager",
         "ora.native_provider",
         "ora.native_provider_profiles",
+        # Moved by the repository restructure: the leases into leases.py, the
+        # world view into ora, backend dispatch into backends/registry.py
+        # (docs/developer/repository-structure.md).
+        "ora.orchestrator.lease_claim",
+        "viewer.live_world",
+        "ora.orchestrator.controller_preflight",
+        "ora.orchestrator.environment_preflight",
+        "ora.orchestrator.ora_run_qualification",
+        # The ora command moved to ora.app: one parser and one command table (ora/app/main.py).
+        "ora.orchestrator.cli", "ora.orchestrator.ora_cli", "ora.orchestrator.package_version",
+        "ora.orchestrator.quickstart", "ora.orchestrator.doctor", "ora.orchestrator.providers_cli",
+        "ora.orchestrator.model_services_cli", "ora.orchestrator.ora_backend", "ora.orchestrator.ora_catalog",
+        "ora.orchestrator.ora_env_file", "ora.orchestrator.ora_gpu_recipes", "ora.orchestrator.ora_gpu_setup",
+        "ora.orchestrator.ora_local", "ora.orchestrator.ora_local_setup", "ora.orchestrator.ora_pi_tui",
+        "ora.orchestrator.ora_play", "ora.orchestrator.ora_remote", "ora.orchestrator.ora_remote_session",
+        "ora.orchestrator.ora_replay", "ora.orchestrator.ora_replay_export", "ora.orchestrator.ora_run",
+        "ora.orchestrator.ora_run_services", "ora.orchestrator.ora_web", "ora.orchestrator.ora_web_gateway",
+        "ora.orchestrator.ora_world",
+        # The flat orchestrator modules moved into spec/, preflight/, episode/,
+        # evaluation/, reports/, suite/ and play/. spec.py, preflight.py and
+        # evaluation.py are not listed: their names are those packages now.
+        "ora.orchestrator.spec_composition", "ora.orchestrator.spec_context_compactor",
+        "ora.orchestrator.spec_context_pack", "ora.orchestrator.spec_native_policy",
+        "ora.orchestrator.spec_native_provider", "ora.orchestrator.spec_operator_control",
+        "ora.orchestrator.spec_partition", "ora.orchestrator.spec_play",
+        "ora.orchestrator.spec_policy", "ora.orchestrator.spec_result_tier",
+        "ora.orchestrator.spec_runtime", "ora.orchestrator.spec_source",
+        "ora.orchestrator.spec_values", "ora.orchestrator.run_spec_inputs",
+        "ora.orchestrator.environment_spec", "ora.orchestrator.benchmark_spec",
+        "ora.orchestrator.defaults", "ora.orchestrator.policy_pins", "ora.orchestrator.policy_lock",
+        "ora.orchestrator.experiment_identity", "ora.orchestrator.yaml_cache",
+        "ora.orchestrator.baseline_explain", "ora.orchestrator.baseline_tool_routes",
+        "ora.orchestrator.checks", "ora.orchestrator.host_storage",
+        "ora.orchestrator.resource_inventory", "ora.orchestrator.resource_admission",
+        "ora.orchestrator.resources", "ora.orchestrator.provider_probe_stages",
+        "ora.orchestrator.provider_probe_diagnostics", "ora.orchestrator.provider_gateway",
+        "ora.orchestrator.provider_image_answer",
+        "ora.orchestrator.coordinator", "ora.orchestrator.episode_actions",
+        "ora.orchestrator.episode_bindings", "ora.orchestrator.episode_loop",
+        "ora.orchestrator.episode_observation", "ora.orchestrator.episode_play",
+        "ora.orchestrator.episode_records", "ora.orchestrator.episode_result",
+        "ora.orchestrator.episode_rounds", "ora.orchestrator.episode_terminal",
+        "ora.orchestrator.stage_outcome", "ora.orchestrator.gripper_stage",
+        "ora.orchestrator.motion_stage", "ora.orchestrator.interaction", "ora.orchestrator.live",
+        "ora.orchestrator.operator_control", "ora.orchestrator.operator_stop",
+        "ora.orchestrator.script_actions", "ora.orchestrator.skill_sequence_job",
+        "ora.orchestrator.stagnation", "ora.orchestrator.termination",
+        "ora.orchestrator.round_isolation", "ora.orchestrator.round_aggregates",
+        "ora.orchestrator.wait_accounting", "ora.orchestrator.policy_factory",
+        "ora.orchestrator.policy_finish", "ora.orchestrator.agent_core",
+        "ora.orchestrator.shm_segments", "ora.orchestrator.run_scratch",
+        "ora.orchestrator.action_executor", "ora.orchestrator.native_allowance",
+        "ora.orchestrator.evaluation_checks", "ora.orchestrator.evaluation_learning",
+        "ora.orchestrator.evaluation_lossless", "ora.orchestrator.evaluation_play",
+        "ora.orchestrator.evaluation_receipts", "ora.orchestrator.verdict_guard",
+        "ora.orchestrator.revalidation", "ora.orchestrator.decision_accounting",
+        "ora.orchestrator.context_audit", "ora.orchestrator.context_coverage",
+        "ora.orchestrator.context_manifest", "ora.orchestrator.context_manifest_slots",
+        "ora.orchestrator.metrics", "ora.orchestrator.metrics_native_projection",
+        "ora.orchestrator.metrics_provider_usage", "ora.orchestrator.metrics_values",
+        "ora.orchestrator.visual_usage", "ora.orchestrator.ownership_audit",
+        "ora.orchestrator.artifact_provenance", "ora.orchestrator.model_visible",
+        "ora.orchestrator.evidence_io", "ora.orchestrator.run_artifacts",
+        "ora.orchestrator.run_report", "ora.orchestrator.run_report_aggregate",
+        "ora.orchestrator.run_report_events", "ora.orchestrator.run_report_markdown",
+        "ora.orchestrator.run_report_run",
+        "ora.orchestrator.suite_cells", "ora.orchestrator.suite_queue",
+        "ora.orchestrator.play_scenes",
         "ora.openeta_tools",
         "ora.planner",
         "ora.policy_session",
@@ -366,10 +456,10 @@ def test_namespace_dependencies_and_coordinator_are_backend_neutral() -> None:
     )
     maintained_roots = (
         root / "ora/agent",
+        root / "ora/app",
         root / "ora/contracts",
         root / "ora/environment",
         root / "ora/orchestrator",
-        root / "experiments",
         root / "viewer",
         root / "tests",
     )
@@ -413,5 +503,5 @@ def test_namespace_dependencies_and_coordinator_are_backend_neutral() -> None:
 
     assert not hasattr(composition, "CHANNELS")
     wrapper = (root / "scripts/ora").read_text(encoding="utf-8")
-    assert "-m ora.orchestrator.cli" in wrapper
+    assert 'exec "$PYTHON" -m ora.app "$@"' in wrapper
     assert "-m control.cli" not in wrapper

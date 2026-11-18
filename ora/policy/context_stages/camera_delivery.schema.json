@@ -1,0 +1,52 @@
+{
+ "type": "object",
+ "description": "camera_delivery (phase deliver).",
+ "properties": {
+  "mode": {
+   "enum": [
+    "rolling_tail_v1",
+    "inline_until_compaction_v1",
+    "exchange_window_v1"
+   ],
+   "description": "Where the fixed camera images reach the model; exchange_window_v1 (with exchange_aging) leaves them in their observation message until its exchange ages."
+  },
+  "tail_observations": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 2,
+   "description": "Rolling mode: the observations whose camera images the tail carries; the other modes: null."
+  }
+ },
+ "required": [
+  "mode",
+  "tail_observations"
+ ],
+ "additionalProperties": false,
+ "oneOf": [
+  {
+   "properties": {
+    "mode": {
+     "const": "rolling_tail_v1"
+    },
+    "tail_observations": {
+     "type": "integer"
+    }
+   }
+  },
+  {
+   "properties": {
+    "mode": {
+     "enum": [
+      "inline_until_compaction_v1",
+      "exchange_window_v1"
+     ]
+    },
+    "tail_observations": {
+     "const": null
+    }
+   }
+  }
+ ]
+}

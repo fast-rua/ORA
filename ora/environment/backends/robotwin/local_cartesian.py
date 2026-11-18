@@ -46,6 +46,7 @@ from .local_cartesian_tracking import (
     LocalCartesianRun,
     open_local_cartesian_run,
 )
+from .pacing import PHYSICS_STEP_S, local_substeps
 
 
 class RoboTwinLocalCartesianMixin:
@@ -151,6 +152,10 @@ def _local_cartesian_iteration(
     if session._uses_motion_transaction_profile():
         return _execute_local_transaction(
             session, run, iteration, next_joints, next_velocities,
+            paths=_paced_local_paths(
+                session, run, current_joints, current_pose, errors,
+                next_joints, next_velocities,
+            ),
         )
     return _execute_local_physics_steps(
         session, run, iteration, next_joints, next_velocities,
@@ -338,14 +343,67 @@ def _numeric_local_joint_target(
     return True
 
 
+def _paced_local_paths(
+    session: Any,
+    run: LocalCartesianRun,
+    current_joints: Mapping[str, list[float]],
+    current_pose: Mapping[str, list[float]],
+    errors: Mapping[str, Any],
+    next_joints: Mapping[str, list[float]],
+    next_velocities: Mapping[str, list[float]],
+) -> dict[str, dict[str, Any]] | None:
+    """The iteration's step as a straight joint line timed for the move's speed, or None (one row).
+
+    The servo re-anchors on the measured joints every iteration and the joint
+    drives lag their targets, so a smaller step would only slow the servo
+    down without bound; instead the full step is spread over as many physics
+    steps as its predicted TCP translation and turn need under the caps
+    (``pacing.local_substeps``), with the velocity of that line, and the
+    transaction converges on every row in turn.
+    """
+
+    import numpy as np
+
+    caps = run.step_caps
+    if caps is None:
+        return None
+    count = 1
+    for arm in run.arms:
+        start = np.asarray(current_joints[arm], dtype=np.float64)
+        goal = np.asarray(next_joints[arm], dtype=np.float64)
+        if float(np.max(np.abs(goal - start))) <= 0.0:
+            continue
+        predicted = session._pinocchio_public_pose_xyzw(run.environment, arm, goal)
+        step = cartesian_pose_error_twist(predicted, current_pose[arm])
+        count = max(count, local_substeps(
+            caps, step[:3], step[3:], float(np.linalg.norm(errors[arm][:3])),
+        ))
+    if count <= 1:
+        return None
+    paths = {}
+    for arm in run.arms:
+        start = np.asarray(current_joints[arm], dtype=np.float64)
+        goal = np.asarray(next_joints[arm], dtype=np.float64)
+        moving = float(np.max(np.abs(goal - start))) > 0.0
+        velocity = (goal - start) / (count * PHYSICS_STEP_S) if moving else np.zeros_like(goal)
+        paths[arm] = {
+            "position": [(start + (goal - start) * (index / count)).tolist()
+                         for index in range(1, count + 1)],
+            "velocity": [velocity.tolist()] * count,
+        }
+    return paths
+
+
 def _execute_local_transaction(
     session: Any,
     run: LocalCartesianRun,
     iteration: int,
     next_joints: Mapping[str, list[float]],
     next_velocities: Mapping[str, list[float]],
+    *,
+    paths: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> bool | None:
-    """Converge one iteration's joint target through the motion transaction."""
+    """Converge one iteration's joint target (or its paced line) through the motion transaction."""
 
     environment = run.environment
     action = run.action
@@ -389,7 +447,7 @@ def _execute_local_transaction(
         transaction_report, transaction_arrays = (
             execute_measured_convergence(
                 adapter=adapter,
-                paths={
+                paths=paths if paths is not None else {
                     arm: {
                         "position": [next_joints[arm]],
                         "velocity": [next_velocities[arm]],

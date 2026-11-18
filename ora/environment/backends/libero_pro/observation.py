@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from typing import Any, Mapping
 
+from ora.contracts.policy_receipt import policy_receipt
 from ora.environment.backends.libero_pro.motion_settle import (
     public_gripper_command,
 )
@@ -81,6 +82,16 @@ class LiberoObservationMixin:
         ):
             raise LiberoProError(f"camera calibration size drift: {source_name}")
         return dict(meta)
+
+    def _public_depth(
+        self, raw: Mapping[str, Any], source_name: str, depth_key: str, height: int, width: int,
+    ) -> tuple[Any, dict[str, Any]]:
+        """One camera's metric depth as the observation publishes it, with its calibration."""
+
+        import numpy as np
+
+        meta = self._camera_meta(source_name, height, width)
+        return _metric_depth(raw[depth_key], meta)[::-1].astype(np.float32), meta
 
     def _grip_site_pose(self) -> tuple[Any, Any]:
         import numpy as np
@@ -202,8 +213,9 @@ class LiberoObservationMixin:
             if rgb.ndim != 3 or rgb.shape[2] != 3:
                 raise LiberoProError(f"invalid RGB shape: {source_name}")
             rgb = np.clip(rgb, 0, 255).astype(np.uint8)
-            meta = self._camera_meta(source_name, int(rgb.shape[0]), int(rgb.shape[1]))
-            depth = _metric_depth(raw[depth_key], meta)[::-1].astype(np.float32)
+            depth, meta = self._public_depth(
+                raw, source_name, depth_key, int(rgb.shape[0]), int(rgb.shape[1]),
+            )
             if depth.shape != rgb.shape[:2]:
                 raise LiberoProError(f"RGB-D shape mismatch: {source_name}")
             intrinsic = np.asarray(meta["intrinsic_K"], dtype=np.float64)
@@ -281,7 +293,8 @@ class LiberoObservationMixin:
             "proprioception": proprioception,
             **({"robot_geometry_verification": self.robot_geometry_verification}
                if self.robot_geometry_verification is not None else {}),
-            "previous_execution_receipt": self.last_receipt,
+            # The policy's copy; the sealed receipt under receipts/ keeps its implementation evidence.
+            "previous_execution_receipt": policy_receipt(self.last_receipt),
             "forbidden_modalities_absent": [
                 "actor_state", "object_gt_pose", "segmentation", "contact",
                 "success_predicate", "expert_program", "task_source",

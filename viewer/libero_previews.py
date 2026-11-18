@@ -474,7 +474,7 @@ def _required_path(value: str | None, environment_name: str) -> Path:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog="ora-viewer compile previews", description=__doc__)
     parser.add_argument("--python", help="external LIBERO_PRO_PYTHON")
     parser.add_argument("--libero-pro-root", help="pinned LIBERO_PRO_ROOT")
     parser.add_argument("--data-root", help="pinned LIBERO_PRO_DATA_ROOT")
@@ -501,9 +501,5 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
-        print(f"compile-libero-previews: {exc}", file=sys.stderr)
+        print(f"ora-viewer compile previews: {exc}", file=sys.stderr)
         return 2
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

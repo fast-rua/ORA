@@ -23,14 +23,17 @@ names (so the bindings above select that root); with neither it refuses. A singl
 
 | Component | Revision |
 |---|---|
-| RoboDojo | `ee67a1468510da7624a089164402359f2afc72c8` |
+| RoboDojo | `f57e1633ffed59761bc8e568cfe7530c4b33381c` |
 | IsaacLab | `afca7b09d60d8beb9c1cb28b43066499940b969b` |
 | CuRobo | `d17b54ce32cba095c0b000c4c58777075d11de0e` |
-| XPolicyLab | `432f82b1758c5b1202e42a3dfe014546dbc50871` |
-| HF RoboDojo assets | `a14409d7fae673c00499e01fd88b4457df6351b1` |
+| XPolicyLab | `5d0be1499634d3176258c8f2e31f5fe816497b0a` |
+| HF RoboDojo assets | `1127bda94f172d757386945af3eb3a6754d1a4e6` |
 
 The asset revision identifies the selected installation data. It does not
-claim that an upstream published result used that revision.
+claim that an upstream published result used that revision. Every task reads
+this one asset checkout (2026-11-14): the swap_T-only successor checkout
+(`assets-35efbc7d`, `ROBODOJO_SWAP_T_ASSET_ROOT`) that the previous pins
+(RoboDojo `ee67a146`, assets `a14409d7`) needed is retired.
 
 ## Setup stages
 
@@ -150,12 +153,14 @@ tracked `HEAD:Assets/**` blobs, and SHA-256/size of every hydrated Asset path.
 It requires a clean asset checkout. `assets-verification.json` records each
 check's scope/status, revision, path count and unique object totals;
 `verify-assets` repeats this check
-without fetching or changing the source selection. Since 2026-10-04 Hugging
-Face returns 404 for every `swap_T` evaluation layout at the pinned revision
-(162 objects, eval seeds 0-2; `UPSTREAM_PURGED_ASSETS`). A later installation
-leaves them as pointers, still checks their pointer blobs and lists each path
-and object id under `upstream_purged_unhydrated`; `swap_T` cannot run there,
-every other task's assets are fully verified. The raw LFS inventory is
+without fetching or changing the source selection. `UPSTREAM_PURGED_ASSETS`
+names asset patterns whose LFS objects Hugging Face no longer serves at the
+pinned revision; an installation leaves those as pointers, still checks their
+pointer blobs and lists each path and object id under
+`upstream_purged_unhydrated`. It is empty at `1127bda`: the 162 `swap_T`
+evaluation layouts that returned 404 at the previous asset pin `a14409d7`
+(since 2026-10-04) were regenerated upstream and are served, so every task's
+assets are fully verified. The raw LFS inventory is
 retained as `assets-lfs.txt`; the installation manifest records actual source
 and asset revisions. Budget separately for
 LFS objects, the working tree, derived wheels, installed packages and caches.

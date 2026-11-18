@@ -1,0 +1,88 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "finish_episode",
+  "description": "End the policy lifecycle using the observed outcome. Use when: check_task has returned true for success, or supported failure/abort meets the declared contract; do not finish while an action proposal is pending. Effect: persists the policy finish record and ends policy interaction without directly changing the world or evaluator. Returns: success and the accepted outcome. Does not: override the official Boolean verdict or convert a lifecycle declaration into physical success. On error: success needs the checker latch; failure needs a nonempty reason and nonempty exhausted attempts; correct the missing evidence rather than inventing it.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "outcome": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failure",
+          "abort"
+        ],
+        "description": "Policy lifecycle outcome: success requires a prior true checker result; failure requires reason and exhausted attempts; abort does not declare task success."
+      },
+      "reason": {
+        "type": "string",
+        "default": "",
+        "description": "Outcome rationale; omitted defaults to empty, but failure requires nonempty text."
+      },
+      "attempts": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "description": "Nonempty descriptions of exhausted attempts for failure; optional or null for other outcomes. Does not count as action evidence."
+      }
+    },
+    "required": [
+      "outcome"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "enum": [
+              "success",
+              "failure",
+              "abort"
+            ]
+          },
+          "success": {
+            "const": true
+          }
+        },
+        "required": [
+          "success",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "required_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success",
+          "reason"
+        ],
+        "type": "object"
+      }
+    ]
+  }
+}

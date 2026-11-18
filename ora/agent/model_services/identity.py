@@ -5,9 +5,14 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from .resident import PROTOCOL_VERSION as GROUNDING_GRASP_PROTOCOL_VERSION
+
 
 def grounding_grasp_adapter_sha256() -> str:
-    """Bind the entry point, shared implementation and identity algorithm."""
+    """The adapter's content hash: evidence of which code served, not a binding condition.
+
+    Binding compares ``GROUNDING_GRASP_PROTOCOL_VERSION`` instead (operator.binding).
+    """
 
     root = Path(__file__).resolve().parent
     digest = hashlib.sha256()
@@ -21,4 +26,4 @@ def grounding_grasp_adapter_sha256() -> str:
     return digest.hexdigest()
 
 
-__all__ = ["grounding_grasp_adapter_sha256"]
+__all__ = ["GROUNDING_GRASP_PROTOCOL_VERSION", "grounding_grasp_adapter_sha256"]

@@ -11,6 +11,8 @@ from urllib.parse import quote
 
 ROUND_SCHEMA = "ora.viewer-round-ledger.v1"
 PERSISTENT_CADENCE = "persistent_agent_k_rounds_v1"
+#: A success past the official limit: official_success is false, and it is no failure.
+LATE_SUCCESS = "success_after_official_limit"
 
 
 def load_object(path: Path) -> dict[str, Any]:
@@ -117,15 +119,16 @@ def round_ledger(root: Path) -> dict[str, Any]:
         item = rows.get(index)
         verdict = item.get("official_success") if item else None
         verdict = verdict if isinstance(verdict, bool) else None
+        late = bool(item) and verdict is False and item.get(LATE_SUCCESS) is True
         state = str(item.get("state") or "unknown") if item else "not_run"
         outcome = (
-            "success" if verdict is True else "failure" if verdict is False else
+            "success" if verdict is True else LATE_SUCCESS if late else "failure" if verdict is False else
             "not_run" if item is None else "running" if state == "running" else
             "incomplete" if state in {"incomplete", "faulted", "failed", "stopped"} else "unscored"
         )
         projected.append({
             "round_index": index, "round_ordinal": index + 1, "state": state,
-            "outcome": outcome, "official_success": verdict,
+            "outcome": outcome, "official_success": verdict, LATE_SUCCESS: late,
             "decisions": item.get("decisions") if item else None,
             "refused_proposals": item.get("refused_proposals") if item else None,
             "model_calls": item.get("model_calls") if item else None,

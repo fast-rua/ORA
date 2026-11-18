@@ -12,6 +12,9 @@ from ora.contracts.workspace import normalize_workspace_bounds
 LIBERO_PRO_PANDA_TABLETOP_V1 = "libero_pro_panda_tabletop_v1"
 LIBERO_PRO_PANDA_HYBRID_MOTION_V1 = "libero_pro_panda_hybrid_motion_v1"
 ROBODOJO_ARX_X5_TABLETOP_V1 = "robodojo_arx_x5_tabletop_v1"
+ROBOCASA_PANDAOMRON_KITCHEN_V1 = "robocasa_pandaomron_kitchen_v1"
+ROBOLAB_DROID_TABLETOP_V1 = "robolab_droid_tabletop_v1"
+YAM_STATION_TABLETOP_V1 = "yam_station_tabletop_v1"
 
 _PROFILES: dict[str, dict[str, Any]] = {
     LIBERO_PRO_PANDA_TABLETOP_V1: {
@@ -86,6 +89,77 @@ _PROFILES: dict[str, dict[str, Any]] = {
             "qualification": "required_before_live_resume",
         },
     },
+    # RoboCasa365 world frame: the union of every non-robot, non-floor/wall
+    # geom over the ten target layouts (OpenDrawer seed 0, layouts 1..10,
+    # measured 2026-10-18) spans x [-1.68, 7.38] and y [-5.49, 1.68];
+    # the envelope adds a margin and caps z at kitchen height. The base moves,
+    # so this rejects only targets outside every kitchen; arm reach from the
+    # current base is the backend's own refusal.
+    # RoboLab robot-root frame (fixed Franka base): the reset TCP sits at
+    # (0.36, 0.0, 0.34) with the approach pointing down (probe
+    # 2026-10-18); the envelope covers the table in front of the arm and stops
+    # well above it. It rejects targets, it is not reach (the backend refuses
+    # targets beyond 0.95 m from the root).
+    ROBOLAB_DROID_TABLETOP_V1: {
+        "schema": "ora.action-workspace-profile.v1",
+        "profile_id": ROBOLAB_DROID_TABLETOP_V1,
+        "environment_id": "robolab",
+        "embodiment_id": "droid_franka_robotiq",
+        "frame": "robolab_robot_root",
+        "semantics": "hard_action_envelope_not_reachability",
+        "bounds_m": {"x": [0.0, 1.0], "y": [-0.7, 0.7], "z": [-0.05, 0.8]},
+        "provenance": {
+            "kind": "pinned_backend_reset_pose_and_reach",
+            "backend": "RoboLab",
+            "backend_revision": "ad45d4f974725d020f82c2b0d77d78533aeba2b3",
+            "controlled_point": "robotiq_2f85_tcp",
+            "controller": "ROBOLAB_ABS_IK_CARTESIAN_SERVO",
+            "qualification": "required_before_live_resume",
+        },
+    },
+    # The YAM station's yam_station_world (base plane, midway between the two
+    # arm bases, +x forward): the x, y and upper z limits are the backend's own
+    # target admission box (controllers/yam_station.py WORKSPACE_*); below, the
+    # backend refuses targets by the cell's measured table clearance, so the
+    # envelope stops 0.10 m under the base plane.
+    YAM_STATION_TABLETOP_V1: {
+        "schema": "ora.action-workspace-profile.v1",
+        "profile_id": YAM_STATION_TABLETOP_V1,
+        "environment_id": "yam",
+        "embodiment_id": "yam_station_linear_4310_d405",
+        "frame": "yam_station_world",
+        "semantics": "hard_action_envelope_not_reachability",
+        "bounds_m": {"x": [0.0, 0.65], "y": [-0.65, 0.65], "z": [-0.10, 0.60]},
+        "provenance": {
+            "kind": "pinned_backend_admission_box",
+            "backend": "YAM station",
+            "backend_revision": "fe78bae67334b9af0b79833dd8ba141a61767f2a",
+            "controlled_point": "yam_linear_4310_tcp",
+            "controller": "YAM_IK_JOINT_SCHEDULE",
+            "qualification": "required_before_live_resume",
+        },
+    },
+    ROBOCASA_PANDAOMRON_KITCHEN_V1: {
+        "schema": "ora.action-workspace-profile.v1",
+        "profile_id": ROBOCASA_PANDAOMRON_KITCHEN_V1,
+        "environment_id": "robocasa",
+        "embodiment_id": "panda_omron",
+        "frame": "robocasa_world",
+        "semantics": "hard_action_envelope_not_reachability",
+        "bounds_m": {
+            "x": [-2.0, 7.7],
+            "y": [-5.8, 2.0],
+            "z": [0.0, 2.2],
+        },
+        "provenance": {
+            "kind": "pinned_backend_scene_extent",
+            "backend": "RoboCasa365",
+            "backend_revision": "a9e152e2eea16d342dac40e4577fb4c68b932854",
+            "controlled_point": "grip_site",
+            "controller": "JOINT_POSITION_IK_PATH+BASE_VELOCITY_SERVO",
+            "qualification": "required_before_live_resume",
+        },
+    },
 }
 
 
@@ -106,5 +180,6 @@ def resolve_workspace_profile(profile_id: str) -> dict[str, Any]:
 
 __all__ = [
     "LIBERO_PRO_PANDA_HYBRID_MOTION_V1", "LIBERO_PRO_PANDA_TABLETOP_V1",
-    "ROBODOJO_ARX_X5_TABLETOP_V1", "resolve_workspace_profile",
+    "ROBOCASA_PANDAOMRON_KITCHEN_V1", "ROBODOJO_ARX_X5_TABLETOP_V1", "ROBOLAB_DROID_TABLETOP_V1",
+    "YAM_STATION_TABLETOP_V1", "resolve_workspace_profile",
 ]

@@ -1,0 +1,117 @@
+{
+  "schema": "ora.toolkit-explain.v1",
+  "tool": "geometry_query",
+  "events": {
+    "depth_window": ["window_px"]
+  },
+  "call": [
+    "{args.camera}",
+    {"if": {"has": "args.points"}, "text": "{args.points|count|n:pixel}"},
+    {"if": {"has": "args.region"}, "text": "region {args.region|bbox}"},
+    {"if": {"has": "args.world_points_m"}, "text": "{args.world_points_m|count|n:world point}"}
+  ],
+  "outcomes": [
+    {"if": {"has": "error"}, "text": "refused: {error.code}", "failed": true},
+    {"if": {"all": [{"has": "result.points"}, {"empty": "result.points[?valid=true]"}]},
+     "text": "no pixel has valid depth", "failed": true},
+    {"if": {"has": "result.points"},
+     "text": "{result.points[?valid=true]|count} of {result.points|count} pixels lifted to world points"},
+    {"if": {"all": [{"has": "result.world_points"}, {"empty": "result.world_points[?in_frame=true]"}]},
+     "text": "no point falls inside the image", "failed": true},
+    {"if": {"has": "result.world_points"},
+     "text": "{result.world_points[?in_frame=true]|count} of {result.world_points|count} points project into the image"},
+    {"if": {"all": [{"has": "result.region_result"}, {"eq": ["result.region_result.valid_count", 0]}]},
+     "text": "no pixel of the window has valid depth", "failed": true},
+    {"if": {"has": "result.region_result"},
+     "text": "{result.region_result.valid_count|n:valid pixel} in the window"}
+  ],
+  "stages": [
+    {
+      "name": "request",
+      "doc": "what was asked of which camera",
+      "line": [
+        {"if": {"has": "args.points"},
+         "text": "lift {args.points|count|n:pixel} of the {args.camera} depth image to world points"},
+        {"if": {"has": "args.region"},
+         "text": "summarise the depth in the window {args.region|bbox} of the {args.camera} image"},
+        {"if": {"has": "args.world_points_m"},
+         "text": "project {args.world_points_m|count|n:world point} into the {args.camera} image"}
+      ]
+    },
+    {
+      "name": "depth window",
+      "doc": "the criterion for a pixel's depth: the median of the valid depths in a window around it (stage event depth_window)",
+      "when": {"has": "events.depth_window[0].window_px"},
+      "line": "each pixel takes the median of its valid depths within {events.depth_window[0].window_px} px; a pixel with none is invalid"
+    },
+    {
+      "name": "lifted pixels",
+      "doc": "how many pixels had valid depth, and their depth range; the pixels without",
+      "when": {"has": "result.points"},
+      "line": [
+        "{result.points[?valid=true]|count} of {result.points|count} pixels have valid depth",
+        {"if": {"not": {"empty": "result.points[?valid=true]"}},
+         "text": "depth {result.points[?valid=true].depth_median_m|min|m} to {result.points[?valid=true].depth_median_m|max|m}"}
+      ],
+      "verdict": [
+        {"if": {"empty": "result.points[?valid=false]"}, "text": "all valid"},
+        {"text": "{result.points[?valid=false]|count} without depth"}
+      ],
+      "each": {
+        "over": "result.points[?valid=false]",
+        "line": "pixel {item.pixel_uv|uv}: no valid depth in its window (a hole, a mask or out of the sensor's range)",
+        "limit": 4
+      }
+    },
+    {
+      "name": "depth in the window",
+      "doc": "how much of the window has depth, and its depth range",
+      "when": {"has": "result.region_result"},
+      "line": [
+        "{result.region_result.valid_count|n:pixel} with valid depth ({result.region_result.valid_fraction|pct})",
+        {"if": {"has": "result.region_result.depth_m"},
+         "text": "depth min {result.region_result.depth_m.min|m}, median {result.region_result.depth_m.median|m}, max {result.region_result.depth_m.max|m}"}
+      ],
+      "verdict": [
+        {"if": {"eq": ["result.region_result.valid_count", 0]}, "text": "no depth"}
+      ]
+    },
+    {
+      "name": "projection",
+      "doc": "how many points are in front of the camera and inside the image",
+      "when": {"has": "result.world_points"},
+      "line": "{result.world_points[?in_frame=true]|count} of {result.world_points|count} inside the image, {result.world_points[?in_front=false]|count} behind the camera",
+      "verdict": [
+        {"if": {"empty": "result.world_points[?in_frame=true]"}, "text": "none visible"}
+      ]
+    },
+    {
+      "name": "depth residual",
+      "doc": "the point's camera-frame depth minus the depth image's at its pixel: negative in front of the visible surface, positive behind it",
+      "when": {"all": [{"has": "result.world_points"}, {"not": {"empty": "result.world_points[].depth_residual_m"}}]},
+      "line": "min {result.world_points[].depth_residual_m|min|mm1}, max {result.world_points[].depth_residual_m|max|mm1} (negative: the point is in front of the visible surface, positive: behind it)"
+    }
+  ],
+  "conclusion": [
+    {"if": {"not": {"empty": "result.points[?valid=true]"}},
+     "text": "{result.points[?valid=true]|count|n:world point} in result.points[i].world_xyz_m (world frame, metres), each from its pixel's median depth"},
+    {"if": {"not": {"empty": "result.world_points[?in_frame=true]"}},
+     "text": "pixel_uv and scene_depth_m give where and at what depth each point shows in the image"},
+    {"if": {"not": {"eq": ["result.region_result.valid_count", 0]}},
+     "text": "depth_m is the distribution of the window's valid depths, in metres"}
+  ],
+  "next": [
+    {"if": {"all": [{"eq": ["error.code", "invalid_arguments"]}, {"has": "error.constraints.maxItems"}]},
+     "text": "send at most {error.constraints.maxItems} entries of {error.field|or:the list} per call; more pixels can be lifted locally with ora_lib's pixels_to_world, which has no such limit"},
+    {"if": {"all": [{"eq": ["error.code", "invalid_arguments"]}, {"has": "error.constraints.rule"}]},
+     "text": "keep every pixel inside the {error.constraints.width}x{error.constraints.height} image ({error.constraints.rule}); {error.field|or:an entry} is {error.received|uv}"},
+    {"if": {"eq": ["error.code", "invalid_arguments"]},
+     "text": "correct {error.field|or:the arguments}: {error.message}"},
+    {"if": {"has": "result.points"},
+     "text": "move the pixel farther inside the intended surface, widen window_px (up to 15), or read a complementary view"},
+    {"if": {"has": "result.region_result"},
+     "text": "move the window onto a surface the depth image covers, or read a complementary view"},
+    {"if": {"has": "result.world_points"},
+     "text": "world_points_m are world-frame metres: check them against the robot's workspace and the camera's view"}
+  ]
+}

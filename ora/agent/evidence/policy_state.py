@@ -10,6 +10,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from ora.contracts.policy_receipt import is_implementation_evidence
+
+from .image_binding import resolve_post_action_images, resolve_skill_images
+from .motion_feedback import is_public_contact_feedback_field
+
 
 POLICY_STATE_SCHEMA = "ora.policy-state.v1"
 STATE_MANIFEST_SCHEMA = "ora.policy-state-manifest.v1"
@@ -46,7 +51,9 @@ _FORBIDDEN_POLICY_KEY_PATTERNS = tuple(
 # staged-approach strategy argument the policy itself writes
 # (`staged_contact_approach_v1`); it cannot leak state the policy never saw.
 # Values under these keys are still scanned recursively.
-PUBLIC_MOTION_VOCABULARY_KEYS = frozenset({"contact_approach"})
+# `expect_contact` (2026-10-28) is the policy's own boolean that marks a move as a deliberate push; the
+# receipt only echoes it back.
+PUBLIC_MOTION_VOCABULARY_KEYS = frozenset({"contact_approach", "expect_contact"})
 
 
 class PolicyStateError(RuntimeError):
@@ -114,7 +121,7 @@ def _check_identity(value: Mapping[str, Any], field: str) -> bool:
 
 
 def _sanitize_embedded_receipt(value: Any, *, parent_key: str | None = None) -> Any:
-    """Drop forbidden-fragment phase keys from an embedded execution receipt.
+    """Drop forbidden-fragment phase keys and implementation evidence from an embedded execution receipt.
 
     The staged-approach RoboTwin receipt names its controller-tracking phase
     ledger entries ``global_precontact``/``local_contact``. Those key names
@@ -123,12 +130,16 @@ def _sanitize_embedded_receipt(value: Any, *, parent_key: str | None = None) -> 
     receipt unreadable. Sanitize exactly the
     ``controller_tracking.phases`` ledger of the embedded copy: flagged phase
     keys are removed and listed under ``phases_redacted``. Every other key
-    remains subject to the read-side privilege scan.
+    remains subject to the read-side privilege scan. The receipt's implementation
+    evidence (``ora.contracts.policy_receipt``: the timing and the planner's own
+    record) stays in the sealed receipt and never reaches the policy's copy.
     """
 
     if isinstance(value, Mapping):
         result: dict[str, Any] = {}
         for key, child in value.items():
+            if is_implementation_evidence(parent_key, str(key)):
+                continue
             if (
                 parent_key == "controller_tracking"
                 and key == "phases"
@@ -164,8 +175,6 @@ def _sanitize_embedded_receipt(value: Any, *, parent_key: str | None = None) -> 
 
 
 def _forbidden_policy_key(value: Any, *, path: str = "$") -> str | None:
-    from .motion_feedback import is_public_contact_feedback_field
-
     if isinstance(value, Mapping):
         for key, child in value.items():
             lowered = str(key).lower()
@@ -399,16 +408,12 @@ def write_context_bundle(
         raise PolicyStateError("context image input cannot mix legacy and multi-image delivery")
     image_attachments = []
     if image_paths:
-        from ora.agent.context.action_views import resolve_post_action_images
-
         verified = resolve_post_action_images({
             "policy_state": source_state,
             "post_action_observation": post_action_observation,
             "current_visual_observation": current_visual_observation,
         }, root=run_root, path_key="run_path")
         visual_record = current_visual_observation or post_action_observation
-        from ora.agent.context.skill_observations import resolve_skill_images
-
         historical = resolve_skill_images(
             {"skill_observations": list(skill_observations or ())}, root=run_root, path_key="run_path",
         )
@@ -578,7 +583,7 @@ def verify_policy_state(
             errors.append(f"state_step_schema_or_index_mismatch:{expected_step}")
         if frozenset(snapshot) != frozenset(SNAPSHOT_FIELDS):
             errors.append(f"state_step_fields_mismatch:{expected_step}")
-        if snapshot.get("cause") not in {"reset", "after_action"}:
+        if snapshot.get("cause") not in {"reset", "after_action", "instruction_start"}:
             errors.append(f"state_step_cause_mismatch:{expected_step}")
         if not REQUIRED_ABSENT.issubset(set(snapshot.get("forbidden_modalities_absent", []))):
             errors.append(f"state_privilege_boundary_mismatch:{expected_step}")

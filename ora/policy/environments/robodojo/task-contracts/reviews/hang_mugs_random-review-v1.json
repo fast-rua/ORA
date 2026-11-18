@@ -1,0 +1,489 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "hang_mugs_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/hang_mugs_random.py",
+    "file_sha256": "ebfa4a95deb954aa7a9063a07fe366cb5ea1835d3f52342b10d531225dfeee92",
+    "run_reward_lines": [
+      21,
+      158
+    ],
+    "run_reward_sha256": "6231eef19ece4c1de151a683a02587102bd1962a3c8b05cfb7c96f716f5bc6e0",
+    "gen_instruction_lines": [
+      229,
+      231
+    ],
+    "gen_instruction_sha256": "fc3ddc12df827f229ed1665d2729397b15048b4dc8df6fda1d20010840f2aad1",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          8,
+          11
+        ],
+        "sha256": "eb50ad9872c460a0f02dc90314e75a029c856e4485b8cb019b1feb12c1701a45"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          13,
+          15
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          17,
+          19
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      },
+      "_mug_checks": {
+        "lines": [
+          160,
+          205
+        ],
+        "sha256": "c013da3d4351dcf69c0d73158ebafc68096af323d5f2922c422534abcc94c04b"
+      },
+      "_single_item_score_options": {
+        "lines": [
+          207,
+          208
+        ],
+        "sha256": "9ae2df83e497c536fe8f1eef5748c468096bb4faf9edee77bb28d9c72dbe5862"
+      },
+      "_combined_item_score_options": {
+        "lines": [
+          210,
+          215
+        ],
+        "sha256": "7508e996485ccd958c88ba2a794a1eb15ce1be298a8b9665f4bac91271f018ee"
+      },
+      "get_score": {
+        "lines": [
+          217,
+          227
+        ],
+        "sha256": "709a014a908a523d9aa456d9559ada61857d5fe0ecb0107862347e30710c84bf"
+      }
+    },
+    "step_lim_line": 11,
+    "config_path": "task/RoboDojo/config/hang_mugs_random.yml",
+    "config_sha256": "847dfd39059275a671b5beff0243bf7bbaeebd9e5c0612a1877cdf12b9007dc6",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "hang_mugs",
+      "source_path": "task/RoboDojo/tasks/hang_mugs.py",
+      "file_sha256": "4bc6586bd87de030b9c580fea2a45e7977c3b6a4d75cf3c43b546d349d42e906",
+      "run_reward_sha256": "6231eef19ece4c1de151a683a02587102bd1962a3c8b05cfb7c96f716f5bc6e0",
+      "gen_instruction_sha256": "fc3ddc12df827f229ed1665d2729397b15048b4dc8df6fda1d20010840f2aad1",
+      "config_path": "task/RoboDojo/config/hang_mugs.yml",
+      "config_sha256": "0086d374d3f7e82abb85e43a17cdfa437e1ac645a0171fb47496c2b81427dce9",
+      "methods_byte_identical": [
+        "__init__",
+        "_combined_item_score_options",
+        "_mug_checks",
+        "_post_setup_scene",
+        "_single_item_score_options",
+        "gen_instruction",
+        "get_score",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/hang_mugs_random_0.json",
+    "layout_sha256": "9fb225ebf9b9039191c836e46b5343d9f87ec38f5c805e95e1ef7edb3270997e",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 800,
+  "instruction": {
+    "text": "Hang all the mugs on the mug rack.",
+    "origin": "task/RoboDojo/tasks/hang_mugs_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "hang_mugs",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/hang_mugs-review-v3.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/hang_mugs-completion-v2.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in the source: run_reward, its helpers and every class constant are byte-identical; only the scene differs (mug models 10-14, rack cup_holder/00001, clutter)."
+    ],
+    "randomization": [
+      "task/RoboDojo/config/hang_mugs_random.yml:14 mug models [10, 11, 12, 13, 14] (base task/RoboDojo/config/hang_mugs.yml:14 [0..9]); three mugs, allow_duplicate, labels mug0-mug2, same placement region as the base.",
+      "task/RoboDojo/config/hang_mugs_random.yml:34 cup_holder model [1] (base task/RoboDojo/config/hang_mugs.yml:34 [0]).",
+      "task/RoboDojo/config/hang_mugs_random.yml:41-51 Clutter: up to 20 category_unique distractors from Clutter/clutter.yml over xlim [-0.6, 0.6], ylim [-0.5, 0.5], rotate up to 30 degrees, margin 0.015; clutter instances carry no label and type 'cluttered'.",
+      "task/RoboDojo/config/hang_mugs_random.yml:53-54 ProhibitedArea [-0.35, -0.5, 0.35, -0.4] (the strip in front of the robot).",
+      "30 saved layouts: Eval_Layout/RoboDojo/arx_x5/0/hang_mugs_random_0.json .. _29.json (the base task also has 30)."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/hang_mugs_random_0.json",
+      "objects": [
+        "Rigid mug/00010 label mug0 at (0.071, -0.028, 0.8031), yaw about 153 degrees",
+        "Rigid mug/00014 label mug1 at (-0.225, -0.240, 0.7996)",
+        "Rigid mug/00014 label mug2 at (0.310, -0.150, 0.7996)",
+        "Geometry cup_holder/00001 label cup_holder at (-0.195, 0.022, 0.9177), yaw -6.3 degrees (bottom at the 0.765 m table top, top at 1.070 m)",
+        "Geometry camera_stand/00000",
+        "20 unlabelled cluttered distractors (cake, phone_stand, plate, garage, racket, tissue, walkie_talkie, pokeball, minecraft_blocks, stapler, audio, pen, comb, gamepad, toy_car, calculator, house, sculpture, coin, dice); none is a mug or cup"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Three Rigid mugs mug0-mug2 and exactly one rack (Geometry cup_holder, one instance) are in the layout; no clutter item is a mug or cup. The predicate's lift and hook-closeness terms name exactly these three mugs and this rack."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "Mugs 10 and 14 carry active 'handle' frames whose local +Z is the mug's body-to-handle direction (quaternion (0.5,0.5,0.5,0.5)), exactly like the base mugs; c3 (handle +Z within 60 degrees of hook 0's +Z) and c5 (handle within 0.045 m of a hook) encode hanging by the handle on a peg. Rack 00001 hook +Z axes lie 0, 50.0, 35.0, 35.0, 50.0 and 6.0 degrees from hook 0's, all inside 60, so no hook choice fails c3 on the reference frame alone (base max 45.8)."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "The handle-height floor (0.9 m world) is below every hook of rack 00001 in this layout (0.9127, 0.9177, 0.9877, 0.9827, 1.0557, 1.0557 m), so a mug seated on any peg can satisfy it; one sagging well below its peg fails. On the bottom pair the margin is only 0.013-0.018 m (base 0.027-0.029 m), which the clause's 'rather than sagging below the peg' covers."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "Recomputed from cup_holder/00001 metadata composed with this layout's rack pose (pos (-0.1951, 0.0224, 0.9177), yaw -6.3 degrees), the way the base record computed rack 00000: hook tiers z 0.9127/0.9177 (lowest), 0.9877/0.9827 (middle), 1.0557/1.0557 (highest); the hooks' +X axes lie 0.0, 130.0, 79.9, 79.9, 130.0 and 6.0 degrees from hook 0's. The lowest and highest pairs pass c4 (inside 60 or beyond 120 degrees), the middle pair falls in the excluded 60-120 band, and the middle pair's horizontal direction is at right angles to the others'. So 'lowest and highest pairs share one direction, middle pair crosswise, either way along it counts' holds verbatim for this rack model; four of six hooks admit c4, enough for three mugs."
+      },
+      {
+        "index": 5,
+        "holds_on_variant_layout0": true,
+        "why": "run_reward ends with all_robot_back_to_origin() (hang_mugs_random.py:156), the shared arm-return sentence."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "The instruction is the base task's single fixed template, 'Hang all the mugs on the mug rack.', with no placeholder.",
+        "where": "task/RoboDojo/tasks/hang_mugs_random.py:229-231"
+      },
+      {
+        "claim": "The base task returns the identical template.",
+        "where": "task/RoboDojo/tasks/hang_mugs.py:229-231"
+      },
+      {
+        "claim": "run_reward registers one check stage: three is_lift, three handle-height, three handle Z-alignment, three handle X-alignment OR groups, three handle-to-hook closeness and all_robot_back_to_origin; its FunctionDef bytes equal the base task's (same lines).",
+        "where": "task/RoboDojo/tasks/hang_mugs_random.py:21-158"
+      },
+      {
+        "claim": "step_lim is 800 native actions, as in the base task.",
+        "where": "task/RoboDojo/tasks/hang_mugs_random.py:11"
+      },
+      {
+        "claim": "The only source difference from hang_mugs.py is the concrete class name; HangMugsCommon and every method are byte-identical.",
+        "where": "task/RoboDojo/tasks/hang_mugs_random.py:234"
+      },
+      {
+        "claim": "Mug models are drawn from 10-14 instead of 0-9.",
+        "where": "task/RoboDojo/config/hang_mugs_random.yml:14 (base task/RoboDojo/config/hang_mugs.yml:14)"
+      },
+      {
+        "claim": "The rack is cup_holder model 1 instead of model 0.",
+        "where": "task/RoboDojo/config/hang_mugs_random.yml:34 (base task/RoboDojo/config/hang_mugs.yml:34)"
+      },
+      {
+        "claim": "A Clutter block adds up to 20 category-unique distractors from Clutter/clutter.yml over the table, rotated up to 30 degrees, plus a ProhibitedArea strip in front of the robot.",
+        "where": "task/RoboDojo/config/hang_mugs_random.yml:41-54"
+      },
+      {
+        "claim": "Rack 00001 carries six passive handle_support_point frames in three tiers of two.",
+        "where": "Object/RoboDojo/Geometry/cup_holder/00001/metadata.json"
+      },
+      {
+        "claim": "Every mug model 10-14 carries two active 'handle' frames at one translation with the same two orientations as the base mugs' frames.",
+        "where": "Object/RoboDojo/Rigid/mug/000{10,11,12,13,14}/metadata.json"
+      },
+      {
+        "claim": "is_axis_aligned reads only the first frame of each functional tag (fp_poses_A[0], fp_poses_B[0]).",
+        "where": "env/reward_manager/func_parser.py:2157,2206"
+      },
+      {
+        "claim": "Hook closeness loops over every mug handle frame and every rack hook frame.",
+        "where": "env/reward_manager/func_parser.py:1932-1976"
+      },
+      {
+        "claim": "The clutter catalog contains a 'cup' category (four models) that random layouts may place as a distractor; layout 5 holds Clutter cup/00000.",
+        "where": "Object/RoboDojo/Clutter/clutter.yml:34; Eval_Layout/RoboDojo/arx_x5/0/hang_mugs_random_5.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "spatial",
+      "summary": "All three mugs must end up raised clear of where they started on the table.",
+      "numeric": "is_lift(label=\"mug0\"|\"mug1\"|\"mug2\", z_threshold=0.045) at hang_mugs_random.py:24-26. Wrapper reward_manager.py:665-667 (signature default 0.05; the call site overrides it to 0.045). Implementation func_parser.py:64-73: passes when root z minus the reset root z captured by func_parser.init_state (func_parser.py:32-59) exceeds 0.045 m. In hang_mugs_random_0.json mug0 (mug/00010) resets at root z 0.8031 and mug1, mug2 (mug/00014) at 0.7996, so the roots must exceed 0.8481 m and 0.8446 m. The table top is z 0.765 m (Table default_pos z 0.74 plus half of scale z 0.05).",
+      "source_lines": [
+        24,
+        26
+      ],
+      "classification": "stated",
+      "note": "'Hang all the mugs on the mug rack' states that each mug leaves the table and ends up carried by the rack. Rack cup_holder/00001 stands 0.305 m tall on the table and its lowest hook is at 0.9127 m, above every reset height plus the lift margin, so any mug actually hung is lifted. Measured on the mug root, weaker than c2.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "spatial",
+      "summary": "Each mug's handle must end up high above the table, up at the level of the rack's hooks.",
+      "numeric": "is_A_functional_point_higher_than_z(label=\"mug0\"|\"mug1\"|\"mug2\", point=\"handle\", z=0.9) at hang_mugs_random.py:27-29. Wrapper reward_manager.py:788-790. Implementation func_parser.py:749-774: passes if any active 'handle' frame of the mug has world z above 0.9 m (0.135 m above the table top). The six hooks of rack 00001 sit at world z 0.9127, 0.9177, 0.9877, 0.9827, 1.0557 and 1.0557 m in this layout. At reset the handle points sit at z 0.8031 (mug0) and 0.8096 (mug1, mug2).",
+      "source_lines": [
+        27,
+        29
+      ],
+      "classification": "stated",
+      "note": "A mug hung on a peg has its handle up at that peg. The bottom pair of hooks is only 0.013-0.018 m above the floor height, so a handle that settles slightly below a bottom hook (still within c5's closeness) fails this clause; on the middle and top tiers the two clauses never conflict.",
+      "public_clauses": [
+        3
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "orientation",
+      "summary": "Each mug must hang handle-uppermost, the way a mug sits on a hook.",
+      "numeric": "is_axis_aligned(label_A=mug, label_B=\"cup_holder\", functional_point_A=\"handle\" (active), functional_point_B=\"handle_support_point\" (passive), axis_A=[0,0,1], axis_B=[0,0,1], align_threshold=60) at hang_mugs_random.py:30-62. Wrapper reward_manager.py:1232-1259; implementation func_parser.py:2066-2217, using only the first frame of each tag (func_parser.py:2157, 2206). The mug handle frame's +Z is the mug root's +X (body toward handle) on every mug model 10-14. Hook 0 of rack 00001 has world +Z (-0.467, 0.052, 0.883) in this layout, 28.0 degrees off vertical; the other five hooks' +Z lie 50.0, 35.0, 35.0, 50.0 and 6.0 degrees from it. cal_two_axis_angle (utils/transformer.py:21-25) is unsigned; pass requires under 60 degrees.",
+      "source_lines": [
+        30,
+        62
+      ],
+      "classification": "stated",
+      "note": "'Hang' states the pose. Measured against hook 0 only, but all six hooks' vertical axes lie within 50 degrees of hook 0's, inside the 60-degree tolerance, so the reference-frame quirk cannot fail this clause on hook choice alone.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "orientation",
+      "summary": "Each mug must be turned so its handle runs along the direction shared by the rack's lowest and highest peg pairs, either way along it.",
+      "numeric": "An OR group per mug at hang_mugs_random.py:63-134: is_axis_aligned with axis_A=[1,0,0] against axis_B=[1,0,0] or [-1,0,0], align_threshold=60, same functional points as c3; check_once evaluates the nested list with op 'or' (reward_manager.py:247-279), so it admits angles under 60 or over 120 degrees. Handle frame +X is the mug root's +Y. Only hook 0's frame is read (func_parser.py:2206): world +X (0.878, -0.097, 0.469) in this layout. The six hooks' own +X axes lie 0.0, 130.0, 79.9, 79.9, 130.0 and 6.0 degrees from hook 0's: the lowest pair (z 0.9127/0.9177) and the highest pair (1.0557/1.0557) pass, the middle pair (0.9877/0.9827) falls in the excluded band.",
+      "source_lines": [
+        63,
+        134
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction says nothing about heading; all three mugs are scored against hook 0's frame while c5 accepts any hook. A mug hung correctly on a middle-tier peg is scored false and never told. Four of six hooks admit satisfaction, enough for three mugs, so the clause is decidable when stated in observable terms. NEEDS CONFIRMATION as in the base record: that a settled mug's heading tracks the peg it hangs on; the hook geometry is computed, the settled mug pose is not.",
+      "public_clauses": [
+        4
+      ]
+    },
+    {
+      "id": "c5",
+      "kind": "spatial",
+      "summary": "Each mug's handle must come to rest right at one of the rack's hooks.",
+      "numeric": "is_A_functional_point_close_to_B_functional_point(label_A=mug, label_B=\"cup_holder\", point_A=\"handle\", point_B=\"handle_support_point\", threshold=0.045) at hang_mugs_random.py:135-155. Wrapper reward_manager.py:1132-1155 (type_A active, type_B passive, is_align_qpos False); implementation func_parser.py:1932-1976: any of the mug's two handle frames within 0.045 m of any of the six hooks. Hooks of rack 00001 are 0.075 to 0.161 m apart in this layout, so the 0.045 m balls are disjoint.",
+      "source_lines": [
+        135,
+        155
+      ],
+      "classification": "stated",
+      "note": "The scene holds exactly one rack. The clause never requires three different hooks and never checks the rack's pose; the rack is a static Geometry body (mass 0).",
+      "public_clauses": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "c6",
+      "kind": "protocol",
+      "summary": "Both arms must be back at the pose they held at the start of the episode at the moment the check is taken.",
+      "numeric": "all_robot_back_to_origin() at hang_mugs_random.py:156 with wrapper defaults pos_threshold 0.15 m and rot_threshold 20 degrees (reward_manager.py:829-831); func_parser.py:1631-1644 compares each target arm's real end pose with the pose captured at reset (func_parser.py:54-59), componentwise in position.",
+      "source_lines": [
+        156,
+        156
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "Neither the instruction nor any observation announces that the arms' terminal pose is scored; hanging mugs ends with the end effectors at the rack.",
+      "public_clauses": [
+        5
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [
+      "c1",
+      "c2",
+      "c3",
+      "c5"
+    ],
+    "derivable": [],
+    "hidden": [
+      "c4",
+      "c6"
+    ],
+    "clause_count": 6,
+    "hidden_count": 2,
+    "hidden_active": [
+      "c4",
+      "c6"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Identical to the base record: c4 (the heading of each mug on its peg, scored against the rack's first hook only) is hidden and active, and so is c6 (the arm return). On rack cup_holder/00001 the middle peg pair again sits about 80 degrees from the reference, inside the excluded band, while the lowest and highest pairs admit the heading; four of six pegs admit it, so the task is decidable from RGB-D once c4 is stated. c1, c2, c3 and c5 are stated by the instruction. No query() latch is registered.",
+  "semantic_contract": [
+    "All three mugs must end up hanging on the mug rack, each one clear of the table and carried by the rack.",
+    "Each mug must hang by its handle, with a peg of the rack passing through the handle and the body of the mug hanging below it, not merely resting against the rack or set on top of it.",
+    "Each mug's handle must end up well above the table, up at the height of the rack's pegs, rather than sagging below the peg that holds it.",
+    "All three mugs must end up threaded along the same one horizontal direction. The rack's pegs run along two directions at right angles to each other: its lowest pair and its highest pair share one direction, and its middle pair runs crosswise to that. Only the direction the lowest and highest pairs share counts, and either way along it counts; a mug threaded along the crosswise direction does not count, however securely it hangs.",
+    "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/hang_mugs-completion-v2.md",
+    "sha256": "7c67503ca2d6b4d7a2ff306ec7d71f04717162d4ae92f9ae7aef584d7c4c12e8"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "All three mugs must end up hanging on the mug rack, each one clear of the table and carried by the rack.",
+      "Each mug must hang by its handle, with a peg of the rack passing through the handle and the body of the mug hanging below it, not merely resting against the rack or set on top of it.",
+      "Each mug's handle must end up well above the table, up at the height of the rack's pegs, rather than sagging below the peg that holds it.",
+      "All three mugs must end up threaded along the same one horizontal direction. The rack's pegs run along two directions at right angles to each other: its lowest pair and its highest pair share one direction, and its middle pair runs crosswise to that. Only the direction the lowest and highest pairs share counts, and either way along it counts; a mug threaded along the crosswise direction does not count, however securely it hangs.",
+      "Both arms must be back at the poses they held when the episode reset, at the same instant that everything else in this contract is true."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        3
+      ],
+      "c3": [
+        2
+      ],
+      "c4": [
+        4
+      ],
+      "c5": [
+        1,
+        2
+      ],
+      "c6": [
+        5
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/hang_mugs_random.yml",
+      "sha256": "847dfd39059275a671b5beff0243bf7bbaeebd9e5c0612a1877cdf12b9007dc6"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/mug/00010/metadata.json",
+      "sha256": "0c9ae22ff08ff82ed2eeabb73654c709254929766d0cec6dbc996ce8ecab60a1"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/mug/00014/metadata.json",
+      "sha256": "f90d7d864f4981cc5a5b98a0782cfac21d18db5b5ded9469a02d2f628852b57b"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/cup_holder/00001/metadata.json",
+      "sha256": "d312be9cccd3480d5608b0ade1bbf1caad3f11b36894854e2344c869182b5a70"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_combined_item_score_options",
+      "_mug_checks",
+      "_post_setup_scene",
+      "_single_item_score_options",
+      "gen_instruction",
+      "get_score",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Three mugs hung securely, one of them on a middle-tier peg: c4 fails for that mug; clause 4.",
+      "A mug hung on a bottom peg but settled slightly below it: c5 can hold while c2 fails; clause 3.",
+      "A mug leaned against the rack's base or set on top of the rack: c2/c5 fail; clauses 1-3.",
+      "All three mugs hung correctly with an arm still at the rack: c6 fails; clause 5.",
+      "Two mugs hung and the third left on the table: c1, c2, c5 fail for the third; clause 1."
+    ],
+    "open_questions": [
+      "Whether Clutter cup/00000 (layout 5) and cup/00003 (layout 13) are mug-shaped; only their metadata extents were read. Layouts 10-29 were not audited for portability.",
+      "Physical: that a mug settled on a peg of rack 00001 keeps its heading along that peg (carried from the base record's NEEDS CONFIRMATION), and that the bottom-tier pegs leave enough room above the 0.9 m handle floor; no simulator evidence."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "SOURCE. hang_mugs_random.py differs from hang_mugs.py only in the concrete class name at line 234; HangMugsCommon (lines 7-231), run_reward (21-158), _mug_checks, the score ladders and gen_instruction (229-231) are byte-identical, so every source line cited in the base record holds for the variant at the same line.",
+    "RACK MODEL. The variant always uses cup_holder/00001 (config line 34), a smaller mug tree (bbox 0.140 x 0.140 x 0.305 m) with six handle_support_point frames in three tiers of two, the same tier structure as cup_holder/00000: the lowest and highest pairs share one horizontal peg direction and the middle pair runs at right angles to it. In rack 00001 the top hook 4 sits directly above bottom hook 1 and top hook 5 nearly above bottom hook 0.",
+    "MUG MODELS. Models 10-14 each carry two active 'handle' frames at one translation (local x 0.045-0.060 m, z 0 to 0.015 m) with the base mugs' two orientations. mug/00013's metadata has no geometry bbox or center field (radius only); no evaluator term read here uses it.",
+    "CLUTTER. Up to 20 unlabelled distractors per layout; no evaluator term reads them. get_labels_by_prefix and every label the predicate names ignore unlabelled clutter (layout_manager.py:411-419). The clutter catalog includes a 'cup' category; layout 5 holds Clutter cup/00000 (0.174 x 0.139 x 0.136 m, no description or functional points), which could read as a fourth mug, so layout 5 is not ported.",
+    "LAYOUT 0 instruction unchanged; gen_instruction returns one fixed template with no placeholder.",
+    "FEASIBILITY NOT ESTABLISHED. No scene smoke, IK or physical run; reachability of the rack with clutter around it was not checked.",
+    "Asset caption defect carried from the base: cup_holder/00001/description.json captions the rack as a flashlight; it never reaches the policy (no placeholder in the template).",
+    "PORTABILITY BASIS. In every layout 0-9 the hook tiers and the hooks' +X/+Z angles relative to hook 0 are identical (rack model 1 at the same height 0.9177 m; only its yaw, -22.6 to +18.4 degrees, changes), so clause 4's peg directions hold at any rack yaw; three mugs mug0-mug2 from models 10-14 each carrying the two active handle frames."
+  ],
+  "notes": [
+    "Source identities at RoboDojo f57e1633ffed59761bc8e568cfe7530c4b33381c: task/RoboDojo/tasks/hang_mugs_random.py sha256 ebfa4a95deb954aa7a9063a07fe366cb5ea1835d3f52342b10d531225dfeee92; task/RoboDojo/config/hang_mugs_random.yml sha256 847dfd39059275a671b5beff0243bf7bbaeebd9e5c0612a1877cdf12b9007dc6; layout Eval_Layout/RoboDojo/arx_x5/0/hang_mugs_random_0.json sha256 9fb225ebf9b9039191c836e46b5343d9f87ec38f5c805e95e1ef7edb3270997e at Assets 1127bda94f172d757386945af3eb3a6754d1a4e6.",
+    "Object/RoboDojo/Rigid/mug/00014/metadata.json (sha256 f90d7d864f4981cc5a5b98a0782cfac21d18db5b5ded9469a02d2f628852b57b) is the file Assets 1127bda94f172d757386945af3eb3a6754d1a4e6 fixed ('fix mug 00014 handle'); this record reads the fixed bytes."
+  ],
+  "forbidden_public_claims": [
+    "Any statement of which particular peg each mug must use, or that three different pegs are required.",
+    "Any statement of where the rack or the mugs stand, or how high the pegs are.",
+    "The rack's first peg, or any single peg, as the reference.",
+    "Distractor objects must be cleared, moved or left untouched (no evaluator term reads them)."
+  ],
+  "universal_return_to_origin": true,
+  "supersedes": null
+}

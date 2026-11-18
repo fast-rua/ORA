@@ -14,12 +14,16 @@ This module is host-safe NumPy. It reads a URDF kinematic chain and a
 CuRobo-style ``collision_spheres`` / ``self_collision_ignore`` /
 ``self_collision_buffer`` description, exactly as the solver loaded them. The
 result is sphere-model evidence: a clear path is not a collision-free
-certificate, and nothing here models the scene, the table or a held object.
+certificate, and nothing here models the scene or a held object (the table
+only through ``TableSphereScreen``, below).
 
 ``InterArmSphereScreen`` places two arms' sphere models at their world bases and
 screens the moving arm(s) against the other one (EXP11A g012, E11G12-004a): 15
 of 80 recorded RoboDojo stalls were one ARX arm driving into the other, which no
 per-arm self-collision check can see.
+
+``TableSphereScreen`` screens an arm's spheres against the top face of the
+table cuboid its solver was built with (the RoboDojo SDK's 5 cm slab).
 """
 from __future__ import annotations
 
@@ -259,6 +263,14 @@ class SphereSelfCollisionModel:
                 "claim_boundary": CLAIM_BOUNDARY}
 
 
+TABLE_SCHEMA = "ora.joint-path-table-clearance.v1"
+TABLE_CLAIM_BOUNDARY = (
+    "solver collision spheres of the moving arm(s) at their world bases along the straight joint "
+    "interpolation, against the top face of the solver's own table cuboid; the finger links are not in "
+    "the sphere model; no object, payload or mesh collision certificate"
+)
+
+
 def _quaternion_matrix(wxyz: Sequence[float]) -> np.ndarray:
     values = np.asarray(wxyz, dtype=float).reshape(-1)
     norm = float(np.linalg.norm(values)) if values.shape == (4,) and np.isfinite(values).all() else 0.0
@@ -356,7 +368,80 @@ class InterArmSphereScreen:
                 "claim_boundary": INTER_ARM_CLAIM_BOUNDARY}
 
 
+class TableSphereScreen:
+    """Each arm's solver spheres at its world base, screened against the solver's table top.
+
+    ``tables`` gives, per arm, the world height of the table's top face and its
+    world xy extent ``[[x_min, x_max], [y_min, y_max]]``: a sphere counts only
+    above that footprint. Radii carry the solver's world-collision buffer.
+    """
+
+    def __init__(self, models: Mapping[str, SphereSelfCollisionModel], bases: Mapping[str, Any],
+                 tables: Mapping[str, Mapping[str, Any]], *,
+                 sphere_buffers_m: Mapping[str, float] | None = None) -> None:
+        if not models or set(models) != set(bases) or set(models) != set(tables):
+            raise JointPathClearanceError("table screening needs a placed sphere model and a table per arm")
+        self._models, self._bases, self._tables = dict(models), {}, {}
+        for arm in models:
+            base = np.asarray(bases[arm], dtype=float)
+            if base.shape != (4, 4) or not np.isfinite(base).all():
+                raise JointPathClearanceError(f"{arm} arm base is not a finite transform")
+            self._bases[arm] = base
+            top = float(tables[arm]["top_z_m"])
+            extent = np.asarray(tables[arm]["xy_extent_m"], dtype=float)
+            if not math.isfinite(top) or extent.shape != (2, 2) or not np.isfinite(extent).all():
+                raise JointPathClearanceError(f"{arm} table top or extent is invalid")
+            self._tables[arm] = (top, extent)
+        self._buffers = {arm: float((sphere_buffers_m or {}).get(arm, 0.0)) for arm in models}
+
+    def _gaps(self, arm: str, joints: Sequence[float]) -> tuple[np.ndarray, list[str]]:
+        centers, radii, links = self._models[arm].link_spheres(joints)
+        base = self._bases[arm]
+        world = centers @ base[:3, :3].T + base[:3, 3]
+        top, extent = self._tables[arm]
+        over = ((world[:, 0] >= extent[0, 0]) & (world[:, 0] <= extent[0, 1])
+                & (world[:, 1] >= extent[1, 0]) & (world[:, 1] <= extent[1, 1]))
+        return np.where(over, world[:, 2] - radii - self._buffers[arm] - top, math.inf), links
+
+    def clearance(self, arm: str, joints: Sequence[float]) -> tuple[float, str | None]:
+        """Lowest sphere bottom above the table top (negative = into the table) and its link."""
+        gaps, links = self._gaps(arm, joints)
+        index = int(np.argmin(gaps))
+        return (float(gaps[index]), links[index]) if math.isfinite(gaps[index]) else (math.inf, None)
+
+    def straight_path(self, arm: str, start: Sequence[float], end: Sequence[float], *,
+                      max_step_rad: float = DEFAULT_MAX_STEP_RAD) -> dict[str, Any]:
+        """Screen one arm's linear joint interpolation, sphere by sphere: blocked when a sphere goes
+        below the table top and deeper than it was at the start (a sphere already low may rise, and a
+        base sphere that sits in the table top never blocks)."""
+        first, last = np.asarray(start, dtype=float), np.asarray(end, dtype=float)
+        if first.shape != last.shape or not math.isfinite(max_step_rad) or max_step_rad <= 0:
+            raise JointPathClearanceError("joint path endpoints or sampling step are invalid")
+        span = float(np.max(np.abs(last - first))) if first.size else 0.0
+        count = max(1, math.ceil(span / max_step_rad))
+        start_gaps, links = self._gaps(arm, first)
+        worst: tuple[float, str | None, float | None] = (math.inf, None, None)
+        blocked: tuple[float, str, float] | None = None
+        for index in range(1, count + 1):
+            fraction = index / count
+            gaps, _ = self._gaps(arm, first + (last - first) * fraction)
+            low = int(np.argmin(gaps))
+            if gaps[low] < worst[0]:
+                worst = (float(gaps[low]), links[low], fraction)
+            deeper = np.where((gaps < 0.0) & (gaps < start_gaps - 1e-9), gaps, math.inf)
+            hit = int(np.argmin(deeper))
+            if math.isfinite(deeper[hit]) and (blocked is None or deeper[hit] < blocked[0]):
+                blocked = (float(deeper[hit]), links[hit], fraction)
+        reported = blocked or worst
+        start_min = float(np.min(start_gaps))
+        return {"schema": TABLE_SCHEMA, "status": "table_collision" if blocked else "clear",
+                "start_clearance_m": start_min, "min_clearance_m": reported[0], "limiting_link": reported[1],
+                "limiting_fraction": reported[2], "samples": count, "max_step_rad": float(max_step_rad),
+                "claim_boundary": TABLE_CLAIM_BOUNDARY}
+
+
 __all__ = ["CLAIM_BOUNDARY", "DEFAULT_MAX_STEP_RAD", "INTER_ARM_CLAIM_BOUNDARY", "INTER_ARM_MAX_STEP_RAD",
            "INTER_ARM_MINIMUM_CLEARANCE_M",
            "INTER_ARM_SCHEMA", "InterArmSphereScreen", "JointPathClearanceError", "SCHEMA",
-           "SphereSelfCollisionModel", "parse_urdf_joints"]
+           "SphereSelfCollisionModel", "TABLE_CLAIM_BOUNDARY", "TABLE_SCHEMA", "TableSphereScreen",
+           "parse_urdf_joints"]

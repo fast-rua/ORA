@@ -1,0 +1,90 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "move_pose",
+  "description": "Propose one pose-only bounded OSC command for the right grip site. Use when: current evidence supports one Cartesian target, either direct pose inputs or a current preview_id alone; use a gripper tool for jaw motion. Effect: submits one observation-bound action v3 proposal to the Supervisor and ends this turn; preserves the gripper actuator directive. Returns: submitted status, action and compiled_pose immediately, then a measured receipt and fresh actual observation after execution. Does not: open or close the jaws, guarantee endpoint arrival, provide global motion planning, certify collisions, contact, retention or official task success; contact can change measured jaw state. On error: respect the reported workspace/pose bound, correct or subdivide the target and refresh evidence; stale previews must be recomputed.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target_xyz_world_m": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "Absolute grip-site [x,y,z] in world metres; omit to hold measured current position. Mutually exclusive with translation_delta_mm."
+      },
+      "translation_delta_mm": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "Grip-site translation [x,y,z] in millimetres in translation_delta_frame; omit to hold position. Mutually exclusive with target_xyz_world_m."
+      },
+      "translation_delta_frame": {
+        "type": "string",
+        "enum": [
+          "world",
+          "grip_site"
+        ],
+        "default": "world",
+        "description": "Frame for translation_delta_mm: fixed world axes or measured action-start grip_site axes; omitted defaults to world."
+      },
+      "target_orientation_world_xyzw": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "description": "Absolute world grip-site quaternion [x,y,z,w]; omit to preserve current orientation. Mutually exclusive with axis-direction orientation fields."
+      },
+      "grip_site_z_axis_world": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "World direction [x,y,z] for local grip-site +Z; normalized by the shared pose compiler. Alternative to a quaternion; an omitted second axis preserves the closest compatible orientation."
+      },
+      "grip_site_x_axis_world": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "World direction [x,y,z] for local grip-site +X; normalized by the shared pose compiler. If +Z is supplied the two directions must be approximately orthogonal."
+      },
+      "preview_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Current observation-bound preview reference; supply this field alone instead of direct pose fields. Stale references are refused."
+      }
+    },
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "const": "submitted"
+      },
+      "action": {
+        "const": "move_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

@@ -23,7 +23,7 @@
   "compiled_embodiment": {
     "descriptor": "ora/policy/embodiments/aloha-agilex/descriptor-public-geometry-v5-session-split-v1.json",
     "review": "ora/policy/embodiments/aloha-agilex/wording-review-public-geometry-v5-session-split-v1.json",
-    "card_sha256": "cb14ab0ca6c28d351b1ad60ad94068352681cfe51d90464c20afbc8b20a79631",
+    "card_sha256": "c048eacf9b94d6a6231842884bc2139937e48374065917dbc6674f5f42b05f5f",
     "runtime_verification": "loaded_robot_geometry_before_policy_v1"
   }
 }

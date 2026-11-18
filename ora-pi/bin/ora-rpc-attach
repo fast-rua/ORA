@@ -1,0 +1,6 @@
+#!/bin/sh
+# A stand-in for `pi --mode rpc` that attaches a Pi RPC client to a live ORA run
+# (ora-pi/src/rpc/attach.ts). Point a client's Pi executable here; it never starts Pi.
+set -eu
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec "${ORA_NODE:-node}" "$HERE/src/rpc/attach.ts" "$@"

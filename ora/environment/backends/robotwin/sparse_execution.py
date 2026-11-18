@@ -1,21 +1,26 @@
 """Execution of validated sparse plans and gripper targets, and their artifacts.
 
 A mixin of ``session.RoboTwinLiveSession``; it holds methods only, no
-dataclass fields. ``_execute_validated_plans`` builds the dense control
-sequence, runs it through the measured motion transaction and, for a staged route,
+dataclass fields. ``_execute_validated_plans`` paces the validated plans for
+the move's end-effector speed (``pacing.py``; a refusal ends the move before
+any controller write), builds the dense control sequence from the paced
+knots, runs it through the measured motion transaction and, for a staged route,
 selects the post-global phase and runs the local Cartesian settle, whose
 control sequence ``_merged_settle_control_sequence`` appends to the global one.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any, Mapping
 
+from ora.environment.controllers.motion_pace import PaceRefusal
 from ora.environment.controllers.motion_transaction import (
     select_post_global_phase,
     write_motion_plan_artifact,
 )
 
+from . import pacing
 from .common import (
     RoboTwinControllerTrackingError,
     RoboTwinLiveError,
@@ -24,14 +29,17 @@ from .common import (
     _pose_error,
     _wxyz_to_xyzw,
 )
+from .planning import RoboTwinPlanRejected
 
 
 class RoboTwinSparseExecutionMixin:
     """Execution of validated sparse plans and gripper targets, and their artifacts."""
 
     def _execute_validated_plans(self, state: _SparseMotionState) -> None:
-        """Execute admitted plans, including staged post-global phases."""
+        """Pace and execute admitted plans, including staged post-global phases."""
 
+        if not self._pace_validated_plans(state):
+            return
         control_seq = self._validated_plan_control_sequence(state)
         state.execution_attempted = True
         state.control_sequence_record = control_seq
@@ -47,18 +55,91 @@ class RoboTwinSparseExecutionMixin:
         ):
             self._run_post_global_phase(state)
 
+    def _pace_validated_plans(self, state: _SparseMotionState) -> bool:
+        """Time every validated plan for the move's speed; False when the pacing refused the move.
+
+        Each arm's path is paced at its public TCP (``pacing.pace_arm``), both
+        arms are put on one timeline, and a two-arm move's paced knots are
+        checked again for inter-arm clearance, because pacing changes when
+        each arm is where. A pre-contact route leaves the slow final segment to
+        its local approach. A refusal is a plan rejection with no controller
+        write; ``state.pacing`` keeps the knots and the receipt's ``motion``.
+        """
+
+        import numpy as np
+
+        speed = pacing.requested_speed(state.action)
+        slow_approach = not state.global_precontact_then_local_requested
+        budget = pacing.tick_budget(self.control_profile["profile"])  # type: ignore[index]
+        state.pacing = {"motion": None, "rows": {}, "velocity": {}}
+        paced = {}
+        try:
+            for arm in state.target_arms:
+                def fk(rows: list[list[float]], selected: str = arm) -> list[Any]:
+                    return [self._pinocchio_public_pose_xyzw(state.environment, selected, row)
+                            for row in rows]
+
+                paced[arm] = pacing.pace_arm(
+                    state.validated_plans[arm].position, fk, speed=speed,
+                    joint_limits=self._arm_joint_limits(state.environment, arm),
+                    budget_ticks=budget, slow_approach=slow_approach, arm=arm,
+                )
+        except PaceRefusal as refusal:
+            state.pacing["motion"] = {
+                "speed": pacing.request_report(speed, slow_approach=slow_approach),
+                "refused": {"code": refusal.code, "message": str(refusal), "arm": arm,
+                            **refusal.constraints},
+            }
+            for target in state.target_arms:
+                state.plan_rejections[target] = {
+                    "code": refusal.code, "message": str(refusal),
+                    "details": {"stage": "pacing", "arm": arm, "controller_writes": 0,
+                                **refusal.constraints},
+                }
+            return False
+        starts = {arm: state.validated_plans[arm].position[0] for arm in paced}
+        rows = pacing.synchronized_rows(paced, starts)
+        ticks = max(len(values) for values in rows.values())
+        state.pacing["rows"] = rows
+        state.pacing["velocity"] = {
+            arm: pacing.knot_velocities(starts[arm], values)
+            for arm, values in rows.items()
+        }
+        state.pacing["motion"] = pacing.motion_report(paced, ticks)
+        if len(rows) > 1:
+            retimed = {
+                arm: replace(state.validated_plans[arm], position=np.asarray(values))
+                for arm, values in rows.items()
+            }
+            try:
+                state.collision_validation = self._validate_planned_motion_set(
+                    state, retimed,
+                )["collision_validation"]
+            except RoboTwinPlanRejected as exc:
+                for arm in state.target_arms:
+                    state.plan_rejections[arm] = {
+                        "code": exc.code, "message": str(exc),
+                        "details": {"stage": "pacing", **dict(exc.details or {})},
+                    }
+                return False
+        return True
+
     def _validated_plan_control_sequence(
         self, state: _SparseMotionState,
     ) -> dict[str, Any]:
-        """Build the dense control sequence of the targeted arms."""
+        """Build the dense control sequence of the targeted arms from their paced knots."""
 
+        paced = (getattr(state, "pacing", None) or {}).get("rows", {})
+        velocity = (getattr(state, "pacing", None) or {}).get("velocity", {})
         control_seq = {
             "left_arm": None, "left_gripper": None,
             "right_arm": None, "right_gripper": None,
         }
         for arm in state.target_arms:
             result = (
-                {
+                {"status": "Paced", "position": paced[arm], "velocity": velocity[arm]}
+                if arm in paced
+                else {
                     "status": "Validated",
                     "position": state.validated_plans[arm].position,
                     "velocity": state.validated_plans[arm].velocity,
@@ -402,6 +483,10 @@ class RoboTwinSparseExecutionMixin:
                     f"planned_{arm}_control__pose_xyzw": validated.planned_link6_pose_xyzw,
                     f"planned_{arm}_public_tcp__pose_xyzw": validated.planned_tcp_pose_xyzw,
                 })
+            pacing_record = getattr(state, "pacing", None) or {}
+            for arm, rows in pacing_record.get("rows", {}).items():
+                # The knots the transaction executed, one per physics step.
+                artifact_arrays[f"paced_{arm}_joint__position"] = rows
             artifact = write_motion_plan_artifact(
                 self.output_root,
                 transaction_id=(
@@ -434,6 +519,8 @@ class RoboTwinSparseExecutionMixin:
                         arm: state.validated_plans[arm].summary for arm in state.target_arms
                     },
                     "execution": state.controller_tracking,
+                    **({"pacing": pacing_record["motion"]}
+                       if pacing_record.get("motion") is not None else {}),
                 },
                 arrays=artifact_arrays,
             )

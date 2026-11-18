@@ -1,0 +1,920 @@
+{
+ "description": "What code-mode scripts read from the arm-moving tools (move_pose, move_to, rotate_wrist, return_home, recover_pose) on sealed RoboDojo toolkit-v5 runs of 2026-10-27/31: the stored tool result with ORA's degree delivery and causal filter applied, pruned to what the motion explain templates and a typed result read (no claim boundaries, acceptance checks or per-sample reach rows).",
+ "answers": [
+  {
+   "backend": "robodojo",
+   "tool": "rotate_wrist",
+   "arguments": {
+    "targets": {
+     "left": -90.0
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "rotate_wrist",
+    "remaining_budget": 232,
+    "compiled_pose": {
+     "canonical_action": "move_pose",
+     "semantic_primitive": "rotate_wrist",
+     "targets": {
+      "left": {
+       "controlled_point": "end_effector",
+       "translation_distance_m": 0.0,
+       "rotation_angle_deg": 90.0,
+       "target_pose_xyz_xyzw": [
+        -0.148823812604,
+        -0.269711136818,
+        0.968458354473,
+        0.004215127372,
+        0.703453151652,
+        0.004436124371,
+        0.710715285422
+       ],
+       "current_pose_xyz_xyzw": [
+        -0.148823812604,
+        -0.269711136818,
+        0.968458354473,
+        0.505532142963,
+        0.500553307405,
+        -0.494279680156,
+        0.499571052667
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": 0.0293,
+        "footprint_observed_fraction": 0.69
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "left arm 0.1 mm / 1.3\u00b0 from target, reached, TCP moved 0.1 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 8,
+     "target_arms": [
+      "left"
+     ],
+     "detail": {
+      "arms": {
+       "left": {
+        "pose_error": {
+         "orientation_deg": 1.300603,
+         "translation_m": 8.271800336988514e-05
+        },
+        "motion_progress": {
+         "outcome": "arrived",
+         "segment": "move"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "targets": {
+     "right": {
+      "interaction": "free_space",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.3157507805375689,
+       -0.0612365891942582,
+       1.056640816
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "move_pose",
+    "remaining_budget": 40,
+    "compiled_pose": {
+     "targets": {
+      "right": {
+       "controlled_point": "end_effector",
+       "jaw_symmetry": "held_no_flip",
+       "translation_distance_m": 0.155623674692,
+       "rotation_angle_deg": 0.0,
+       "target_pose_xyz_xyzw": [
+        0.315750780538,
+        -0.061236589194,
+        1.056640816,
+        -0.529344446289,
+        0.469013637353,
+        0.529219634161,
+        0.468772059725
+       ],
+       "current_pose_xyz_xyzw": [
+        0.370379298925,
+        -0.172887712717,
+        0.963000655174,
+        -0.529344446289,
+        0.469013637353,
+        0.529219634161,
+        0.468772059725
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": 0.0885,
+        "footprint_observed_fraction": 0.95
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "right arm 0.2 mm / 0.0\u00b0 from target, reached, TCP moved 156 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 10,
+     "target_arms": [
+      "right"
+     ],
+     "detail": {
+      "arms": {
+       "right": {
+        "pose_error": {
+         "orientation_deg": 0.024959,
+         "translation_m": 0.00016093182895569736
+        },
+        "motion_progress": {
+         "jaw_symmetry": "held_no_flip",
+         "native_actions": 10,
+         "outcome": "arrived",
+         "segment": "joint_trajectory",
+         "undo_depth": 2
+        }
+       }
+      }
+     }
+    },
+    "motion": {
+     "route": "joint",
+     "planned_native_actions": 9,
+     "duration_s": 0.36,
+     "status": "completed",
+     "stop": null,
+     "speed": {
+      "speed": "fast",
+      "slow_approaching": false
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "slow_approaching": true,
+    "speed": "normal",
+    "targets": {
+     "right": {
+      "interaction": "precision",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.3157507805375689,
+       -0.0612365891942582,
+       0.966640816
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "move_pose",
+    "remaining_budget": 30,
+    "compiled_pose": {
+     "targets": {
+      "right": {
+       "controlled_point": "end_effector",
+       "jaw_symmetry": "held_no_flip",
+       "translation_distance_m": 0.089885916927,
+       "rotation_angle_deg": 0.000204,
+       "target_pose_xyz_xyzw": [
+        0.315750780538,
+        -0.061236589194,
+        0.966640816,
+        -0.529484631227,
+        0.469036401732,
+        0.529204787419,
+        0.468607695323
+       ],
+       "current_pose_xyz_xyzw": [
+        0.315643936396,
+        -0.061197482049,
+        1.056526660919,
+        -0.529484631227,
+        0.469036401732,
+        0.529204787419,
+        0.468607695323
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": -0.0015,
+        "footprint_observed_fraction": 1.0
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "right arm 0.8 mm / 0.1\u00b0 from target, reached, TCP moved 89 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 20,
+     "target_arms": [
+      "right"
+     ],
+     "detail": {
+      "arms": {
+       "right": {
+        "pose_error": {
+         "orientation_deg": 0.116939,
+         "translation_m": 0.0008130893833481547
+        },
+        "motion_progress": {
+         "jaw_symmetry": "held_no_flip",
+         "native_actions": 20,
+         "outcome": "arrived",
+         "segment": "joint_trajectory",
+         "speed_segments": [
+          {
+           "first_knot": 1,
+           "native_actions": 11,
+           "speed": "normal"
+          },
+          {
+           "first_knot": 12,
+           "from_fraction_of_move": 0.8,
+           "native_actions": 8,
+           "path_left_m": 0.018,
+           "speed": "careful"
+          }
+         ],
+         "undo_depth": 3
+        }
+       }
+      }
+     }
+    },
+    "motion": {
+     "route": "line",
+     "planned_native_actions": 19,
+     "duration_s": 0.76,
+     "status": "completed",
+     "stop": null,
+     "speed": {
+      "speed": "normal",
+      "slow_approaching": true
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "targets": {
+     "right": {
+      "interaction": "free_space",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.3156335,
+       -0.0612316,
+       1.1
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "move_pose",
+    "remaining_budget": 42,
+    "compiled_pose": {
+     "targets": {
+      "right": {
+       "controlled_point": "end_effector",
+       "jaw_symmetry": "requested",
+       "translation_distance_m": 0.133359885216,
+       "rotation_angle_deg": 0.0,
+       "target_pose_xyz_xyzw": [
+        0.3156335,
+        -0.0612316,
+        1.1,
+        -0.529555722428,
+        0.468956896938,
+        0.529275163342,
+        0.468527445437
+       ],
+       "current_pose_xyz_xyzw": [
+        0.315633505583,
+        -0.061231616884,
+        0.966640114784,
+        -0.529555722428,
+        0.468956896938,
+        0.529275163342,
+        0.468527445437
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": 0.1435,
+        "footprint_observed_fraction": 0.99
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "right arm 0.1 mm / 0.0\u00b0 from target, reached, TCP moved 133 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 8,
+     "target_arms": [
+      "right"
+     ],
+     "detail": {
+      "arms": {
+       "right": {
+        "pose_error": {
+         "orientation_deg": 0.017401,
+         "translation_m": 0.0001176516136213952
+        },
+        "motion_progress": {
+         "jaw_symmetry": "requested",
+         "native_actions": 8,
+         "outcome": "arrived",
+         "segment": "joint_trajectory",
+         "undo_depth": 4
+        }
+       }
+      }
+     }
+    },
+    "motion": {
+     "route": "joint",
+     "planned_native_actions": 7,
+     "duration_s": 0.28,
+     "status": "completed",
+     "stop": null,
+     "speed": {
+      "speed": "fast",
+      "slow_approaching": false
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "return_home",
+   "arguments": {
+    "arms": [
+     "right"
+    ]
+   },
+   "result": {
+    "status": "executed",
+    "action": "return_home",
+    "remaining_budget": 30,
+    "compiled_pose": {
+     "canonical_action": "follow_joint_trajectory",
+     "semantic_primitive": "return_home",
+     "targets": {
+      "right": {
+       "strategy": "home",
+       "method": "joint_interpolation"
+      }
+     }
+    },
+    "receipt": {
+     "status": "not_reached",
+     "action_summary": "right arm 84 mm / 17\u00b0 from target, not reached: episode terminal during execution, TCP moved 278 mm, round ended",
+     "failure_code": "episode_terminal_during_execution",
+     "failure_stage": "execution",
+     "native_actions": 20,
+     "target_arms": [
+      "right"
+     ],
+     "detail": {
+      "arms": {
+       "right": {
+        "pose_error": {
+         "orientation_deg": 16.686143,
+         "translation_m": 0.08447984715459407
+        },
+        "motion_progress": {
+         "native_actions": 20,
+         "outcome": "terminal",
+         "segment": "joint_trajectory",
+         "undo_depth": 5
+        }
+       }
+      }
+     },
+     "arms": {
+      "right": {
+       "recovery_progress": {
+        "method": "joint_interpolation",
+        "outcome": "episode_terminal",
+        "planned_native_actions": 24,
+        "retract": {
+         "lift_m": 0.1,
+         "status": "planned"
+        },
+        "route": "retract_then_unwind",
+        "unwind_order": "straight_joint_line"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "speed": "normal",
+    "targets": {
+     "right": {
+      "interaction": "free_space",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.24539498380829766,
+       -0.15009548564531353,
+       0.6923765904940304
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "error": {
+     "code": "workspace_bounds",
+     "constraints": {
+      "monotonic_recovery_allowed": true,
+      "violations": {
+       "z": {
+        "allowed": [
+         0.72,
+         1.4
+        ],
+        "distance_m": 0.027623409505999952,
+        "received": 0.692376590494
+       }
+      },
+      "workspace_bounds_m": {
+       "x": [
+        -0.75,
+        0.75
+       ],
+       "y": [
+        -0.65,
+        0.55
+       ],
+       "z": [
+        0.72,
+        1.4
+       ]
+      }
+     },
+     "field": "targets.right.position_m",
+     "infrastructure": false,
+     "message": "target pose is outside the configured action workspace",
+     "received": [
+      0.245394983808,
+      -0.150095485645,
+      0.692376590494
+     ],
+     "retry_requires_changed_arguments": true,
+     "retryable": true
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "slow_approaching": true,
+    "speed": "careful",
+    "targets": {
+     "right": {
+      "interaction": "precision",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.2453656663531839,
+       -0.14998854536163173,
+       0.9325765700147868
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "error": {
+     "code": "invalid_motion_arguments",
+     "constraints": {
+      "allowed_speeds": [
+       "fast",
+       "normal"
+      ],
+      "examples": [
+       {
+        "targets": {
+         "right": {
+          "interaction": "free_space",
+          "orientation_mode": "hold_current",
+          "position_m": [
+           -0.1,
+           0.02,
+           0.95
+          ],
+          "position_mode": "absolute"
+         }
+        }
+       },
+       {
+        "targets": {
+         "left": {
+          "interaction": "precision",
+          "orientation_mode": "hold_current",
+          "position_frame": "world",
+          "position_mode": "delta",
+          "translation_m": [
+           0.0,
+           0.0,
+           -0.03
+          ]
+         }
+        }
+       },
+       {
+        "targets": {
+         "right": {
+          "interaction": "contact_approach",
+          "orientation_frame": "end_effector",
+          "orientation_mode": "axis_angle_delta",
+          "position_mode": "hold_current",
+          "rotation_angle_deg": 25.0,
+          "rotation_axis": "x"
+         }
+        }
+       },
+       {
+        "targets": {
+         "left": {
+          "orientation_mode": "absolute_quaternion",
+          "orientation_xyzw": [
+           0.0,
+           0.0,
+           0.0,
+           1.0
+          ],
+          "position_m": [
+           -0.12,
+           0.05,
+           0.92
+          ],
+          "position_mode": "absolute"
+         }
+        }
+       }
+      ],
+      "speed": "careful"
+     },
+     "field": "slow_approaching",
+     "infrastructure": false,
+     "message": "slow_approaching has no effect with speed=careful",
+     "received": null,
+     "retry_requires_changed_arguments": true,
+     "retryable": true
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "return_home",
+   "arguments": {
+    "arms": [
+     "right"
+    ]
+   },
+   "result": {
+    "status": "executed",
+    "action": "return_home",
+    "remaining_budget": 291,
+    "compiled_pose": {
+     "canonical_action": "follow_joint_trajectory",
+     "semantic_primitive": "return_home",
+     "targets": {
+      "right": {
+       "strategy": "home",
+       "method": "joint_interpolation"
+      }
+     }
+    },
+    "receipt": {
+     "status": "not_reached",
+     "action_summary": "right arm 341 mm / 94\u00b0 from target, not reached: controller tracking error, TCP moved 98 mm",
+     "failure_code": "controller_tracking_error",
+     "failure_stage": "execution",
+     "native_actions": 8,
+     "target_arms": [
+      "right"
+     ],
+     "detail": {
+      "arms": {
+       "right": {
+        "pose_error": {
+         "orientation_deg": 94.343945,
+         "translation_m": 0.3405160285081466
+        },
+        "motion_progress": {
+         "native_actions": 8,
+         "outcome": "stopped",
+         "segment": "joint_trajectory",
+         "stop_reason": "tracking",
+         "undo_depth": 5
+        }
+       }
+      }
+     },
+     "arms": {
+      "right": {
+       "recovery_progress": {
+        "method": "joint_interpolation",
+        "outcome": "stalled",
+        "planned_native_actions": 27,
+        "retract": {
+         "lift_m": 0.1,
+         "status": "planned"
+        },
+        "route": "retract_then_unwind",
+        "unwind_order": "straight_joint_line"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_pose",
+   "arguments": {
+    "speed": "normal",
+    "targets": {
+     "right": {
+      "interaction": "free_space",
+      "orientation_mode": "hold_current",
+      "position_m": [
+       0.34,
+       -0.42,
+       1.1
+      ],
+      "position_mode": "absolute"
+     }
+    }
+   },
+   "result": {
+    "error": {
+     "code": "script_action_refused",
+     "constraints": {
+      "reason": "turn_must_end"
+     },
+     "field": null,
+     "infrastructure": false,
+     "message": "the Supervisor refused this world-changing call: turn_must_end",
+     "received": null,
+     "retryable": false
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "recover_pose",
+   "arguments": {
+    "targets": {
+     "left": "home"
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "recover_pose",
+    "remaining_budget": 226,
+    "compiled_pose": {
+     "canonical_action": "recover_motion",
+     "semantic_primitive": "recover_pose",
+     "targets": {
+      "left": {
+       "strategy": "home"
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "left arm 3.6 mm / 0.1\u00b0 from target, reached, TCP moved 354 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 14,
+     "target_arms": [
+      "left"
+     ],
+     "detail": {
+      "arms": {
+       "left": {
+        "pose_error": {
+         "orientation_deg": 0.118419,
+         "translation_m": 0.0035901081472829257
+        },
+        "motion_progress": {
+         "outcome": "arrived",
+         "segment": "recover"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_to",
+   "arguments": {
+    "targets": {
+     "left": {
+      "position_m": [
+       -0.288,
+       0.05,
+       1.16
+      ]
+     }
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "move_to",
+    "remaining_budget": 191,
+    "compiled_pose": {
+     "canonical_action": "move_pose",
+     "semantic_primitive": "move_to",
+     "targets": {
+      "left": {
+       "controlled_point": "end_effector",
+       "translation_distance_m": 0.209970661384,
+       "rotation_angle_deg": 0.0,
+       "target_pose_xyz_xyzw": [
+        -0.288,
+        0.05,
+        1.16,
+        -0.003945594368,
+        0.003965549352,
+        0.70730862279,
+        0.706882747583
+       ],
+       "current_pose_xyz_xyzw": [
+        -0.288160771132,
+        0.049595184624,
+        0.950029790401,
+        -0.003945594368,
+        0.003965549352,
+        0.70730862279,
+        0.706882747583
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": 0.285,
+        "footprint_observed_fraction": 0.25
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "left arm 3.2 mm / 1.2\u00b0 from target, reached, TCP moved 207 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 4,
+     "target_arms": [
+      "left"
+     ],
+     "detail": {
+      "arms": {
+       "left": {
+        "pose_error": {
+         "orientation_deg": 1.223364,
+         "translation_m": 0.003150985881385644
+        },
+        "motion_progress": {
+         "outcome": "arrived",
+         "segment": "move"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "backend": "robodojo",
+   "tool": "move_to",
+   "arguments": {
+    "targets": {
+     "left": {
+      "position_m": [
+       -0.15616804361343384,
+       0.14972269535064697,
+       0.9037953400611878
+      ]
+     }
+    }
+   },
+   "result": {
+    "status": "executed",
+    "action": "move_to",
+    "remaining_budget": 238,
+    "compiled_pose": {
+     "canonical_action": "move_pose",
+     "semantic_primitive": "move_to",
+     "targets": {
+      "left": {
+       "controlled_point": "end_effector",
+       "translation_distance_m": 0.04,
+       "rotation_angle_deg": 6.8e-05,
+       "target_pose_xyz_xyzw": [
+        -0.156168043613,
+        0.149722695351,
+        0.903795340061,
+        0.697598010737,
+        0.697252124968,
+        -0.115229686129,
+        0.117977154898
+       ],
+       "current_pose_xyz_xyzw": [
+        -0.156168043613,
+        0.149722695351,
+        0.863795340061,
+        0.697598010737,
+        0.697252124968,
+        -0.115229686129,
+        0.117977154898
+       ],
+       "reach_along_request": {
+        "target_reachable": true
+       },
+       "observed_clearance": {
+        "status": "measured",
+        "clearance_m": 0.0501,
+        "footprint_observed_fraction": 0.55
+       }
+      }
+     }
+    },
+    "receipt": {
+     "status": "reached",
+     "action_summary": "left arm 2.6 mm / 0.4\u00b0 from target, reached, TCP moved 43 mm",
+     "failure_code": null,
+     "failure_stage": null,
+     "native_actions": 2,
+     "target_arms": [
+      "left"
+     ],
+     "detail": {
+      "arms": {
+       "left": {
+        "pose_error": {
+         "orientation_deg": 0.394351,
+         "translation_m": 0.0026437928826753055
+        },
+        "motion_progress": {
+         "outcome": "arrived",
+         "segment": "move"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,5127 @@
+{
+ "schema": "ora.robodojo-task-contract-layout-portability-review.v1",
+ "table": "ora/policy/environments/robodojo/task-contracts/layout-portability-v4.json",
+ "predecessor": {
+  "path": "ora/policy/environments/robodojo/task-contracts/reviews/layout-portability-v3-review.json",
+  "sha256": "467e5f3c4920576bd56209d280195cbb7685af421a53f9654f329f29a40d8674",
+  "status": "the v3 review record, removed from the tree with layout-portability-v3.json once v4 became the default; Git history keeps both. Its own predecessor, layout-portability-v2.json, left the tree before it (last at bea54e71)."
+ },
+ "registry": "ora/policy/environments/robodojo/task-contracts/registry-v9.json",
+ "status": "pending_review",
+ "review": {
+  "date": "2026-10-20",
+  "reviewer": "ORA F5 portability audit (Claude)",
+  "scope": "offline source and layout review of the thirteen tasks v2 did not list: registry-v8 records and completion layers, upstream gen_instruction and run_reward at the pinned revision, and every instance of official layouts 0-9 of eval seed 0 with the asset metadata it names; no simulator, scene smoke, provider or physical run",
+  "human_approval": {
+   "status": "approved",
+   "scope": "the thirteen tasks this record reviews and the four conditions below; not the 29 entries carried from v2, which the user approved separately (carried_from_v2_approval)",
+   "by": "the user",
+   "date": "2026-10-20",
+   "provenance": "relayed to the F5 worker by the ORA lead session (m2 pi re) through the coordinator; the user did not speak in the worker's own session",
+   "user_words": "F5 \u90a3\u56db\u70b9\u6309\u4f60\u7684\u5efa\u8bae\u6279\u51c6",
+   "conditions": [
+    "sweep_blocks stays at layouts 0, 3, 4 and 7 with its registry-v8 contract ('All three blocks') unchanged; extending it to the layouts holding four or five blocks needs a new contract without a block count, reviewed separately.",
+    "fasten_screws: the nut and screw files whose raw diffuse values supplied the colours of indices 0 and 3 are bound by path and sha256 at assets a14409d7 (each row's evaluator_asset_dependencies, re-hashed at fresh preflight; commit bea54e71).",
+    "pick_from_conveyor_by_image: layouts 5 and 8 stay ported; the same-category distractor remote next to the target is within the task's design (see the task's notes).",
+    "layout-portability-v2 leaves the tree once nothing loads it (commit c7fa09c9)."
+   ],
+   "unchanged": "Reachability stays not reviewed; the offline footprint distances remain evidence only."
+  }
+ },
+ "source": {
+  "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+  "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6",
+  "eval_seed": 0,
+  "layout_folder": "Eval_Layout/RoboDojo/arx_x5/0",
+  "ordinal_rule": "ordinal k is <task>_<k>.json (robodojo.selected_layout, upstream SeedManager's numeric sort); only k = 0-9 are reviewed",
+  "byte_provenance": "Read from the shared pinned checkouts: assets at a14409d7 (clean) and assets-35efbc7d at 35efbc7d for swap_T. The sha256 of every one of the 130 files read equals the Git LFS oid its path holds at that revision. v4: the same 130 files, unchanged at Assets 1127bda (from a14409d7 to 1127bda only the swap_T layouts and Object/RoboDojo/Rigid/mug/00014/metadata.json changed, from 35efbc7d to 1127bda only that mug file, which no audited layout holds)."
+ },
+ "carried_from_v2": [
+  "align_blocks",
+  "arrange_largest_number",
+  "build_tower",
+  "classify_objects",
+  "classify_objects_by_language",
+  "cover_blocks",
+  "deposit_coin",
+  "fill_pen_holder",
+  "fold_clothes",
+  "general_pickup",
+  "imitate_sorting_sequence",
+  "insert_tubes",
+  "make_kong",
+  "make_toast",
+  "match_and_pick_from_conveyor",
+  "organize_table",
+  "play_Xylophone",
+  "play_tic_tac_toe",
+  "pour_balls_into_vase",
+  "pour_liquid_into_cup",
+  "press_by_number",
+  "push_T",
+  "put_bottles_into_dustbin",
+  "solve_equation",
+  "sort_nesting_dolls_by_size",
+  "stack_blocks",
+  "stack_blocks_by_language",
+  "stack_bowls",
+  "store_laptop_and_headphones"
+ ],
+ "carried_from_v2_approval": "approved by the user on 2026-10-20, relayed by the ORA lead session (m2 pi re) through the coordinator: \"29 \u4e2a\u4e00\u8d77\u6279\u4e86\"; v2's approval of them had been pending",
+ "criteria": [
+  "Same criteria as v2: a completion layer is portable to a layout when every count, side, ordering, fixture and identity it states holds there; anything layout-0-specific in a record's private notes is evidence for layout 0 only and never delivered.",
+  "Instruction: 'fixed' only where gen_instruction returns one constant template, so every layout renders the record's instruction; 'layout_readback' where it is built from the layout.",
+  "Objects: per-category counts, models, sections and labels of every layout against what the layer and run_reward name; fixtures and scene sections (Room, Table, Ground, Background) compared with layout 0 (equal in every audited layout).",
+  "A layout that fails a stated count or identity is left out of the task's rows, so the table refuses it."
+ ],
+ "not_reviewed": [
+  "Reachability: offline footprint distances are recorded per layout, but no scene smoke or IK measured these layouts.",
+  "Evaluator metadata and usdz bytes of models only layouts 1-9 hold (listed per task): the records' evaluator_dependencies hash layout 0's objects only. Exception: fasten_screws' rows bind the nut and screw files of indices 0 and 3, whose colours the pairing reads.",
+  "Physical feasibility of the tasks on any layout, layout 0 included."
+ ],
+ "offline_reach": {
+  "method": "Computed by ora.environment.benchmarks.robodojo_layout_reach on the pinned bytes: every Rigid instance except cluttered distractors, its spawn centre and eight footprint points from the asset metadata's aligned bounding box, as horizontal distances to the nearer fixed ARX X5 arm base (footprint: the farthest point, minimised over the arms). No IK and no simulator: evidence only, compared with the envelope the 2026-10-01 scene smokes measured for top-down grasps of low objects (reachable at most 0.47 m, unreachable from 0.50 m). Geometry and Articulation fixtures are out of scope. The scene smoke of a layout decides."
+ },
+ "tasks": {
+  "fasten_screws": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/fasten_screws-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/fasten_screws-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Three Rigid factory_nut nut0-nut2 lying flat and three Geometry factory_bolt bolt0-bolt2 standing upright (tilt below 1 degree) in every layout: 'the threaded bolts standing upright' and 'the separate hexagonal pieces'.",
+    "nut{i} and bolt{i} share an asset index in every layout (fasten_screws.yml same_index_as_label), three distinct indices per layout; layouts 1-9 use indices 0 and 3, which layout 0 does not.",
+    "Colour: factory_nut and factory_bolt metadata are byte-identical across indices 0-4, and the pinned usdz colours differ per index and agree within each nut/screw pair: index 0 (0.980, 0.714, 0.004) yellow-orange, 3 (0.533, 0.533, 0.533) grey and 4 (0.839, 0.302, 0.929) violet, read here as the diffuse float triples in the usdc bytes of both the nut and the screw (equal to three decimals; colour_evidence); 1 red and 2 blue are the record's pxr probe. Five distinct colours, so 'the screw of its own color' names one screw in every layout.",
+    "Binding: the record's evaluator_dependencies hash the metadata and usdz of indices 1, 2 and 4. Each v3 row of a layout holding index 0 or 3 binds the metadata and usdz of that index's nut and screw as evaluator_asset_dependencies (evaluator_asset_dependencies below lists all eight); the RunPlan disclosure carries them and fresh preflight re-hashes them with the record's own (verify_contract_dependencies), so a change to the colour-bearing bytes fails closed.",
+    "gen_instruction (fasten_screws.py:65-67) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Geometry/factory_bolt/0": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      2,
+      3,
+      4,
+      6,
+      7,
+      9
+     ],
+     "metadata_sha256": "a934ca73377795f001137dead91d61839360123cb0b4442366f0db628c035ffa"
+    },
+    "Geometry/factory_bolt/3": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "metadata_sha256": "a934ca73377795f001137dead91d61839360123cb0b4442366f0db628c035ffa"
+    },
+    "Rigid/factory_nut/0": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      2,
+      3,
+      4,
+      6,
+      7,
+      9
+     ],
+     "metadata_sha256": "3b22b837e37300b2a33f0d733c2cb6875e26ea11f92405dc67a72f31995a9b2f"
+    },
+    "Rigid/factory_nut/3": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "metadata_sha256": "3b22b837e37300b2a33f0d733c2cb6875e26ea11f92405dc67a72f31995a9b2f"
+    }
+   },
+   "known_limits": [
+    "Layout 1's nut2 centre lies 0.483 m from the nearer arm base (layout 0's farthest nut 0.357 m), beyond the 0.47 m envelope the 2026-10-01 scene smokes measured for low objects.",
+    "Colours of indices 0 and 3 come from raw float triples in the usdc bytes, not from a USD-library probe like the record's for 1, 2 and 4; the bytes they were read from are bound (see binding)."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "13ee331afd5590012692ef274ec8eb7923087799a2311f35f8302865e2dd1dee",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       1,
+       2,
+       4
+      ],
+      "Rigid/factory_nut": [
+       1,
+       2,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       2,
+       1,
+       4
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut2",
+      "farthest_centre_nearer_base_m": 0.357,
+      "farthest_footprint_nearer_base_m": 0.377
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "fb65645ae483f85a8738a73b4ab370cb3bd71508a968292c217967c882e3778b",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/factory_nut": [
+       1,
+       2,
+       3
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       2,
+       3,
+       1
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut2",
+      "farthest_centre_nearer_base_m": 0.483,
+      "farthest_footprint_nearer_base_m": 0.502
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "ada71ec39d343ecd0c645935f202c18a7c24a862d5b320469811228e70259d1f",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       1,
+       3
+      ],
+      "Rigid/factory_nut": [
+       0,
+       1,
+       3
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       3,
+       0,
+       1
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut0",
+      "farthest_centre_nearer_base_m": 0.435,
+      "farthest_footprint_nearer_base_m": 0.454
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "5d48211720e3285f6f3759b5bb8091a4fc38c6aa8d693eecb89551e9af843681",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       3,
+       4
+      ],
+      "Rigid/factory_nut": [
+       0,
+       3,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       4,
+       0,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut2",
+      "farthest_centre_nearer_base_m": 0.4,
+      "farthest_footprint_nearer_base_m": 0.42
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "14eb05dd284d81ab14cb17f2cd6a2d0229664ce46c00ac4fd7ecbe1f8ca59573",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       1,
+       3
+      ],
+      "Rigid/factory_nut": [
+       0,
+       1,
+       3
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       0,
+       1,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut1",
+      "farthest_centre_nearer_base_m": 0.333,
+      "farthest_footprint_nearer_base_m": 0.352
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "e1df91f26931e199f05d15f48c7b1fff181bbf21b10d2f8dd46eeac85fe7c683",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       2,
+       3,
+       4
+      ],
+      "Rigid/factory_nut": [
+       2,
+       3,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       2,
+       4,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut2",
+      "farthest_centre_nearer_base_m": 0.389,
+      "farthest_footprint_nearer_base_m": 0.409
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "6325b7bc93da796731519142d969f4c0cd70796b9c6d1d4c56dbd8d890ec35ba",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       3,
+       4
+      ],
+      "Rigid/factory_nut": [
+       0,
+       3,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       0,
+       4,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut1",
+      "farthest_centre_nearer_base_m": 0.389,
+      "farthest_footprint_nearer_base_m": 0.408
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "46956de27a41599b5c6e13205b8571c6a4f3d5666a2f159efba4f923922eb2f1",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       2,
+       3
+      ],
+      "Rigid/factory_nut": [
+       0,
+       2,
+       3
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       0,
+       3,
+       2
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut1",
+      "farthest_centre_nearer_base_m": 0.365,
+      "farthest_footprint_nearer_base_m": 0.385
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "0b5bb3b4369e1a8546155cd87df70c44df23f2fe31c265e350f2487443265834",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       2,
+       3,
+       4
+      ],
+      "Rigid/factory_nut": [
+       2,
+       3,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       4,
+       3,
+       2
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut2",
+      "farthest_centre_nearer_base_m": 0.448,
+      "farthest_footprint_nearer_base_m": 0.467
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "14baae3353839d232ea8d2787c5a352b40efff5cfefb1abc4e29b612d37d24ed",
+     "portable": true,
+     "inventory": {
+      "Geometry/factory_bolt": [
+       0,
+       2,
+       4
+      ],
+      "Rigid/factory_nut": [
+       0,
+       2,
+       4
+      ]
+     },
+     "facts": {
+      "pair_indices": [
+       0,
+       4,
+       2
+      ]
+     },
+     "reach": {
+      "farthest_object": "nut0",
+      "farthest_centre_nearer_base_m": 0.377,
+      "farthest_footprint_nearer_base_m": 0.397
+     }
+    }
+   ],
+   "evaluator_asset_dependencies": [
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00000/metadata.json",
+     "sha256": "a934ca73377795f001137dead91d61839360123cb0b4442366f0db628c035ffa"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00000/object.usdz",
+     "sha256": "c58fafd54d9c583431fb0094f185d5d4f93f6aa3f05975d15d00a2e2fced757d"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00003/metadata.json",
+     "sha256": "a934ca73377795f001137dead91d61839360123cb0b4442366f0db628c035ffa"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00003/object.usdz",
+     "sha256": "1bec75138750b763f79ba364a72fa70ca05d29ebd4572649a05aba4451cada8f"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00000/metadata.json",
+     "sha256": "3b22b837e37300b2a33f0d733c2cb6875e26ea11f92405dc67a72f31995a9b2f"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00000/object.usdz",
+     "sha256": "081a57cdc19d11717cbdb7dcbd88697c0d9df7d7d0e95383289ef7f0a0e4d450"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00003/metadata.json",
+     "sha256": "3b22b837e37300b2a33f0d733c2cb6875e26ea11f92405dc67a72f31995a9b2f"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00003/object.usdz",
+     "sha256": "6dc07b519c9a48a0dc689a52f75ed875c7b9c928a883b1e66d9c7d512a01c472"
+    }
+   ],
+   "colour_evidence": [
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00000/object.usdz",
+     "sha256": "c58fafd54d9c583431fb0094f185d5d4f93f6aa3f05975d15d00a2e2fced757d",
+     "diffuse_rgb": [
+      0.980392,
+      0.713726,
+      0.003922
+     ],
+     "read": "float32 triple at byte 1426 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00003/object.usdz",
+     "sha256": "1bec75138750b763f79ba364a72fa70ca05d29ebd4572649a05aba4451cada8f",
+     "diffuse_rgb": [
+      0.533333,
+      0.533333,
+      0.533333
+     ],
+     "read": "float32 triple at byte 1418 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Geometry/factory_bolt/00004/object.usdz",
+     "sha256": "13c8ad16e6e7df2da11834cf867f3be5c6a86e4ef71ebf8e9554bcdeacf01193",
+     "diffuse_rgb": [
+      0.839216,
+      0.301961,
+      0.929412
+     ],
+     "read": "float32 triple at byte 1418 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00000/object.usdz",
+     "sha256": "081a57cdc19d11717cbdb7dcbd88697c0d9df7d7d0e95383289ef7f0a0e4d450",
+     "diffuse_rgb": [
+      0.9804,
+      0.7137,
+      0.003922
+     ],
+     "read": "float32 triple at byte 19512 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00003/object.usdz",
+     "sha256": "6dc07b519c9a48a0dc689a52f75ed875c7b9c928a883b1e66d9c7d512a01c472",
+     "diffuse_rgb": [
+      0.533333,
+      0.533333,
+      0.533333
+     ],
+     "read": "float32 triple at byte 19512 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    },
+    {
+     "root": "assets",
+     "path": "Object/RoboDojo/Rigid/factory_nut/00004/object.usdz",
+     "sha256": "c8f85c8e44cbe081997f4602811e6e154a000eb808a5ae9df2f40cf4b311a70e",
+     "diffuse_rgb": [
+      0.839216,
+      0.301961,
+      0.929412
+     ],
+     "read": "float32 triple at byte 19512 of main.usdc inside the usdz, located by the bytes that precede it in every variant; no USD library"
+    }
+   ]
+  },
+  "fill_egg_holder": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/fill_egg_holder-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/fill_egg_holder-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Four Rigid egg/00000 target0-target3, one Geometry egg_basket and one Articulation egg_holder/00000 in every layout; no other object: 'all four eggs', 'the egg holder', 'its lid'.",
+    "The holder is the same articulation model in every layout, so the lid's travel and its open reset state are layout 0's; only poses change.",
+    "gen_instruction (fill_egg_holder.py:78-80) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "d8bc6aef3d3fd1fba68d29d6818c0eceb3158e31202b31124128906a6629ca7a",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target3",
+      "farthest_centre_nearer_base_m": 0.344,
+      "farthest_footprint_nearer_base_m": 0.363
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "fe9624ce09ac1b6fb558cb9f02cf8cad02702c7695be6819ad958a13cfa88ed2",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target3",
+      "farthest_centre_nearer_base_m": 0.34,
+      "farthest_footprint_nearer_base_m": 0.363
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "762a6c014054a7334423cd2d3b9edf227c89ce5284eefceb6ac5e3fe104623bc",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.327,
+      "farthest_footprint_nearer_base_m": 0.347
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "dfc3d6701706db9a90d82c182f55152c1daf3bc710cc9ef2f0f7b746f20a622a",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target3",
+      "farthest_centre_nearer_base_m": 0.314,
+      "farthest_footprint_nearer_base_m": 0.337
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "0ac0b02cfeeab3845ee613acf31a1930b22fa510c08418023aaaccf9d6a6c175",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.379,
+      "farthest_footprint_nearer_base_m": 0.401
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "9434e1f9044bfc00bbc3b1f6cf48fd8ffc9fa2269b99c64cf088e8fbac696eeb",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.345,
+      "farthest_footprint_nearer_base_m": 0.366
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "efffdeff646f077065f5c6070570c64286ea16bdb1fcabd8559ee98e8c8c7768",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target2",
+      "farthest_centre_nearer_base_m": 0.375,
+      "farthest_footprint_nearer_base_m": 0.397
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "c37a751d0adc4ccdba031037afc3d2e54b68514b989d127470ff747b23f236e8",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target1",
+      "farthest_centre_nearer_base_m": 0.298,
+      "farthest_footprint_nearer_base_m": 0.318
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "0e6e07433304beb9ab105c9282c15a42baddfc559333d2a75bc6544dd63556a9",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.327,
+      "farthest_footprint_nearer_base_m": 0.345
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "12bddc1fc6b8448cbf6a0915a962f68c0d7b58b6ba630b9cabe8d50a98757fd0",
+     "portable": true,
+     "inventory": {
+      "Articulation/egg_holder": [
+       0
+      ],
+      "Geometry/egg_basket": [
+       0
+      ],
+      "Rigid/egg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "facts": {
+      "egg_models": [
+       0
+      ],
+      "holder_yaw_deg": 0.0
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.364,
+      "farthest_footprint_nearer_base_m": 0.383
+     }
+    }
+   ]
+  },
+  "hang_mugs": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/hang_mugs-review-v3.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/hang_mugs-completion-v2.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Three Rigid mugs mug0-mug2 standing upright and the one Geometry cup_holder/00000 rack at z 0.9394 (yaw -22.7 to +8.9 degrees) in every layout: 'all three mugs', 'the mug rack'.",
+    "Mug models 1, 2, 3, 4, 6 and 9 appear only in layouts 1-9; each carries two active 'handle' frames with the same orientations as those of layout 0's mugs (models 5, 7 and 8), which the handle orientation clauses read; the frame positions follow each mug's size.",
+    "The contract's peg directions (lowest and highest pairs share one direction, middle pair crosswise) are properties of the rack model, the same in every layout; the rack's yaw does not change them.",
+    "gen_instruction (hang_mugs.py:229-231) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/mug/1": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      4
+     ],
+     "metadata_sha256": "a1f285e2de5397833de86a986102dd7e85c613b5307dbe2286f014712ffb40c0"
+    },
+    "Rigid/mug/2": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      5,
+      9
+     ],
+     "metadata_sha256": "d1e9be0d3630e0cbe6c011defd474e270b8ec828be7b169f038ad3cd4b86b1ee"
+    },
+    "Rigid/mug/3": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      3,
+      6,
+      8
+     ],
+     "metadata_sha256": "3c7c793b922c681cdeaab8267e33400fd93e9c999baab59108c9520f16c5cb0a"
+    },
+    "Rigid/mug/4": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      5,
+      6,
+      9
+     ],
+     "metadata_sha256": "b04c5a6e35a697018cbd488a6fcf72e0cd7523ac00004f3e564e0e5d4aa836a3"
+    },
+    "Rigid/mug/6": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      8
+     ],
+     "metadata_sha256": "ea3b6613741a9b8ef2c32f970fe69c93d16fee576180d0a92790eb3684ca8378"
+    },
+    "Rigid/mug/9": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      4
+     ],
+     "metadata_sha256": "8e5b30b8908d9de36ce1251478180d749bd1d99093a8a852376624904ece8660"
+    }
+   },
+   "known_limits": [
+    "Layout 4's mug0 (mug/9) centre lies 0.486 m from the nearer arm base (layout 0's farthest 0.455 m).",
+    "Six mug models absent from layout 0 bring their own metadata bytes, which the record does not hash; only their handle frames were compared."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "d257f31ef0597bcc47470ce8df823a120283257669426175f0ee8099a83cb601",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       5,
+       7,
+       8
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       8,
+       5,
+       7
+      ],
+      "rack_yaw_deg": -22.7,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug0",
+      "farthest_centre_nearer_base_m": 0.455,
+      "farthest_footprint_nearer_base_m": 0.502
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "0666ea4dd79a9b1d1239764152eae078c09906ba7e892049d48d598291601829",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       4,
+       7,
+       7
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       7,
+       7,
+       4
+      ],
+      "rack_yaw_deg": 8.9,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug1",
+      "farthest_centre_nearer_base_m": 0.454,
+      "farthest_footprint_nearer_base_m": 0.502
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "a2ec98e88cd6efa500512f662bc8b4fceb632c05af78e0ce9ea3ae9b98028d54",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       1,
+       3,
+       8
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       1,
+       3,
+       8
+      ],
+      "rack_yaw_deg": 5.8,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug2",
+      "farthest_centre_nearer_base_m": 0.453,
+      "farthest_footprint_nearer_base_m": 0.512
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "4e0739802cfeefea7dfecc8d5d41fd017b9b6f23432309bb50caa0b8a2196cf7",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       3,
+       5,
+       8
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       8,
+       5,
+       3
+      ],
+      "rack_yaw_deg": 8.6,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug0",
+      "farthest_centre_nearer_base_m": 0.413,
+      "farthest_footprint_nearer_base_m": 0.46
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "b88d7ad19a3b127cb942ccc6379ba921f4f43f5d42e75125f66b6d35be5e2e34",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       1,
+       9,
+       9
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       9,
+       1,
+       9
+      ],
+      "rack_yaw_deg": -11.9,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug0",
+      "farthest_centre_nearer_base_m": 0.486,
+      "farthest_footprint_nearer_base_m": 0.515
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "cc01126f642036bbe08b20140fc23bfc98d77944f3c33996dd7d13d66da69c8b",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       2,
+       4,
+       5
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       2,
+       5,
+       4
+      ],
+      "rack_yaw_deg": -17.1,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug1",
+      "farthest_centre_nearer_base_m": 0.397,
+      "farthest_footprint_nearer_base_m": 0.446
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "d5854d3ab70cf324baec11aef0defda20dfc69dfba6bfa198a2851c7f09dfa82",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       3,
+       4,
+       5
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       4,
+       3,
+       5
+      ],
+      "rack_yaw_deg": -3.3,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug2",
+      "farthest_centre_nearer_base_m": 0.44,
+      "farthest_footprint_nearer_base_m": 0.489
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "4bc4c44a4c6ec73a6041c5a2c59fe4bd611118645f75b6202139f097f0f009c3",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       5,
+       7,
+       8
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       8,
+       7,
+       5
+      ],
+      "rack_yaw_deg": 5.7,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug2",
+      "farthest_centre_nearer_base_m": 0.437,
+      "farthest_footprint_nearer_base_m": 0.481
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "5424c94918cc16bba8fee15db8c96ba38f5fe2204369b9ccac47744135ffcf08",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       3,
+       6,
+       7
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       6,
+       7,
+       3
+      ],
+      "rack_yaw_deg": -22.3,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug1",
+      "farthest_centre_nearer_base_m": 0.315,
+      "farthest_footprint_nearer_base_m": 0.366
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "812eec804b96be1a9c6beca04cb4b898143d5d2d425e5de87d57fe01fe4490aa",
+     "portable": true,
+     "inventory": {
+      "Geometry/cup_holder": [
+       0
+      ],
+      "Rigid/mug": [
+       2,
+       4,
+       7
+      ]
+     },
+     "facts": {
+      "mug_models": [
+       4,
+       7,
+       2
+      ],
+      "rack_yaw_deg": -1.8,
+      "rack_z": 0.9394
+     },
+     "reach": {
+      "farthest_object": "mug2",
+      "farthest_centre_nearer_base_m": 0.383,
+      "farthest_footprint_nearer_base_m": 0.43
+     }
+    }
+   ]
+  },
+  "insert_key": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/insert_key-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/insert_key-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "One Rigid key/00000 lying on its side and one Geometry key_slot/00000 standing level in every layout; the lock yaw ranges -25.1 to +23.0 degrees.",
+    "The turn clause is relative to the keyhole's slit (the slot's own frame), so it holds at any lock yaw. Which side the key starts on varies; the contract names no side and the instruction's hand-over is means, not checked.",
+    "gen_instruction (insert_key.py:59-63) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "2e8349f7073e2f0c20c3bc2fff8bd3c3e0de0719e4460e62cf39d2d6f69544c9",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": -0.111,
+      "slot_x": 0.11,
+      "slot_yaw_deg": 15.1
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.299,
+      "farthest_footprint_nearer_base_m": 0.345
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "0636e9554cbce367e3a4c6db075c9314db6b85b01d57900a05b55b963643f207",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.125,
+      "slot_x": -0.157,
+      "slot_yaw_deg": -16.2
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.352,
+      "farthest_footprint_nearer_base_m": 0.385
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "56147ea424f8732ae114de6c6ca7dd7e119d36e67e90c804b9be0b23fe6feeb9",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.139,
+      "slot_x": -0.161,
+      "slot_yaw_deg": -25.1
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.288,
+      "farthest_footprint_nearer_base_m": 0.322
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "8d22ea5d203d510abdf0282230b4edaa39e23d407c8ec47cb8a0b12ddbaedefb",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.18,
+      "slot_x": -0.143,
+      "slot_yaw_deg": 1.8
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.346,
+      "farthest_footprint_nearer_base_m": 0.389
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "f3fc364cfc9b42700b6459d8e08ef81fc2e4975c8baa2da3d225151195ec096a",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": -0.127,
+      "slot_x": 0.194,
+      "slot_yaw_deg": 1.6
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.35,
+      "farthest_footprint_nearer_base_m": 0.39
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "0c4853ec64a574cbaa4345df47e9ec3bdf6a320b24ca9619489ab4c7c7982c08",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.171,
+      "slot_x": -0.182,
+      "slot_yaw_deg": 19.8
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.327,
+      "farthest_footprint_nearer_base_m": 0.378
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "b56756462f633d761f2a136a5b04f902504e47e8e02e61cf498355026efd1445",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.105,
+      "slot_x": -0.173,
+      "slot_yaw_deg": 2.7
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.336,
+      "farthest_footprint_nearer_base_m": 0.367
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "db0d9c0eff908dc640e6bd6e47a7d0f5b3c659c4dc2a388345c263b36b9e8fb9",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": -0.104,
+      "slot_x": 0.199,
+      "slot_yaw_deg": -21.6
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.341,
+      "farthest_footprint_nearer_base_m": 0.371
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "1222aedf95deca0d708827b501d30d9d9be9d7329b4fd8ccd3c3613f772d4bc9",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.151,
+      "slot_x": -0.161,
+      "slot_yaw_deg": -16.8
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.31,
+      "farthest_footprint_nearer_base_m": 0.343
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "42db9dfef303c943b3fc86ca6440ed358970e9f5acf316636cf8459a89f85532",
+     "portable": true,
+     "inventory": {
+      "Geometry/key_slot": [
+       0
+      ],
+      "Rigid/key": [
+       0
+      ]
+     },
+     "facts": {
+      "key_x": 0.145,
+      "slot_x": -0.159,
+      "slot_yaw_deg": 23.0
+     },
+     "reach": {
+      "farthest_object": "key",
+      "farthest_centre_nearer_base_m": 0.277,
+      "farthest_footprint_nearer_base_m": 0.327
+     }
+    }
+   ]
+  },
+  "pack_objects_into_box": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/pack_objects_into_box-review-v4.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/pack_objects_into_box-completion-v4.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "One each of car, electric_toothbrush, hammer and shoe plus Rigid box/00000 in every layout: 'all four objects'.",
+    "Every variant used (car 0/6/7, toothbrush 0-3, hammer 1-3, shoe 1/2/3/4/6/7) is in the task config's index lists, whose checked and front ends review-v3's functional_axis_review identified for every selectable variant.",
+    "The box is upright and its long side (local Y) lies 0.6-24.4 degrees from world X at reset across layouts 0-9, inside the evaluator's 40-degree check (pack_objects_into_box.py run_reward), so 'the box must stay upright with its long direction running along world X' holds at reset in every layout.",
+    "gen_instruction is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/car/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      6,
+      7
+     ],
+     "metadata_sha256": "4800956ea1451544fcc6c5c05d4c10bcbea95931f3e8f0e93abf357394d4d8ee"
+    },
+    "Rigid/car/6": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      3,
+      4
+     ],
+     "metadata_sha256": "355aa4bc846427057963897fd80fa42214ad693544b2081270b205f865233bbf"
+    },
+    "Rigid/electric_toothbrush/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      7,
+      8
+     ],
+     "metadata_sha256": "9c04a56f6241420ba6e32be59317f9c9af731737ea9bb9420343996fb749e6aa"
+    },
+    "Rigid/electric_toothbrush/1": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      3,
+      9
+     ],
+     "metadata_sha256": "3b137069391078ad151a935b06b83f8caf8074128a13138d1a150656f55c8eb4"
+    },
+    "Rigid/electric_toothbrush/3": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      4,
+      6
+     ],
+     "metadata_sha256": "03a5bd8740957d39efe99539b91d26aef74a6b6748b32ed385b4d5afad16ba85"
+    },
+    "Rigid/hammer/1": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      4,
+      8
+     ],
+     "metadata_sha256": "b1c6d2e7c8e6d5d2b1dc408d80f758f9c3e65764239cbcffb00044e49573a97e"
+    },
+    "Rigid/hammer/2": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      3,
+      7,
+      9
+     ],
+     "metadata_sha256": "7085827b578fbce2619d850a6cf8d14087c8043c68fe4114fc96190cce02bfc4"
+    },
+    "Rigid/shoe/1": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      4
+     ],
+     "metadata_sha256": "5cd9a9c1495975987dc3923cbb03c41ee5beca751ab71d081edefbd160d004ef"
+    },
+    "Rigid/shoe/2": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      5
+     ],
+     "metadata_sha256": "c2a9311b3c776a3f0939db0d83a65eafe089d7ca9241bf810837cad1b469d8e8"
+    },
+    "Rigid/shoe/4": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      8
+     ],
+     "metadata_sha256": "d73214bba37e8746b03cb9757706fffadc5058d2bbd12875bdebcc2f94829e32"
+    },
+    "Rigid/shoe/6": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      7,
+      9
+     ],
+     "metadata_sha256": "10c9d39e77f12b65ecdfc43139c1992d1710b0296986fd30badf3d0fdab99560"
+    },
+    "Rigid/shoe/7": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      6
+     ],
+     "metadata_sha256": "f7cbb3d02b3b12388beb59b7cb441c89d079259b9883334787a93e90cea8105a"
+    }
+   },
+   "known_limits": [
+    "Layout 7's car/0 centre lies 0.480 m from the nearer arm base; the box itself lies beyond 0.47 m in layout 0 as in most layouts and is a container, not a grasp target."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "d529ff309408abf0270efa996832d3e70dcc9e070c2e90c9824fba60f396d2b2",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       7
+      ],
+      "Rigid/electric_toothbrush": [
+       2
+      ],
+      "Rigid/hammer": [
+       3
+      ],
+      "Rigid/shoe": [
+       3
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 0.6,
+      "car": 7,
+      "electric_toothbrush": 2,
+      "hammer": 3,
+      "shoe": 3
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.477,
+      "farthest_footprint_nearer_base_m": 0.58
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "4166accd9642b354d1dbe9d9dd4a7b37fbf52f2e749485bc38f66ca554a797a6",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       0
+      ],
+      "Rigid/electric_toothbrush": [
+       2
+      ],
+      "Rigid/hammer": [
+       2
+      ],
+      "Rigid/shoe": [
+       6
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 12.3,
+      "car": 0,
+      "electric_toothbrush": 2,
+      "hammer": 2,
+      "shoe": 6
+     },
+     "reach": {
+      "farthest_object": "electric_toothbrush",
+      "farthest_centre_nearer_base_m": 0.45,
+      "farthest_footprint_nearer_base_m": 0.536
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "3809779f3c4dbf1440cda55d8e6db00a46fae3cb46b3772f842b0c1d3508b26f",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       6
+      ],
+      "Rigid/electric_toothbrush": [
+       1
+      ],
+      "Rigid/hammer": [
+       3
+      ],
+      "Rigid/shoe": [
+       4
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 4.2,
+      "car": 6,
+      "electric_toothbrush": 1,
+      "hammer": 3,
+      "shoe": 4
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.444,
+      "farthest_footprint_nearer_base_m": 0.521
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "34636853017aa7793adf77d907e76dc0ac16044fe5d723586a087f46300a9d98",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       6
+      ],
+      "Rigid/electric_toothbrush": [
+       1
+      ],
+      "Rigid/hammer": [
+       2
+      ],
+      "Rigid/shoe": [
+       3
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 17.8,
+      "car": 6,
+      "electric_toothbrush": 1,
+      "hammer": 2,
+      "shoe": 3
+     },
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.441,
+      "farthest_footprint_nearer_base_m": 0.498
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "b1d0d889ea6f553c203228c18686161a1aeb51c8c6a58bff56f0aa19a5d3a7a0",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       6
+      ],
+      "Rigid/electric_toothbrush": [
+       3
+      ],
+      "Rigid/hammer": [
+       1
+      ],
+      "Rigid/shoe": [
+       1
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 10.5,
+      "car": 6,
+      "electric_toothbrush": 3,
+      "hammer": 1,
+      "shoe": 1
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.51,
+      "farthest_footprint_nearer_base_m": 0.614
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "bd57b5f12fd52bfa73a6c29dc89cb00ea83855ef6b20af95d587178413a4c80c",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       7
+      ],
+      "Rigid/electric_toothbrush": [
+       2
+      ],
+      "Rigid/hammer": [
+       3
+      ],
+      "Rigid/shoe": [
+       2
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 5.8,
+      "car": 7,
+      "electric_toothbrush": 2,
+      "hammer": 3,
+      "shoe": 2
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.509,
+      "farthest_footprint_nearer_base_m": 0.626
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "4c3f79aaf49751f60fd913729ffd3c6f27fd87b834ec203aaeec4d68025fb073",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       0
+      ],
+      "Rigid/electric_toothbrush": [
+       3
+      ],
+      "Rigid/hammer": [
+       3
+      ],
+      "Rigid/shoe": [
+       7
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 7.4,
+      "car": 0,
+      "electric_toothbrush": 3,
+      "hammer": 3,
+      "shoe": 7
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.514,
+      "farthest_footprint_nearer_base_m": 0.615
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "43782ed9564acc295170e3c8035c6cfc92ddedc9e03617a0214fdee53ca97480",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       0
+      ],
+      "Rigid/electric_toothbrush": [
+       0
+      ],
+      "Rigid/hammer": [
+       2
+      ],
+      "Rigid/shoe": [
+       6
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 19.3,
+      "car": 0,
+      "electric_toothbrush": 0,
+      "hammer": 2,
+      "shoe": 6
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.48,
+      "farthest_footprint_nearer_base_m": 0.533
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "e75f51eb964249c9435f4766316951703c008dfa56508ea07440cf8e7a8fd4d8",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       7
+      ],
+      "Rigid/electric_toothbrush": [
+       0
+      ],
+      "Rigid/hammer": [
+       1
+      ],
+      "Rigid/shoe": [
+       4
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 16.8,
+      "car": 7,
+      "electric_toothbrush": 0,
+      "hammer": 1,
+      "shoe": 4
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.487,
+      "farthest_footprint_nearer_base_m": 0.572
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "88c053615f2973f0a77108da364a96e25f669bd2c394f4da40eeaf6f91fc04c9",
+     "portable": true,
+     "inventory": {
+      "Rigid/box": [
+       0
+      ],
+      "Rigid/car": [
+       7
+      ],
+      "Rigid/electric_toothbrush": [
+       1
+      ],
+      "Rigid/hammer": [
+       2
+      ],
+      "Rigid/shoe": [
+       6
+      ]
+     },
+     "facts": {
+      "box_long_axis_off_world_x_deg": 24.4,
+      "car": 7,
+      "electric_toothbrush": 1,
+      "hammer": 2,
+      "shoe": 6
+     },
+     "reach": {
+      "farthest_object": "box",
+      "farthest_centre_nearer_base_m": 0.46,
+      "farthest_footprint_nearer_base_m": 0.577
+     }
+    }
+   ]
+  },
+  "pick_from_conveyor_by_image": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/pick_from_conveyor_by_image-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/pick_from_conveyor_by_image-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Every layout keeps Dynamic conveyor/00001 at layout 0's pose, Rigid basket_grasp/00002 on the belt, and holds one 'target' with three distractors object1-object3 upstream on the belt.",
+    "The board is Geometry photo/<n> with map.json pairing <n> to the layout's target model in every layout (toy/1, figurine/0, can/0, cup/7, toy/1, remote/1, car/9, yogurt/1, remote/1, yogurt/1), and no distractor is the target model: 'the one shown in the image on the board'.",
+    "gen_instruction (pick_from_conveyor_by_image.py:26-30) is one constant template; its '8 cm' is literal."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Geometry/photo/1": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      2
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Geometry/photo/13": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      5,
+      8
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Geometry/photo/16": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      7,
+      9
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Geometry/photo/2": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      6
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Geometry/photo/5": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      3
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Geometry/photo/7": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1
+     ],
+     "metadata_sha256": "194b755951a1bf2b91eb8bac8ee27652308d6ff7e0b528b7e77a47402515e09d"
+    },
+    "Rigid/can/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2
+     ],
+     "metadata_sha256": "5259953c55ce2b350f8a8ea3e6e91ff88eac6e4e08530ad3f7fb56f5dfe67fa1"
+    },
+    "Rigid/car/9": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      6,
+      7
+     ],
+     "metadata_sha256": "7df40653ac1094c6a7af2d1fafc2b041d232659a3b97307f69ae91fd72b42a0b"
+    },
+    "Rigid/cup/7": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      2,
+      3
+     ],
+     "metadata_sha256": "d74f8b7f7c1c6d5704c93aec53d4612baefa33e985105457e0c74f4f710f6243"
+    },
+    "Rigid/donut/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      3,
+      7,
+      9
+     ],
+     "metadata_sha256": "ef1c9340113490b134e959933aa667fd805811ff15caae8d050a0bb37a94ac44"
+    },
+    "Rigid/figurine/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      6
+     ],
+     "metadata_sha256": "df1d6e38e1dcf35317c38c8ee1ae3817ab0921aae6bca5ff8d48b552d13d3743"
+    },
+    "Rigid/glue/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      4,
+      5,
+      7
+     ],
+     "metadata_sha256": "a896586a444a36e210a1fbe9caa95135955615135db30b2e87905dfd521aef08"
+    },
+    "Rigid/noodles/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      3,
+      4
+     ],
+     "metadata_sha256": "2621609fae05aa3fb83e1e6c9488098a64f0bb5c445126d20633ab0929fd9e5f"
+    },
+    "Rigid/remote/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      5,
+      8,
+      9
+     ],
+     "metadata_sha256": "c650bbe1f3040165fceed637602c853ef2039165578094d52c7e10aa02ddfeed"
+    },
+    "Rigid/sachet/0": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      8
+     ],
+     "metadata_sha256": "a7b475f27df906d1d4128c026232f4970abdc1cc264a0ea53417bde8c051ec95"
+    },
+    "Rigid/yogurt/1": {
+     "equals_a_layout0_model_of_its_category": false,
+     "layouts": [
+      1,
+      2,
+      7,
+      9
+     ],
+     "metadata_sha256": "7081580b21d2ebef8ac9920032280b41ca6da15e176ed5235aaff8df648c28d0"
+    }
+   },
+   "known_limits": [
+    "Layouts 5 and 8 add remote/00000 as a distractor next to the target remote/00001: same category, different model; the image decides.",
+    "Spawn reach is not meaningful here: the belt carries every object through the workspace."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "b35518107e88e78d3e001572a0662fe81c0f43e7cf9a19ef858055b1e5cf88d5",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       15
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/correction_tape": [
+       0
+      ],
+      "Rigid/peeler": [
+       0
+      ],
+      "Rigid/remote": [
+       1
+      ],
+      "Rigid/toy": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "correction_tape/00000",
+       "peeler/00000",
+       "remote/00001"
+      ],
+      "photo": 15,
+      "same_category_distractors": [],
+      "target": "toy/00001"
+     },
+     "reach": {
+      "farthest_object": "target",
+      "farthest_centre_nearer_base_m": 1.266,
+      "farthest_footprint_nearer_base_m": 1.312
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "2c6a6108ed1dfdfe9a5d3fd4676f39ee24a355723fe0e2232f8743ec04504abd",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       7
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/correction_tape": [
+       0
+      ],
+      "Rigid/figurine": [
+       0
+      ],
+      "Rigid/toy": [
+       1
+      ],
+      "Rigid/yogurt": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "toy/00001",
+       "yogurt/00001",
+       "correction_tape/00000"
+      ],
+      "photo": 7,
+      "same_category_distractors": [],
+      "target": "figurine/00000"
+     },
+     "reach": {
+      "farthest_object": "object1",
+      "farthest_centre_nearer_base_m": 1.367,
+      "farthest_footprint_nearer_base_m": 1.416
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "cab9431d4be885c1553118ccb2389b4089c45f80d250cdc59896bf0bfa4db98c",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       1
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/can": [
+       0
+      ],
+      "Rigid/car": [
+       9
+      ],
+      "Rigid/cup": [
+       7
+      ],
+      "Rigid/yogurt": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "cup/00007",
+       "car/00009",
+       "yogurt/00001"
+      ],
+      "photo": 1,
+      "same_category_distractors": [],
+      "target": "can/00000"
+     },
+     "reach": {
+      "farthest_object": "target",
+      "farthest_centre_nearer_base_m": 1.277,
+      "farthest_footprint_nearer_base_m": 1.277
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "f012c5f290ad48d2c09930ae6c0a9eb959b4b4e1ba4523c1724948ee3f2ee838",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       5
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/cup": [
+       7
+      ],
+      "Rigid/donut": [
+       0
+      ],
+      "Rigid/noodles": [
+       0
+      ],
+      "Rigid/toy": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "noodles/00000",
+       "toy/00001",
+       "donut/00000"
+      ],
+      "photo": 5,
+      "same_category_distractors": [],
+      "target": "cup/00007"
+     },
+     "reach": {
+      "farthest_object": "object2",
+      "farthest_centre_nearer_base_m": 1.404,
+      "farthest_footprint_nearer_base_m": 1.451
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "c826501b2ad3cd4f5071c1ac12303190293b5a903ae9db43d83daabeaa489fdd",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       15
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/glue": [
+       0
+      ],
+      "Rigid/noodles": [
+       0
+      ],
+      "Rigid/remote": [
+       1
+      ],
+      "Rigid/toy": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "remote/00001",
+       "noodles/00000",
+       "glue/00000"
+      ],
+      "photo": 15,
+      "same_category_distractors": [],
+      "target": "toy/00001"
+     },
+     "reach": {
+      "farthest_object": "object3",
+      "farthest_centre_nearer_base_m": 1.368,
+      "farthest_footprint_nearer_base_m": 1.387
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "46618615421c866a7eb9098de626ea2d0bd8d2a2958c2b16b36242676dbeb3d7",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       13
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/glue": [
+       0
+      ],
+      "Rigid/peeler": [
+       0
+      ],
+      "Rigid/remote": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "remote/00000",
+       "peeler/00000",
+       "glue/00000"
+      ],
+      "photo": 13,
+      "same_category_distractors": [
+       "remote/00000"
+      ],
+      "target": "remote/00001"
+     },
+     "reach": {
+      "farthest_object": "object1",
+      "farthest_centre_nearer_base_m": 1.215,
+      "farthest_footprint_nearer_base_m": 1.254
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "4564920528c0a8f193179e4ecabeef84c9c9b2f7f618f5bfc13a405a971a0ccf",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       2
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/car": [
+       9
+      ],
+      "Rigid/figurine": [
+       0
+      ],
+      "Rigid/peeler": [
+       0
+      ],
+      "Rigid/toy": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "toy/00001",
+       "figurine/00000",
+       "peeler/00000"
+      ],
+      "photo": 2,
+      "same_category_distractors": [],
+      "target": "car/00009"
+     },
+     "reach": {
+      "farthest_object": "target",
+      "farthest_centre_nearer_base_m": 1.226,
+      "farthest_footprint_nearer_base_m": 1.293
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "8ab236ee5664429c14d536b60b8bf1bf700e0f99bd0fd065d450101d11643f7e",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       16
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/car": [
+       9
+      ],
+      "Rigid/donut": [
+       0
+      ],
+      "Rigid/glue": [
+       0
+      ],
+      "Rigid/yogurt": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "car/00009",
+       "glue/00000",
+       "donut/00000"
+      ],
+      "photo": 16,
+      "same_category_distractors": [],
+      "target": "yogurt/00001"
+     },
+     "reach": {
+      "farthest_object": "object3",
+      "farthest_centre_nearer_base_m": 1.382,
+      "farthest_footprint_nearer_base_m": 1.43
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "a884038a20e007a6380b1e95a017122cb7766e460556ab7ef09dfa825d79077d",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       13
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/peeler": [
+       0
+      ],
+      "Rigid/remote": [
+       0,
+       1
+      ],
+      "Rigid/sachet": [
+       0
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "remote/00000",
+       "sachet/00000",
+       "peeler/00000"
+      ],
+      "photo": 13,
+      "same_category_distractors": [
+       "remote/00000"
+      ],
+      "target": "remote/00001"
+     },
+     "reach": {
+      "farthest_object": "target",
+      "farthest_centre_nearer_base_m": 1.272,
+      "farthest_footprint_nearer_base_m": 1.308
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "d085a5df11fc601548d8e72ee3f991ee0a841cc87050a3e4c841d563c1b904b9",
+     "portable": true,
+     "inventory": {
+      "Dynamic/conveyor": [
+       1
+      ],
+      "Geometry/photo": [
+       16
+      ],
+      "Rigid/basket_grasp": [
+       2
+      ],
+      "Rigid/correction_tape": [
+       0
+      ],
+      "Rigid/donut": [
+       0
+      ],
+      "Rigid/remote": [
+       0
+      ],
+      "Rigid/yogurt": [
+       1
+      ]
+     },
+     "facts": {
+      "distractors": [
+       "donut/00000",
+       "correction_tape/00000",
+       "remote/00000"
+      ],
+      "photo": 16,
+      "same_category_distractors": [],
+      "target": "yogurt/00001"
+     },
+     "reach": {
+      "farthest_object": "object1",
+      "farthest_centre_nearer_base_m": 1.269,
+      "farthest_footprint_nearer_base_m": 1.317
+     }
+    }
+   ],
+   "notes": [
+    "Layouts 5 and 8 hold remote/00000 as a distractor next to the target remote/00001: same category, different model, and only the board image tells them apart. That is within the task's design (pick the object the image shows; the contract says no other object counts in its place), so both layouts stay ported."
+   ]
+  },
+  "play_stacking_toy": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/play_stacking_toy-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/play_stacking_toy-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "One Geometry stack_base/00000 and ten Rigid stackingblocks block0-block9 in every layout.",
+    "block0-3, block4-6, block7-8 and block9 are each one model and the four models are distinct in every layout (models by set size 4/3/2/1: l0 0,2,1,3; l1 0,3,1,2; l2 0,2,3,1; l3 2,1,0,3; l4 1,0,2,3; l5 0,2,3,1; l6 3,1,2,0; l7 1,0,3,2; l8 1,2,3,0; l9 2,3,1,0), so 'four sets of identical pieces' holds; the evaluator pairs each label group with a fixed peg, which the contract states by set size and peg height.",
+    "gen_instruction (play_stacking_toy.py:83-85) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [
+    "Layout 2's block3 centre lies 0.467 m from the nearer arm base, at the measured envelope's edge (layout 0's farthest 0.418 m)."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "8e4303a7971c499e8f484dfee677d355be40b3d5fa4fe8b562a27e6c17a554df",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       0,
+       1,
+       1,
+       2,
+       2,
+       2,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 11.9,
+      "set_models_by_size_4_3_2_1": [
+       0,
+       2,
+       1,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "block0",
+      "farthest_centre_nearer_base_m": 0.418,
+      "farthest_footprint_nearer_base_m": 0.447
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "cb19032071fad4be027c8aeb9033e93d138b4e1d05a2abd08608f60cfc90bfab",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       0,
+       1,
+       1,
+       2,
+       3,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 7.9,
+      "set_models_by_size_4_3_2_1": [
+       0,
+       3,
+       1,
+       2
+      ]
+     },
+     "reach": {
+      "farthest_object": "block6",
+      "farthest_centre_nearer_base_m": 0.411,
+      "farthest_footprint_nearer_base_m": 0.437
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "72a87890bcc8c1f210fe79be54448b0899bd746a63865d57d0146320553ec6db",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       0,
+       1,
+       2,
+       2,
+       2,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 3.5,
+      "set_models_by_size_4_3_2_1": [
+       0,
+       2,
+       3,
+       1
+      ]
+     },
+     "reach": {
+      "farthest_object": "block3",
+      "farthest_centre_nearer_base_m": 0.467,
+      "farthest_footprint_nearer_base_m": 0.498
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "abfce46e8baa1f1925dd5ef191e90b388f75fd4414fbdcaa2afdd33d49886708",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       1,
+       1,
+       1,
+       2,
+       2,
+       2,
+       2,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 13.9,
+      "set_models_by_size_4_3_2_1": [
+       2,
+       1,
+       0,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "block8",
+      "farthest_centre_nearer_base_m": 0.448,
+      "farthest_footprint_nearer_base_m": 0.477
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "b514222ef0f5bbed59690a43d129cf6c32076b7a0fffcfb61f5c43e3b0cd7f52",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       1,
+       1,
+       1,
+       1,
+       2,
+       2,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": -13.7,
+      "set_models_by_size_4_3_2_1": [
+       1,
+       0,
+       2,
+       3
+      ]
+     },
+     "reach": {
+      "farthest_object": "block5",
+      "farthest_centre_nearer_base_m": 0.45,
+      "farthest_footprint_nearer_base_m": 0.481
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "e55b0a81c4a1fc57c00cce8dcb7170876ebc4405de88416711bce5e04b982845",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       0,
+       1,
+       2,
+       2,
+       2,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": -4.0,
+      "set_models_by_size_4_3_2_1": [
+       0,
+       2,
+       3,
+       1
+      ]
+     },
+     "reach": {
+      "farthest_object": "block3",
+      "farthest_centre_nearer_base_m": 0.412,
+      "farthest_footprint_nearer_base_m": 0.442
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "dcac44464043b9b4ae56c5bd1ec33c07115a914288f0c3f07c0547037079df26",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       1,
+       1,
+       1,
+       2,
+       2,
+       3,
+       3,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": -0.1,
+      "set_models_by_size_4_3_2_1": [
+       3,
+       1,
+       2,
+       0
+      ]
+     },
+     "reach": {
+      "farthest_object": "block7",
+      "farthest_centre_nearer_base_m": 0.429,
+      "farthest_footprint_nearer_base_m": 0.451
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "df1c9a57569550c6d6dc8d6fd4a42e0d25b779ae91c37a1398287d3b71e72d72",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       0,
+       0,
+       1,
+       1,
+       1,
+       1,
+       2,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": -14.9,
+      "set_models_by_size_4_3_2_1": [
+       1,
+       0,
+       3,
+       2
+      ]
+     },
+     "reach": {
+      "farthest_object": "block0",
+      "farthest_centre_nearer_base_m": 0.409,
+      "farthest_footprint_nearer_base_m": 0.438
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "d767c036407e86dda63d34a1ef7ab17bd19353edec2e8261050c9118044e308d",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       1,
+       1,
+       1,
+       1,
+       2,
+       2,
+       2,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 8.6,
+      "set_models_by_size_4_3_2_1": [
+       1,
+       2,
+       3,
+       0
+      ]
+     },
+     "reach": {
+      "farthest_object": "block2",
+      "farthest_centre_nearer_base_m": 0.442,
+      "farthest_footprint_nearer_base_m": 0.47
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "03be2acb746c6db4e2b04bb5571bf96fb2997278804a12a57bcdb9e107397509",
+     "portable": true,
+     "inventory": {
+      "Geometry/stack_base": [
+       0
+      ],
+      "Rigid/stackingblocks": [
+       0,
+       1,
+       1,
+       2,
+       2,
+       2,
+       2,
+       3,
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "base_yaw_deg": 0.9,
+      "set_models_by_size_4_3_2_1": [
+       2,
+       3,
+       1,
+       0
+      ]
+     },
+     "reach": {
+      "farthest_object": "block3",
+      "farthest_centre_nearer_base_m": 0.437,
+      "farthest_footprint_nearer_base_m": 0.457
+     }
+    }
+   ]
+  },
+  "plug_in_charger": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/plug_in_charger-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/plug_in_charger-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "One Rigid charger/00000 lying flat and one Rigid socket/00000 power strip (yaw -27.8 to +27.7 degrees) in every layout; no other object.",
+    "gen_instruction (plug_in_charger.py:29-31) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "0fb33f8293090054014dc47c943d6388aa529acd2f2d4a5e2499834515012003",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -20.3
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.32,
+      "farthest_footprint_nearer_base_m": 0.373
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "d1a08fed73617bad21504e4ec1a897ccb8684b96b1cdfd9d8c1203a445b5c41d",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -14.9
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.335,
+      "farthest_footprint_nearer_base_m": 0.362
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "41181916fdd01a6553bfab10249d77c507c7f1a76893e0418e7b1407ddab2f91",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": 25.7
+     },
+     "reach": {
+      "farthest_object": "charger",
+      "farthest_centre_nearer_base_m": 0.349,
+      "farthest_footprint_nearer_base_m": 0.401
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "23c391f5b278ff7e5110225cb1fb8f1cb73cf894eb7818a6d181b160873c893b",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -20.0
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.317,
+      "farthest_footprint_nearer_base_m": 0.342
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "9ba12663c1712fb7290ff66fb89958f66e795093eb87e758000367b69e001c30",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -15.9
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.328,
+      "farthest_footprint_nearer_base_m": 0.352
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "c105e81e1dedd6ea68efaf784551e4e16369092583aa0908d09e1f11da96eb1b",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": 23.6
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.383,
+      "farthest_footprint_nearer_base_m": 0.426
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "13dc1d9d6f6536da0a179c3c95f317fe4a8609315e9a9f2b37c013c121069e3b",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -27.8
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.374,
+      "farthest_footprint_nearer_base_m": 0.407
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "057e2e3bb404dd225b560b335f0b2fee07a8d823195fecfbf24670fc78f63ff6",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": 27.5
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.367,
+      "farthest_footprint_nearer_base_m": 0.388
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "03d60fd0f1055810d4318b941eef141f7d25ddec10a0dc8434727406b5b3dd39",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": -4.5
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.39,
+      "farthest_footprint_nearer_base_m": 0.426
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "c5e41b859ec45d86495e5a81fc02ea0d5977baf77ff91facd8bf6687f9df6f3a",
+     "portable": true,
+     "inventory": {
+      "Rigid/charger": [
+       0
+      ],
+      "Rigid/socket": [
+       0
+      ]
+     },
+     "facts": {
+      "charger_tilt_deg": 0.2,
+      "socket_yaw_deg": 27.7
+     },
+     "reach": {
+      "farthest_object": "socket",
+      "farthest_centre_nearer_base_m": 0.38,
+      "farthest_footprint_nearer_base_m": 0.44
+     }
+    }
+   ]
+  },
+  "pour_by_language": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/pour_by_language-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/pour_by_language-completion-v1.md",
+   "instruction_source": "layout_readback",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Three Rigid wine_bottle bottle_0-bottle_2 with category indices a permutation of 0-2 and three Rigid wine_bowl bowl_0-bowl_2 with indices a permutation of 0-2 in every layout, so the three bottle colours and the three bowl colours named by gen_instruction are distinct; Fluid wine_i stands at bottle_i's position in every layout.",
+    "gen_instruction (pour_by_language.py:91-108) maps each label's model id to a colour, so the instruction differs per layout: instruction source layout_readback. The offline mapping of layouts 0-9 is recorded per layout below as a prediction only; the RunSpec binds the scene smoke's readback.",
+    "Layout 0's predicted instruction equals the record's instruction text, which a live CPU-physics reset rendered."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [
+    "The bottles stand 0.541 m from the nearer arm base in every layout, layout 0 included (fixed slots); the task runs on the CPU-physics lane."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "a37dd2812e5642783a594633524700cdb30c00588dd9a132b7d4cbc4fb1b65cd",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first violet bottle into the first black bowl, from the second red bottle into the second white bowl, and from the third turquoise bottle into the third brown bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_1",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "3edbb4fc25eb823def341db8948792a89776f0844331168026072bfaa3fafd70",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first red bottle into the first white bowl, from the second turquoise bottle into the second black bowl, and from the third violet bottle into the third brown bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "b34f4d20b8ccc85832462e2dc6d88a47e11f9671db3390f89c562ef305fda4ad",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first violet bottle into the first black bowl, from the second red bottle into the second brown bowl, and from the third turquoise bottle into the third white bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_0",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "6bbf8aed44addc605a9b085d40386b1a036e7af2a24897a454f741fa87ba4057",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first red bottle into the first brown bowl, from the second violet bottle into the second black bowl, and from the third turquoise bottle into the third white bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_1",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "45e5db473222fb9742370bd8735f032af206269e1f5a473a03aaad2cc2e7e8db",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first violet bottle into the first white bowl, from the second red bottle into the second brown bowl, and from the third turquoise bottle into the third black bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "bd4feb84c506cb0e3ea69a68434524d97c28bcbdf5be276176a47b7af064754b",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first violet bottle into the first white bowl, from the second turquoise bottle into the second brown bowl, and from the third red bottle into the third black bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "24ac147d65a2ecfd4aa4c1c88db15bf2f80beec2e6083ac91bbe9f5d74fd4d94",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first violet bottle into the first brown bowl, from the second turquoise bottle into the second black bowl, and from the third red bottle into the third white bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "fdf962f65ecc31c386d70136de5fc6886821a88fb4dd5f39b2f436a626d7e7ac",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first red bottle into the first white bowl, from the second violet bottle into the second brown bowl, and from the third turquoise bottle into the third black bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "a8fbe531d1f8570d3a1a9f05f4c139bd5bb096b94d49c9213752731f0ab4513c",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first turquoise bottle into the first white bowl, from the second red bottle into the second brown bowl, and from the third violet bottle into the third black bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_1",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "41429bf9f83a04db781227e0acb10933b2de552206f247650f6119da522e6dee",
+     "portable": true,
+     "inventory": {
+      "Fluid/wuliangye": [
+       1,
+       2,
+       3
+      ],
+      "Rigid/wine_bottle": [
+       0,
+       1,
+       2
+      ],
+      "Rigid/wine_bowl": [
+       0,
+       1,
+       2
+      ]
+     },
+     "facts": {
+      "predicted_instruction": "Pour the liquid from the first turquoise bottle into the first brown bowl, from the second violet bottle into the second black bowl, and from the third red bottle into the third white bowl. Then reset the robot arm."
+     },
+     "reach": {
+      "farthest_object": "bottle_2",
+      "farthest_centre_nearer_base_m": 0.541,
+      "farthest_footprint_nearer_base_m": 0.581
+     }
+    }
+   ]
+  },
+  "store_tools_in_toolbox": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/store_tools_in_toolbox-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/store_tools_in_toolbox-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "The same four tools (hammer/00005, pliers/00000, tape_measure/00000, wrench/00000) and Geometry toolbox/00000 in every layout, each with exactly layout 0's default_ori (store_tools_in_toolbox.yml rotate_rand false); only positions differ.",
+    "The record's orientation clause is relative to the reset pose and its notes already state it holds for every layout of this task.",
+    "gen_instruction (store_tools_in_toolbox.py:106-108) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [
+    "Tool footprints reach 0.553 m (layout 8 hammer) because the tools are long; their centres stay within 0.449 m (layout 0: 0.422 m)."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "e5afcda29f1d149bd9637e6f466c86a429b0486e4d6a63d6307926b8c56b662b",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "wrench",
+      "farthest_centre_nearer_base_m": 0.422,
+      "farthest_footprint_nearer_base_m": 0.504
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "66b179642d60fe1651b91fee203613475fee780d15549850e650103cd13e4f6b",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.359,
+      "farthest_footprint_nearer_base_m": 0.45
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "30bddf725fef008319d0dd167bbd6e4477ce2f462623082448f933c2d8f139a7",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.43,
+      "farthest_footprint_nearer_base_m": 0.543
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "49ea97368caf6a4abc84753b7d3565ff3a606a4280f29f26c2c17f609f78f1c5",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "pliers",
+      "farthest_centre_nearer_base_m": 0.437,
+      "farthest_footprint_nearer_base_m": 0.515
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "d30ecadb018ff5edef665c1eec4a232082041ee12a61a2f554a78b7b04506a17",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.411,
+      "farthest_footprint_nearer_base_m": 0.524
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "29d454d6e85b2795ba1210bd755f4e7cf456a94e475d26d293d3216ef54c5bca",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "pliers",
+      "farthest_centre_nearer_base_m": 0.413,
+      "farthest_footprint_nearer_base_m": 0.49
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "70ddc2ac4aa206229f529a69a1fb8d75e0869ddf363973380d2e02e78b8bd3f8",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "pliers",
+      "farthest_centre_nearer_base_m": 0.382,
+      "farthest_footprint_nearer_base_m": 0.45
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "79470f1880e07ac93b31a037124549a0832e04288d8885af778366c543691148",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.415,
+      "farthest_footprint_nearer_base_m": 0.528
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "cb392282adb7574951d022aea0326f42853281bdd6eaa8001c2e28b34ed463d2",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "hammer",
+      "farthest_centre_nearer_base_m": 0.44,
+      "farthest_footprint_nearer_base_m": 0.553
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "ac994eae898ab922a7a3390b99db667255ff9d4a584d673e2708a3dd36483738",
+     "portable": true,
+     "inventory": {
+      "Geometry/toolbox": [
+       0
+      ],
+      "Rigid/hammer": [
+       5
+      ],
+      "Rigid/pliers": [
+       0
+      ],
+      "Rigid/tape_measure": [
+       0
+      ],
+      "Rigid/wrench": [
+       0
+      ]
+     },
+     "facts": {},
+     "reach": {
+      "farthest_object": "wrench",
+      "farthest_centre_nearer_base_m": 0.449,
+      "farthest_footprint_nearer_base_m": 0.529
+     }
+    }
+   ]
+  },
+  "swap_T": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/swap_T-review-v3.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/swap_T-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Read at asset revision 35efbc7d, the revision the v3 swap_T record bound; Assets 1127bda, which v4 binds for every task, hold the same swap_T layout bytes.",
+    "Every layout holds t0 = t/00000 (red) and t1 = t/00001 (blue), both lying flat (tilt below 1 degree) at one spawn height, with layout 0's physics (mass 0.10 kg, static and dynamic friction 2.0); no other object.",
+    "The contract is relative to the reset positions and headings.",
+    "gen_instruction (swap_T.py:32-36) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [
+    "No scene smoke has run on these layouts at 35efbc7d or 1127bda; the record states its physical evidence is pending a new scene smoke."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "e7181ce640596479865b95711f8c4a92bd50c11b646dd4dc9bc496c29c3489fd",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       -177.3,
+       -50.1
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.353,
+      "farthest_footprint_nearer_base_m": 0.388
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "f973721cce44e09219ddf923e9f43040f1f73b9adf4e5f5e390d1739a35e6206",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       -179.1,
+       -46.4
+      ]
+     },
+     "reach": {
+      "farthest_object": "t1",
+      "farthest_centre_nearer_base_m": 0.358,
+      "farthest_footprint_nearer_base_m": 0.398
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "cfdf638cc0cbeca3c0dab71b2193e07d3979eb9c36d6a6a260823676a50ec302",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       76.1,
+       45.6
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.386,
+      "farthest_footprint_nearer_base_m": 0.422
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "5c2e8344cbc1fcbf9fbd88b257278c01986ac26c2884ea86dd942dfa46f9ee6c",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       -9.4,
+       144.6
+      ]
+     },
+     "reach": {
+      "farthest_object": "t1",
+      "farthest_centre_nearer_base_m": 0.354,
+      "farthest_footprint_nearer_base_m": 0.393
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "7910886994bbd93e0ce6957a71b6e6a166b72e02d16b7cd9b9ce618dcfe674a5",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       6.5,
+       69.2
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.351,
+      "farthest_footprint_nearer_base_m": 0.387
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "5ccab5900b67cc052059f4b3966f611aaaf0cbea222f1cb2a82b064b67d96078",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       81.7,
+       109.1
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.371,
+      "farthest_footprint_nearer_base_m": 0.406
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "b66836af598f74f058efbe9af09dc425bf324458e467533be68f79c755e4d6a5",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       25.1,
+       -145.7
+      ]
+     },
+     "reach": {
+      "farthest_object": "t1",
+      "farthest_centre_nearer_base_m": 0.373,
+      "farthest_footprint_nearer_base_m": 0.403
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "3e4938325384ae381ce353906c25ba43436f0f42c8a8758d1f03f1af18aa64c6",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       62.9,
+       170.2
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.394,
+      "farthest_footprint_nearer_base_m": 0.433
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "8c66563637dc14d93ebed5f2bc3cd9fe507bbbc93d09898155fe18f1f27587ad",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       -54.6,
+       24.6
+      ]
+     },
+     "reach": {
+      "farthest_object": "t1",
+      "farthest_centre_nearer_base_m": 0.354,
+      "farthest_footprint_nearer_base_m": 0.383
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "539d55a0cb9cabcb55699019f588e493a7b38fd00da68062f69fd824a3eee390",
+     "portable": true,
+     "inventory": {
+      "Rigid/t": [
+       0,
+       1
+      ]
+     },
+     "facts": {
+      "physics": [
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       },
+       {
+        "dynamic_friction": 2.0,
+        "friction": 0.45,
+        "mass": 0.1,
+        "static_friction": 2.0,
+        "type": "rigid"
+       }
+      ],
+      "yaws_deg": [
+       116.0,
+       -135.1
+      ]
+     },
+     "reach": {
+      "farthest_object": "t0",
+      "farthest_centre_nearer_base_m": 0.376,
+      "farthest_footprint_nearer_base_m": 0.406
+     }
+    }
+   ]
+  },
+  "swap_blocks": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/swap_blocks-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/swap_blocks-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_layouts_0_9",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "contract_facts_checked": [
+    "Every layout keeps mat0-mat2 (cube_cushion/00001) and button0 (SpringButton/00002) at layout 0's poses and holds target0 and target1, both cube/00003, each centred on a different mat (its layout relative_plane), so exactly one mat is empty at reset: 'the mat that was empty at the reset'.",
+    "The empty mat is mat1 in layouts 0 and 3-6, mat0 in 1-2 and mat2 in 7-9; the contract never names it.",
+    "gen_instruction (swap_blocks.py:135-137) is one constant template."
+   ],
+   "models_only_in_layouts_1_9": {},
+   "known_limits": [],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "fa3f3809370d58c0476cdb2d08c09306f4b044d7958e01a26cb42cd492ecdecd",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat0",
+       "mat2"
+      ],
+      "empty_mat": [
+       "mat1"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.311,
+      "farthest_footprint_nearer_base_m": 0.328
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "a220fdfd00934567139fa58966c5d26597c9e63913c03c0f07d5fd97728a362b",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat2",
+       "mat1"
+      ],
+      "empty_mat": [
+       "mat0"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target1",
+      "farthest_centre_nearer_base_m": 0.391,
+      "farthest_footprint_nearer_base_m": 0.407
+     }
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "7a5d43b11084f869636dba0e7acedec3ab9d02f69f666e8feff2706144b5297b",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat1",
+       "mat2"
+      ],
+      "empty_mat": [
+       "mat0"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.391,
+      "farthest_footprint_nearer_base_m": 0.408
+     }
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "9335e2ff01f10fdfa4bd02b5132298a5f4e1fc94fb699156b814dfbf48c0f21d",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat0",
+       "mat2"
+      ],
+      "empty_mat": [
+       "mat1"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.311,
+      "farthest_footprint_nearer_base_m": 0.328
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "0d9db6ebc8ad08b15878a8528c4f8c3b3eb0cc01cf8f37404c5fa4669749f9a0",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat2",
+       "mat0"
+      ],
+      "empty_mat": [
+       "mat1"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.311,
+      "farthest_footprint_nearer_base_m": 0.328
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "0b56a0b9969734b5e02a0b1b7fb66d7afc55da806d31b2e93e979e6a541579ef",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat0",
+       "mat2"
+      ],
+      "empty_mat": [
+       "mat1"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.311,
+      "farthest_footprint_nearer_base_m": 0.328
+     }
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "4f7045e3e6367d552ae99be961d60c4ffbaf3d760f999f4088fc6a61a122c494",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat2",
+       "mat0"
+      ],
+      "empty_mat": [
+       "mat1"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.311,
+      "farthest_footprint_nearer_base_m": 0.328
+     }
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "761e17984a51629f8ee20610362b519fd80e5c7ed65c88454a155fc3d4016795",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat0",
+       "mat1"
+      ],
+      "empty_mat": [
+       "mat2"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target1",
+      "farthest_centre_nearer_base_m": 0.391,
+      "farthest_footprint_nearer_base_m": 0.407
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "25146f2414b49b65aa5cd1e72d3c0a0d32eaaa365fa538bc739616aa4b5ac8eb",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat1",
+       "mat0"
+      ],
+      "empty_mat": [
+       "mat2"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.391,
+      "farthest_footprint_nearer_base_m": 0.408
+     }
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "dfa5da8675efffc1fe025f6d46d99c6da94d0d7482f7d340c8dd44248fc3154b",
+     "portable": true,
+     "inventory": {
+      "Articulation/SpringButton": [
+       2
+      ],
+      "Geometry/cube_cushion": [
+       1,
+       1,
+       1
+      ],
+      "Rigid/cube": [
+       3,
+       3
+      ]
+     },
+     "facts": {
+      "block_mats": [
+       "mat1",
+       "mat0"
+      ],
+      "empty_mat": [
+       "mat2"
+      ]
+     },
+     "reach": {
+      "farthest_object": "target0",
+      "farthest_centre_nearer_base_m": 0.391,
+      "farthest_footprint_nearer_base_m": 0.407
+     }
+    }
+   ]
+  },
+  "sweep_blocks": {
+   "record": "ora/policy/environments/robodojo/task-contracts/reviews/sweep_blocks-review-v2.json",
+   "contract_layer": "ora/policy/environments/robodojo/task-contracts/sweep_blocks-completion-v1.md",
+   "instruction_source": "fixed",
+   "disposition": "portable_listed_layouts",
+   "human_approval": "approved by the user 2026-10-20 (relayed; review.human_approval)",
+   "portable_layouts": [
+    0,
+    3,
+    4,
+    7
+   ],
+   "excluded_layouts": {
+    "1": "holds five blocks (cube_0-cube_4); the contract says all three blocks",
+    "2": "holds four blocks (cube_0-cube_3); the contract says all three blocks",
+    "5": "holds five blocks (cube_0-cube_4); the contract says all three blocks",
+    "6": "holds five blocks (cube_0-cube_4); the contract says all three blocks",
+    "8": "holds four blocks (cube_0-cube_3); the contract says all three blocks",
+    "9": "holds five blocks (cube_0-cube_4); the contract says all three blocks"
+   },
+   "contract_facts_checked": [
+    "The contract says 'All three blocks'. Layouts 0, 3, 4 and 7 hold exactly three small_cube blocks cube_0-cube_2; layouts 1, 5, 6 and 9 hold five and layouts 2 and 8 four (sweep_blocks.yml draws three to five), so the record does not port there.",
+    "In layouts 0, 3, 4 and 7 the dustpan broom_shovel/00000 lies flat (tilt below 1 degree) and the broom is broom/00000; small_cube metadata is byte-identical across the models used.",
+    "In layout 7 the broom already starts 0.216 m to the world +X side of the dustpan, so that clause holds at reset there; the contract states the end condition only and says nothing about the start.",
+    "gen_instruction (sweep_blocks.py:38-40) is one constant template; it names no block count."
+   ],
+   "models_only_in_layouts_1_9": {
+    "Rigid/small_cube/0": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      6,
+      7
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/1": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      2,
+      3,
+      6,
+      7,
+      8
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/2": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      5,
+      8,
+      9
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/3": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      4,
+      5,
+      8
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/4": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      2,
+      3,
+      5,
+      6
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/5": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      1,
+      2,
+      6,
+      8
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/6": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      4,
+      7
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    },
+    "Rigid/small_cube/9": {
+     "equals_a_layout0_model_of_its_category": true,
+     "layouts": [
+      5,
+      9
+     ],
+     "metadata_sha256": "db49617a0da67d2e7c7faeeaaf6432b2d29c1ad5ebcb387f76d1714135062369"
+    }
+   },
+   "known_limits": [
+    "Layout 3's cube_1 and cube_2 centres lie 0.497 and 0.499 m from the nearer arm base; the blocks are swept, so a top-down grasp envelope is not the measure that decides."
+   ],
+   "layouts": [
+    {
+     "layout_id": 0,
+     "layout_sha256": "1eebf38dc48de8c80a3010a112082c0b6bc6a4e0a45d0c38c05f8c719774ba9e",
+     "portable": true,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       7,
+       7,
+       8
+      ]
+     },
+     "facts": {
+      "block_count": 3,
+      "block_models": [
+       8,
+       7,
+       7
+      ],
+      "broom_minus_dustpan_x_m": -0.168
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.526,
+      "farthest_footprint_nearer_base_m": 0.61
+     }
+    },
+    {
+     "layout_id": 1,
+     "layout_sha256": "a6953c0fc83fb90c7146574a6cc9eea655f0c374ee34e68f29415f0bde586571",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       1,
+       2,
+       4,
+       5,
+       7
+      ]
+     },
+     "facts": {
+      "block_count": 5,
+      "block_models": [
+       7,
+       1,
+       4,
+       5,
+       2
+      ],
+      "broom_minus_dustpan_x_m": -0.211
+     },
+     "reach": {
+      "farthest_object": "cube_0",
+      "farthest_centre_nearer_base_m": 0.537,
+      "farthest_footprint_nearer_base_m": 0.546
+     },
+     "not_portable_because": [
+      "5 blocks; the contract says three"
+     ]
+    },
+    {
+     "layout_id": 2,
+     "layout_sha256": "b81b50e5aa444a4d8af3e2f24d122d6b1a3fc0cf0fec8f3ac0241317a1aae942",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       1,
+       1,
+       4,
+       5
+      ]
+     },
+     "facts": {
+      "block_count": 4,
+      "block_models": [
+       4,
+       1,
+       5,
+       1
+      ],
+      "broom_minus_dustpan_x_m": 0.08
+     },
+     "reach": {
+      "farthest_object": "broom_shovel",
+      "farthest_centre_nearer_base_m": 0.485,
+      "farthest_footprint_nearer_base_m": 0.599
+     },
+     "not_portable_because": [
+      "4 blocks; the contract says three"
+     ]
+    },
+    {
+     "layout_id": 3,
+     "layout_sha256": "bd260f73451486055b25ce8355ce6fde2e137ae9c177671b3ada1405f1fe1dcd",
+     "portable": true,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       1,
+       4,
+       4
+      ]
+     },
+     "facts": {
+      "block_count": 3,
+      "block_models": [
+       1,
+       4,
+       4
+      ],
+      "broom_minus_dustpan_x_m": -0.237
+     },
+     "reach": {
+      "farthest_object": "broom_shovel",
+      "farthest_centre_nearer_base_m": 0.517,
+      "farthest_footprint_nearer_base_m": 0.634
+     }
+    },
+    {
+     "layout_id": 4,
+     "layout_sha256": "0c069bb9c527ed2aeb126372030a82500c7203563a5d9ce6f084bd92f7fd09c2",
+     "portable": true,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       3,
+       6,
+       7
+      ]
+     },
+     "facts": {
+      "block_count": 3,
+      "block_models": [
+       7,
+       6,
+       3
+      ],
+      "broom_minus_dustpan_x_m": -0.333
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.504,
+      "farthest_footprint_nearer_base_m": 0.611
+     }
+    },
+    {
+     "layout_id": 5,
+     "layout_sha256": "5543e7f312d068cf33619326394225f42d1c518faebe56fa171d4f742be1a6a2",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       2,
+       3,
+       4,
+       7,
+       9
+      ]
+     },
+     "facts": {
+      "block_count": 5,
+      "block_models": [
+       4,
+       2,
+       3,
+       7,
+       9
+      ],
+      "broom_minus_dustpan_x_m": -0.287
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.515,
+      "farthest_footprint_nearer_base_m": 0.594
+     },
+     "not_portable_because": [
+      "5 blocks; the contract says three"
+     ]
+    },
+    {
+     "layout_id": 6,
+     "layout_sha256": "b9ec18cde45c9dcdd4218f51e6e1c80d9e213b524d6928f49e3b185755f6fde3",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       0,
+       1,
+       4,
+       5,
+       8
+      ]
+     },
+     "facts": {
+      "block_count": 5,
+      "block_models": [
+       5,
+       1,
+       4,
+       8,
+       0
+      ],
+      "broom_minus_dustpan_x_m": -0.221
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.517,
+      "farthest_footprint_nearer_base_m": 0.624
+     },
+     "not_portable_because": [
+      "5 blocks; the contract says three"
+     ]
+    },
+    {
+     "layout_id": 7,
+     "layout_sha256": "f232ceae33bc53ca4bffba0c275b3ade35ab9ce61fcc156ccbdb19e6bbf66c11",
+     "portable": true,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       0,
+       1,
+       6
+      ]
+     },
+     "facts": {
+      "block_count": 3,
+      "block_models": [
+       6,
+       0,
+       1
+      ],
+      "broom_minus_dustpan_x_m": 0.216
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.507,
+      "farthest_footprint_nearer_base_m": 0.629
+     }
+    },
+    {
+     "layout_id": 8,
+     "layout_sha256": "47bb6a459da7e006edba32f7192917c3b0766e76ba376a37fc23d9cb76ae3328",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       1,
+       2,
+       3,
+       5
+      ]
+     },
+     "facts": {
+      "block_count": 4,
+      "block_models": [
+       5,
+       1,
+       3,
+       2
+      ],
+      "broom_minus_dustpan_x_m": 0.264
+     },
+     "reach": {
+      "farthest_object": "broom",
+      "farthest_centre_nearer_base_m": 0.613,
+      "farthest_footprint_nearer_base_m": 0.718
+     },
+     "not_portable_because": [
+      "4 blocks; the contract says three"
+     ]
+    },
+    {
+     "layout_id": 9,
+     "layout_sha256": "ad0fbc0751dffa11b1c8edacc4216319e965647cd489d0fa55b208801301a546",
+     "portable": false,
+     "inventory": {
+      "Rigid/broom": [
+       0
+      ],
+      "Rigid/broom_shovel": [
+       0
+      ],
+      "Rigid/small_cube": [
+       2,
+       2,
+       8,
+       8,
+       9
+      ]
+     },
+     "facts": {
+      "block_count": 5,
+      "block_models": [
+       2,
+       9,
+       2,
+       8,
+       8
+      ],
+      "broom_minus_dustpan_x_m": 0.171
+     },
+     "reach": {
+      "farthest_object": "broom_shovel",
+      "farthest_centre_nearer_base_m": 0.495,
+      "farthest_footprint_nearer_base_m": 0.62
+     },
+     "not_portable_because": [
+      "5 blocks; the contract says three"
+     ]
+    }
+   ],
+   "notes": [
+    "Approved 2026-10-20 as listed: the registry-v8 contract stays unchanged ('All three blocks'), so the table keeps layouts 0, 3, 4 and 7. Extending sweep_blocks to layouts 1, 2, 5, 6, 8 and 9 needs a new contract record without a block count, reviewed separately; this table does not anticipate it."
+   ]
+  }
+ },
+ "reissue": {
+  "date": "2026-11-14",
+  "reviewer": "ORA RoboDojo f57e163 sync (Claude)",
+  "scope": "a re-binding of v3's reviewed entries: no row, layout, layout byte, instruction source or per-layout fact changes; no simulator, scene smoke, provider or physical run",
+  "changes": [
+   "Every entry names its registry-v9 record (the registry-v8 record re-issued at RoboDojo f57e163 and Assets 1127bda).",
+   "RoboDojo f57e163 and Assets 1127bda replace ee67a146 and a14409d7. Every layout file and evaluator asset the table and this record bind is byte-identical at 1127bda; swap_T's layouts are read from the one Assets checkout, whose swap_T bytes equal the retired 35efbc7d checkout's.",
+   "organize_table binds its v4 completion layer: clause 4 now reads the f57e163 instruction's 'place the alarm clock on the drawer' as on top of the drawer unit, not inside it. The drawer unit (Geometry drawer/00000) is in every listed layout, so the clause holds on layouts 0-9 like the clauses v3 audited."
+  ],
+  "human_approval": {
+   "status": "pending",
+   "requested_in": "the pull request that pins RoboDojo f57e163"
+  }
+ }
+}

@@ -1,0 +1,1182 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "grasp_plan",
+  "description": "Generate inspectable public RGB-D grasp candidates for one current target.\nUse when: current grounding or segmentation identifies the intended object and you need parallel-jaw poses. Select the arm on dual-arm embodiments.\nEffect: read-only; queries Contact-GraspNet using the selected source-camera RGB-D and compiles poses to the ARX X5 link6 controlled point; the embodiment card gives its fixed offset to the jaw contact centre. Top-down candidates from the target mask (jaw centre at a support-aware mid-height) join the learned ones. Optional synchronized views provide review evidence.\nReturns: up to three candidates, complete world-frame pregrasp_pose and contact_pose, each with approach_world and jaw_line_world, the world directions of its approach axis and jaw line (move_pose's world_axes fields), copyable bounded contact_approach targets, predicted opening, compiler checks and labeled review images. gripper_opening_m is the learned width prediction or, top-down, the mask width plus clearance, admitted up to the 80 mm nominal ceiling; aperture_calibration states that it is not measured pad clearance. Reachability here is the planning-time IK reference described under IK selection below; no plan_ref is returned. Inspect every candidate panel and choose target identity and geometry independently of rank. After choosing a current candidate, use grasp_execute(candidate_id, rationale) when you accept its committed open/pregrasp/approach/close/lift/verify sequence without intermediate decisions. Choose manual move_pose plus set_gripper when you need a separate observation or decision before closing. Choose this path before moving: any world action stales the candidate, so call grasp_plan again before later using grasp_execute. Pose handoff: when manually commanding a returned world pose, set position_mode=absolute and orientation_mode=absolute_quaternion, then copy position_m and orientation_xyzw unchanged. Put these fields under targets.<selected_arm>. Choose interaction by the intended physical contact. Schema example only; replace the illustrative pose and arm with your selected current result:\n{\"tool\":\"move_pose\",\"arguments\":{\"targets\":{\"right\":{\"position_mode\":\"absolute\",\"position_m\":[0.1,0.0,0.9],\"orientation_mode\":\"absolute_quaternion\",\"orientation_xyzw\":[0.0,0.0,0.0,1.0],\"interaction\":\"precision\"}}}}\nDoes not: plan trajectories, certify reachability, move the robot, command a gripper, use object ground truth, certify retention or report task success. Backend rank is not a success probability. Missing optional review cameras do not invalidate usable primary input.\nOn error: Refused: a target_ref unknown in this round (target_ref_unavailable) or bound to an earlier observation (stale_observation); max_candidates outside 1 to 3; an arm outside this tool's enum; unusable primary RGB-D or a transient backend failure (grasp_proposal_failed); a request the grasp-proposal service rejects (invalid_arguments, with the service's detail). Not refused but moved to diagnostics.rejected: a candidate whose predicted opening exceeds the nominal ceiling above, or whose controlled point or pregrasp lies outside the action workspace; with none left the result is status no_candidate. Obtain a better current view or select another target or candidate. Recompute after the target or observation changes. After a submitted motion fails, use its phase and measured residual to choose the next action. Retention evidence remains advisory. Prepared grasp selection: grasp_execute opens first and releases anything held, then uses the candidate pregrasp and contact poses and a 3 cm world-up probe. Select it only when opening and lifting are appropriate; otherwise use manual motion. Candidates are geometry proposals, not reachability certificates. For grasp_execute, the selected pregrasp and contact poses receive one backend check before opening. Manual pose submissions use normal backend admission. IK selection: before the max_candidates display cap, every compiled candidate in a pool of up to 32 is checked with this backend's read-only inverse kinematics -- pregrasp_pose as a free_space move from the current joints, then contact_pose as a contact_approach chained from that pregrasp, trying the compiled orientation and then its 180-degree jaw flip. Candidates it calls reachable are shown first, those whose approach is within 30 degrees of straight down before the rest, each group in backend order; the cap then keeps the first max_candidates and nothing else is dropped. Each shown candidate carries ik_reachability {reachable, member, pregrasp, approach, approach_tilt_from_vertical_deg}, and the result's ik_reachability states the solver, how many pool candidates were checked and how many were reachable. It is an IK reference at planning time, not a guarantee: every motion still runs its own backend admission, and matches_move_pose_admission says whether this solver is that one. reachable null means the check was unavailable and the backend order was kept. Jaw symmetry: on this arm the same grasp turned 180 degrees about the approach axis differs only in joint6, the wrist roll (limit +/-179.91 deg). Both turns are checked, and pregrasp_pose and contact_pose are published in the reachable turn with more joint6 margin, then the one needing the smaller joint move, then the compiled one. ik_reachability.jaw_symmetry names the published turn (exact or jaw_flip), why, and each turn's joint6 margin; ik_reachability.joint_headroom gives its smallest joint-limit and joint6 margins at the pregrasp and contact solutions. Little joint6 margin leaves little wrist rotation after the grasp. Planning-time IK numbers, not a carry guarantee. Fixed texts stated once here and left out of results and effects: ik_reachability.claim_boundary is \"IK reference at planning time for the compiled pregrasp (free_space from the measured joints) and approach (contact_approach from that pregrasp solution), trying the exact orientation and its 180-degree jaw flip; not a guarantee. Execution runs its own backend check, and any world action stales this.\"; ik_reachability.jaw_symmetry.claim_boundary is \"Joint-limit margins of the backend's read-only IK solutions for the published pregrasp and contact poses at planning time; joint6 is the X5 wrist roll about the approach axis and is reported only when the measured joints prove it is the binding joint. An IK reference, not a carry guarantee: execution solves again, and lifting, carrying or rotating the wrist after the grasp moves every margin.\".",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "arm": {
+        "description": "Arm whose wrist RGB-D joins head in scene fusion and whose source-bound ARX X5 end-effector compiler is used.",
+        "enum": [
+          "left",
+          "right"
+        ],
+        "type": "string"
+      },
+      "max_candidates": {
+        "default": 3,
+        "description": "How many candidates to return, 1 to 3, default 3: the front of the IK-ordered pool described under IK selection. Null means omitted.",
+        "maximum": 3,
+        "minimum": 1,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "target_ref": {
+        "description": "Current observation-bound target from grounding or segmentation; target-mask points remain tied to its source camera.",
+        "pattern": "^target-[0-9a-f]{24}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "arm",
+      "target_ref"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "$defs": {
+      "approach_target": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position_mode",
+          "translation_m",
+          "position_frame",
+          "orientation_mode",
+          "interaction"
+        ],
+        "properties": {
+          "position_mode": {
+            "const": "delta",
+            "type": "string"
+          },
+          "translation_m": {
+            "$ref": "#/$defs/vector3"
+          },
+          "position_frame": {
+            "const": "end_effector",
+            "type": "string"
+          },
+          "orientation_mode": {
+            "const": "hold_current",
+            "type": "string"
+          },
+          "interaction": {
+            "const": "contact_approach",
+            "type": "string"
+          }
+        }
+      },
+      "backend": {
+        "additionalProperties": false,
+        "properties": {
+          "config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "approach_delta": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "position_mode",
+              "translation_m",
+              "position_frame",
+              "orientation_mode",
+              "interaction"
+            ],
+            "properties": {
+              "position_mode": {
+                "const": "delta",
+                "type": "string"
+              },
+              "translation_m": {
+                "$ref": "#/$defs/vector3"
+              },
+              "position_frame": {
+                "const": "end_effector",
+                "type": "string"
+              },
+              "orientation_mode": {
+                "const": "hold_current",
+                "type": "string"
+              },
+              "interaction": {
+                "const": "contact_approach",
+                "type": "string"
+              }
+            }
+          },
+          "backend_score": {
+            "type": "number"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "compiler_checks": {
+            "additionalProperties": false,
+            "properties": {
+              "aperture": {
+                "type": "string"
+              },
+              "bounded_local_approach": {
+                "const": "passed",
+                "type": "string"
+              },
+              "embodiment_mapping": {
+                "type": "string"
+              },
+              "finite_geometry": {
+                "const": "passed",
+                "type": "string"
+              },
+              "reachability": {
+                "type": "string",
+                "const": "delegated_to_move_pose"
+              },
+              "right_handed_controlled_point_axes": {
+                "const": "passed",
+                "type": "string"
+              },
+              "source_origin_to_controlled_point": {
+                "const": "passed",
+                "type": "string"
+              },
+              "workspace": {
+                "type": "string"
+              },
+              "aperture_calibration": {
+                "type": "string",
+                "description": "Source-bound ARX jaw-aperture calibration caveat; proposal width is not measured pad clearance."
+              }
+            },
+            "required": [
+              "finite_geometry",
+              "right_handed_controlled_point_axes",
+              "bounded_local_approach",
+              "source_origin_to_controlled_point",
+              "embodiment_mapping",
+              "workspace",
+              "aperture",
+              "reachability",
+              "aperture_calibration"
+            ],
+            "type": "object"
+          },
+          "contact_pose": {
+            "additionalProperties": false,
+            "properties": {
+              "approach_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "jaw_line_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "orientation_xyzw": {
+                "$ref": "#/$defs/quaternion"
+              },
+              "position_m": {
+                "$ref": "#/$defs/vector3"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "approach_world",
+              "jaw_line_world"
+            ],
+            "type": "object"
+          },
+          "gripper_opening_m": {
+            "exclusiveMinimum": 0,
+            "maximum": 0.08,
+            "type": "number"
+          },
+          "pregrasp_pose": {
+            "additionalProperties": false,
+            "properties": {
+              "approach_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "jaw_line_world": {
+                "$ref": "#/$defs/vector3"
+              },
+              "orientation_xyzw": {
+                "$ref": "#/$defs/quaternion"
+              },
+              "position_m": {
+                "$ref": "#/$defs/vector3"
+              }
+            },
+            "required": [
+              "position_m",
+              "orientation_xyzw",
+              "approach_world",
+              "jaw_line_world"
+            ],
+            "type": "object"
+          },
+          "rank": {
+            "type": "integer"
+          },
+          "ik_reachability": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reachable",
+              "member",
+              "pregrasp",
+              "approach",
+              "approach_tilt_from_vertical_deg",
+              "jaw_symmetry",
+              "joint_headroom"
+            ],
+            "description": "IK reference at planning time; null reachable means the annotation was unavailable.",
+            "properties": {
+              "reachable": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "member": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "exact",
+                  "jaw_flip",
+                  null
+                ]
+              },
+              "pregrasp": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "required": [
+                  "reachable",
+                  "reason"
+                ],
+                "description": "Read-only IK answer for this stage of the reported member (the exact compiled orientation when none was admitted); null when the annotation was unavailable.",
+                "properties": {
+                  "reachable": {
+                    "type": "boolean"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "outside_workspace",
+                      "start_unreachable",
+                      "ik_failed",
+                      "goal_below_support",
+                      "fk_residual_exceeded",
+                      "fk_calibration_mismatch",
+                      "stale_observation",
+                      "no_planner",
+                      "planner_error",
+                      null
+                    ]
+                  }
+                }
+              },
+              "approach": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "required": [
+                  "reachable",
+                  "reason"
+                ],
+                "description": "Read-only IK answer for this stage of the reported member (the exact compiled orientation when none was admitted); null when the annotation was unavailable.",
+                "properties": {
+                  "reachable": {
+                    "type": "boolean"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "outside_workspace",
+                      "start_unreachable",
+                      "ik_failed",
+                      "goal_below_support",
+                      "fk_residual_exceeded",
+                      "fk_calibration_mismatch",
+                      "stale_observation",
+                      "no_planner",
+                      "planner_error",
+                      null
+                    ]
+                  }
+                }
+              },
+              "approach_tilt_from_vertical_deg": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 180
+              },
+              "jaw_symmetry": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "variant",
+                  "reason",
+                  "joint6_margin_rad"
+                ],
+                "description": "Which member of the parallel-jaw class the published pregrasp_pose and contact_pose carry: exact is the compiled orientation, jaw_flip the same grasp turned 180 degrees about the approach axis.",
+                "properties": {
+                  "variant": {
+                    "type": "string",
+                    "enum": [
+                      "exact",
+                      "jaw_flip"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "larger_joint6_margin",
+                      "larger_joint_limit_margin",
+                      "margin_tie_smaller_joint_delta",
+                      "margin_and_joint_delta_tie",
+                      "only_reachable_variant",
+                      "no_reachable_variant",
+                      "ik_reference_unavailable"
+                    ]
+                  },
+                  "joint6_margin_rad": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "exact",
+                      "jaw_flip"
+                    ],
+                    "description": "Each member's smaller joint6 margin over its pregrasp and contact solutions; null when unreachable or not isolated.",
+                    "properties": {
+                      "exact": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0
+                      },
+                      "jaw_flip": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              },
+              "joint_headroom": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pregrasp",
+                  "approach"
+                ],
+                "description": "Planning-time IK joint-limit margins of the published member; not a carry guarantee.",
+                "properties": {
+                  "pregrasp": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                      "min_joint_limit_margin_rad",
+                      "joint6_margin_rad"
+                    ],
+                    "description": "Margins at the pregrasp IK solution of the published member; null when it was not reachable.",
+                    "properties": {
+                      "min_joint_limit_margin_rad": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Smallest distance of any arm joint to its limit, in radians."
+                      },
+                      "joint6_margin_rad": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Wrist-roll (joint6) distance to its +/-3.14 rad limit; null when the measured joints cannot prove joint6 is the binding joint."
+                      }
+                    }
+                  },
+                  "approach": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                      "min_joint_limit_margin_rad",
+                      "joint6_margin_rad"
+                    ],
+                    "description": "Margins at the approach IK solution of the published member; null when it was not reachable.",
+                    "properties": {
+                      "min_joint_limit_margin_rad": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Smallest distance of any arm joint to its limit, in radians."
+                      },
+                      "joint6_margin_rad": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Wrist-roll (joint6) distance to its +/-3.14 rad limit; null when the measured joints cannot prove joint6 is the binding joint."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "candidate_id",
+          "rank",
+          "pregrasp_pose",
+          "contact_pose",
+          "approach_delta",
+          "gripper_opening_m",
+          "backend_score",
+          "compiler_checks",
+          "ik_reachability"
+        ],
+        "type": "object"
+      },
+      "diagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_family_counts": {
+            "additionalProperties": false,
+            "properties": {
+              "learned_available": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "public_rgbd_topdown_available": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "selected": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "learned_available",
+              "public_rgbd_topdown_available",
+              "selected"
+            ],
+            "type": "object"
+          },
+          "compiled_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "compiler_rejected": {
+            "items": {
+              "$ref": "#/$defs/rejected_compiler_candidate"
+            },
+            "type": "array"
+          },
+          "compiler_returned_candidate_count": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "inference_seed": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "learned": {
+            "$ref": "#/$defs/family_diagnostics"
+          },
+          "model": {
+            "$ref": "#/$defs/model"
+          },
+          "public_rgbd_topdown": {
+            "$ref": "#/$defs/family_diagnostics"
+          },
+          "raw_candidate_limit": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/$defs/rejected_backend_candidate"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "returned_candidate_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scene_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "seed_identity_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "seed_policy": {
+            "type": "string"
+          },
+          "target_point_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "rejected",
+          "compiler_rejected",
+          "compiler_returned_candidate_count"
+        ],
+        "type": "object"
+      },
+      "latency": {
+        "additionalProperties": false,
+        "properties": {
+          "roundtrip": {
+            "type": "number"
+          },
+          "service_inference": {
+            "type": "number"
+          },
+          "service_queue": {
+            "type": "number"
+          },
+          "service_total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "roundtrip",
+          "service_queue",
+          "service_inference",
+          "service_total"
+        ],
+        "type": "object"
+      },
+      "model": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_sha256": {
+            "type": "string"
+          },
+          "config_sha256": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "source_commit",
+          "checkpoint_sha256",
+          "config_sha256"
+        ],
+        "type": "object"
+      },
+      "nullable_string": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "overlay": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sha256",
+          "width",
+          "height"
+        ],
+        "type": "object"
+      },
+      "quaternion": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 4,
+        "minItems": 4,
+        "type": "array"
+      },
+      "rejected_backend_candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "predicted_opening_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Raw predicted opening in metres; a finite invalid prediction may be negative, and unavailable is null."
+          },
+          "required_opening_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "PCA-derived required opening in metres, or null when unavailable; not measured jaw aperture."
+          },
+          "maximum_opening_m": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Positive compiler admission ceiling in metres; not measured physical aperture."
+          },
+          "limit_semantics": {
+            "type": "string",
+            "enum": [
+              "compiler_admission_not_measured_physical_aperture"
+            ]
+          }
+        },
+        "required": [
+          "candidate_id",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "rejected_compiler_candidate": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "vector3": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": "array"
+      },
+      "family_diagnostics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "source_commit": {
+                "type": "string"
+              },
+              "checkpoint_sha256": {
+                "type": "string"
+              },
+              "config_sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "family",
+              "source_commit",
+              "checkpoint_sha256"
+            ]
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "$ref": "#/$defs/latency"
+          },
+          "scene_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "target_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "filtered_point_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "raw_candidate_limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "returned_candidate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "compiled_candidate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inference_seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seed_policy": {
+            "type": "string"
+          },
+          "seed_identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "warning": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "arm": {
+        "enum": [
+          "left",
+          "right"
+        ],
+        "type": "string"
+      },
+      "backend": {
+        "$ref": "#/$defs/backend"
+      },
+      "camera": {
+        "enum": [
+          "head",
+          "left_wrist",
+          "right_wrist"
+        ],
+        "type": "string"
+      },
+      "candidates": {
+        "items": {
+          "$ref": "#/$defs/candidate"
+        },
+        "maxItems": 3,
+        "type": "array"
+      },
+      "compiler": {
+        "additionalProperties": false,
+        "properties": {
+          "aperture_caveat": {
+            "type": "string"
+          },
+          "arm": {
+            "enum": [
+              "left",
+              "right"
+            ],
+            "type": "string"
+          },
+          "controlled_point": {
+            "const": "end_effector",
+            "type": "string"
+          },
+          "controlled_point_semantics": {
+            "const": "robodojo_link6_pose",
+            "type": "string"
+          },
+          "embodiment_descriptor_id": {
+            "const": "arx_x5_robodojo_v1",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "maximum_opening_source": {
+            "type": "string"
+          },
+          "physical_jaw_aperture_calibrated": {
+            "type": "boolean"
+          },
+          "predicted_opening_source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "embodiment_descriptor_id",
+          "controlled_point",
+          "controlled_point_semantics",
+          "arm",
+          "physical_jaw_aperture_calibrated",
+          "maximum_opening_source",
+          "predicted_opening_source",
+          "aperture_caveat"
+        ],
+        "type": "object"
+      },
+      "diagnostics": {
+        "$ref": "#/$defs/diagnostics"
+      },
+      "grasp_query_ref": {
+        "type": "string"
+      },
+      "observation_id": {
+        "type": "string"
+      },
+      "overlay": {
+        "$ref": "#/$defs/overlay"
+      },
+      "status": {
+        "enum": [
+          "candidates",
+          "no_candidate"
+        ],
+        "type": "string"
+      },
+      "success": {
+        "const": true,
+        "type": "boolean"
+      },
+      "target_ref": {
+        "type": "string"
+      },
+      "review_evidence": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "primary_camera": {
+            "type": "string"
+          },
+          "requested_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "available_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unavailable_cameras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "primary_input_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "claim_boundary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "primary_camera",
+          "requested_cameras",
+          "available_cameras",
+          "unavailable_cameras",
+          "primary_input_required",
+          "claim_boundary"
+        ],
+        "additionalProperties": false
+      },
+      "image_mapping": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "description": "A physical source view names its camera. A derived public RGB-D geometry render or paired contact sheet has camera=\"\" and an explicit review role; it is not an additional sensor or a new capture. Source camera provenance stays in the source-bound evidence fields.",
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "image_index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "role": {
+                  "type": "string"
+                },
+                "camera": {
+                  "type": "string",
+                  "enum": [
+                    "head",
+                    "left_wrist",
+                    "right_wrist"
+                  ]
+                },
+                "candidate_id": {
+                  "type": "string"
+                },
+                "target_ref": {
+                  "type": "string"
+                },
+                "observation_step": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "image_index",
+                "role",
+                "camera",
+                "candidate_id",
+                "target_ref",
+                "observation_step"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "image_index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "local_contact_candidates",
+                    "global_public_scene_candidates"
+                  ]
+                },
+                "camera": {
+                  "type": "string",
+                  "const": ""
+                },
+                "candidate_id": {
+                  "type": "string"
+                },
+                "target_ref": {
+                  "type": "string"
+                },
+                "observation_step": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "image_index",
+                "role",
+                "camera",
+                "candidate_id",
+                "target_ref",
+                "observation_step"
+              ]
+            }
+          ]
+        }
+      },
+      "scene_review": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason",
+          "scope"
+        ]
+      },
+      "ik_reachability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "ik_model",
+          "matches_move_pose_admission",
+          "order",
+          "checked_candidate_count",
+          "reachable_candidate_count",
+          "claim_boundary",
+          "jaw_symmetry"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "annotated",
+              "unavailable",
+              "no_candidate"
+            ]
+          },
+          "ik_model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matches_move_pose_admission": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "string",
+            "const": "ik_reachable_then_approach_within_30_deg_of_vertical_then_backend_order"
+          },
+          "checked_candidate_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32
+          },
+          "reachable_candidate_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32
+          },
+          "claim_boundary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "jaw_symmetry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule",
+              "claim_boundary"
+            ],
+            "properties": {
+              "rule": {
+                "type": "string",
+                "const": "reachable_then_larger_joint6_margin_then_smaller_joint_delta_then_compiled"
+              },
+              "claim_boundary": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "success",
+      "status",
+      "observation_id",
+      "target_ref",
+      "camera",
+      "arm",
+      "grasp_query_ref",
+      "backend",
+      "compiler",
+      "candidates",
+      "diagnostics",
+      "overlay",
+      "review_evidence",
+      "ik_reachability"
+    ],
+    "type": "object"
+  }
+}

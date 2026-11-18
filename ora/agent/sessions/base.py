@@ -35,6 +35,7 @@ class DelegatingPolicySession:
         method = {
             "fresh_observation": "record_fresh_observation",
             "environment_receipt": "record_environment_receipt",
+            "action_discarded": "record_action_discarded",
             "official_verdict": "record_official_verdict",
             "run_termination": "record_run_termination",
             "operator_message": "record_operator_message",

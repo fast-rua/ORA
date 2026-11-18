@@ -1,0 +1,68 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "recover_pose",
+  "description": "Plan selected arms to a named robot-only recovery configuration while preserving all gripper commands. Use when: a planner/execution failure or poor configuration makes ordinary waypoint correction inappropriate; choose previous to return to that arm's latest safely reached measured joint configuration, and choose home for a deliberate return to the source-bound RoboTwin start joints. Prefer one-arm recovery unless both arms genuinely require synchronized retreat. Effect: world mutation through the canonical recovery boundary; omitted arms receive no planner or drive target, a two-arm request executes only after both plans succeed, and a successful recovery does not replace the saved previous checkpoint. Its global route runs at move_pose's default speed, timed and wrist-checked as move_pose describes. Returns: submitted public strategies and recovery mapping immediately; the next receipt and fresh observation report actual planning, synchronization, residuals, preservation and drift. The later receipt separates refusal, arrival and recoverable non-arrival; available contact feedback includes requested versus measured motion, force/progress evidence and truthful unknown values. Does not: reset the episode, restore moved objects or evaluator state, release a gripper, reverse an old trajectory, undo physics, act as an emergency stop, model scene or payload collisions, or guarantee escape from contact. On error: Refused: an empty targets map, an arm outside left and right or a strategy other than previous and home; a placement waiting at its pre-release stop (skill_sequence_paused); the episode's terminal boundary (episode_terminal). Rejected before any controller write, as plan_rejected: after a blocked failure, which first retreats 20 mm opposite the recorded approach direction, a missing or non-unit direction or a retreat point outside the action workspace. Inspect each arm result and scene state, retry one arm at a time or use the other strategy only when physically sensible; if both planned recovery routes are exhausted or unsafe, finish_episode names the accepted outcomes.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "targets": {
+        "type": "object",
+        "properties": {
+          "left": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "previous",
+              "home",
+              null
+            ],
+            "description": "Left-arm recovery strategy: previous returns to the latest safely reached measured joint checkpoint from a successful non-recovery pose action, or the initialized checkpoint if none has completed; home uses the source-bound RoboTwin start joints. Failed actions and recovery actions do not replace previous. Neither changes its gripper command. Null means omitted."
+          },
+          "right": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "previous",
+              "home",
+              null
+            ],
+            "description": "Right-arm recovery strategy: previous returns to the latest safely reached measured joint checkpoint from a successful non-recovery pose action, or the initialized checkpoint if none has completed; home uses the source-bound RoboTwin start joints. Failed actions and recovery actions do not replace previous. Neither changes its gripper command. Null means omitted."
+          }
+        },
+        "minProperties": 1,
+        "additionalProperties": false,
+        "description": "Non-empty sparse planner-backed robot recovery routes. Omitted arms receive no planner or drive target. This never resets the episode, objects or evaluator state."
+      }
+    },
+    "required": [
+      "targets"
+    ],
+    "additionalProperties": false
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "recover_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}

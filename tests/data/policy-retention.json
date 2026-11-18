@@ -1,0 +1,34 @@
+{
+ "schema": "ora.policy-retention.v1",
+ "description": "Selectable policy assets that no default or maintained consumer reaches, each with an owner, the reason it stays and the date by which it is retired or renewed. tests/repository/test_policy_retention.py derives the unreached set and requires exactly these entries; ora/policy/README.md, 'Versions, patches and retirement', states the rule.",
+ "baselines": {
+  "robodojo_toolkit_v6": {
+   "owner": "freemty",
+   "reason": "The baseline of the sealed RoboDojo runs on robodojo_placement_toolkit_v5, and of anything that names that surface.",
+   "recorded": "2026-11-02",
+   "expires": "2027-02-02"
+  }
+ },
+ "tool_surfaces": {
+  "native_atomic_causal_v1": {
+   "owner": "freemty",
+   "reason": "The Synthetic Native test fixtures' surface (tests/support); its base definitions are also local_atomic_cpu_v1's. Moving it under tests/ needs a registration seam: the resolver loads only locked components under ora/policy/tool_surfaces.",
+   "recorded": "2026-10-31",
+   "expires": "2026-12-31"
+  },
+  "robodojo_placement_toolkit_v5": {
+   "owner": "freemty",
+   "reason": "Sealed RoboDojo runs from 2026-10-30 to 2026-11-02 bind this surface and its check_task grants, and resolve_toolkit_surface reads them from here. Named explicitly it still gives a run with the official check.",
+   "recorded": "2026-11-02",
+   "expires": "2027-02-02"
+  }
+ },
+ "context_schemes": {
+  "context_keep_written_unaged_reasoning": {
+   "owner": "freemty",
+   "reason": "Arm H of the context experiment of 2026-11-04 and the default of RoboDojo and of code mode from 2026-11-04 to 2026-11-05, when context_keep_written (the experiment's best arm with preview optional, 15 of 30) replaced it. Sealed runs name it; it stays an explicit option.",
+   "recorded": "2026-11-05",
+   "expires": "2027-02-05"
+  }
+ }
+}

@@ -7,18 +7,18 @@ treatment changes, and it can fork into branches. The source-tracked
 records families, namespaces, lineage and historical aliases. It is not an
 active-run or authorization registry, and it never grants launch authority.
 
-The registry shipped with this repository is empty: the maintained packages
-(`experiments/runtime_v1`, `examples/official_suite`) do not declare an
-identity, and their runs project as `unmapped`. Register a family when a study
+The registry shipped with this repository is empty: the maintained package
+`examples/official_suite` does not declare an identity, and its runs project
+as `unmapped`. Register a family when a study
 needs lineage across treatments, as described below.
 
 ## Identity levels
 
 | Level | Example | Meaning |
 |---|---|---|
-| Family | `EXP01A` | Stable question or development line |
+| Family | `EXP90A` | Stable question or development line |
 | Branch | `main`, `low-effort`, `vla` | Scientific or engineering fork within that family; independent of Git branch names |
-| Generation | `EXP01A/low-effort/g001` | One named treatment generation, with zero or more explicit parent generation IDs |
+| Generation | `EXP90A/low-effort/g001` | One named treatment generation, with zero or more explicit parent generation IDs |
 | Execution namespace | `my-study` | Package, output and admission namespace (`RunSpec.experiment`) |
 | Cohort / cell | `launch_admission.cohort_id` / `cell_id` | The authorized selection and attempt boundary |
 | Run / round | `run_id` and persistent-session round | Exact source-bound execution and its per-round official verdict |
@@ -62,18 +62,18 @@ A minimal registry with one forked family:
 ```json
 {
   "schema": "ora.experiment-lineage.v1",
-  "families": {"EXP01A": {"title": "Pick and place", "description": "Tool-loop pick and place on RoboTwin."}},
-  "namespaces": {"my-study": "EXP01A", "my-study-low": "EXP01A"},
+  "families": {"EXP90A": {"title": "Pick and place", "description": "Tool-loop pick and place on RoboTwin."}},
+  "namespaces": {"my-study": "EXP90A", "my-study-low": "EXP90A"},
   "generations": {
-    "EXP01A/main/g001": {"status": "historical", "label": "First treatment", "identity": {
-      "schema": "ora.experiment-identity.v1", "family": "EXP01A",
+    "EXP90A/main/g001": {"status": "historical", "label": "First treatment", "identity": {
+      "schema": "ora.experiment-identity.v1", "family": "EXP90A",
       "branch": "main", "generation": "g001", "parents": []}},
-    "EXP01A/main/g002": {"status": "development", "label": "Revised prompt", "identity": {
-      "schema": "ora.experiment-identity.v1", "family": "EXP01A",
-      "branch": "main", "generation": "g002", "parents": ["EXP01A/main/g001"]}},
-    "EXP01A/low-effort/g001": {"status": "development", "label": "Low-effort fork", "identity": {
-      "schema": "ora.experiment-identity.v1", "family": "EXP01A",
-      "branch": "low-effort", "generation": "g001", "parents": ["EXP01A/main/g001"]}}
+    "EXP90A/main/g002": {"status": "development", "label": "Revised prompt", "identity": {
+      "schema": "ora.experiment-identity.v1", "family": "EXP90A",
+      "branch": "main", "generation": "g002", "parents": ["EXP90A/main/g001"]}},
+    "EXP90A/low-effort/g001": {"status": "development", "label": "Low-effort fork", "identity": {
+      "schema": "ora.experiment-identity.v1", "family": "EXP90A",
+      "branch": "low-effort", "generation": "g001", "parents": ["EXP90A/main/g001"]}}
   },
   "legacy_aliases": [],
   "reviewed_migrations": []
@@ -83,16 +83,22 @@ A minimal registry with one forked family:
 ## Source declaration and resolution
 
 Register the family, namespace and generation in the registry, then declare
-the identity in `experiments/<namespace_with_underscores>/experiment.yaml`:
+the identity in `experiments/<namespace_with_underscores>/experiment.yaml`.
+The repository ships no `experiments/` directory: create it for your own
+study packages. A study that changes prompt, tools, observation projection,
+context policy, sandbox, session cadence or execution semantics gets its own
+branch, package and output workspace; maintained `ora/` modules never import
+experiment code, run artifacts bind the exact experiment commit and generated
+evidence never enters Git.
 
 ```yaml
 experiment: my-study
 experiment_identity:
   schema: ora.experiment-identity.v1
-  family: EXP01A
+  family: EXP90A
   branch: main
   generation: g002
-  parents: [EXP01A/main/g001]
+  parents: [EXP90A/main/g001]
 ```
 
 The shared RunSpec resolver inherits this declaration automatically, before
@@ -132,17 +138,19 @@ Family membership never licenses pooling success rates.
 ## Inspection and lifecycle
 
 `./scripts/ora experiments [FAMILY] [--json]` lists generation IDs,
-parents and development/historical status without launching anything. Viewer
-`/experiments` and `/experiments/<FAMILY>` show the same lineage; the main run
-registry filters `family` and the complete `generation` ID. The JSON route is
-`/api/experiments/<FAMILY>`. Each run includes an `experiment_identity`
-projection with `binding: plan`, `historical_alias`, `reviewed_migration`,
-`family_only`, `unmapped` or `invalid`. The binding distinguishes an immutable
-recorded field from a read-only retrospective label. A `reviewed_migration`
-projection also carries `recorded`, the `plan` or `historical_alias`
-projection it replaces; the run list shows it as `recorded <generation>`, the
-JSON lineage view lists `reviewed_migrations`, and the recorded family's page
-counts the runs it shows under another family.
+parents and development/historical status without launching anything; it is a
+development command, left out of `ora --help`, the
+[command guide](../usage/commands.md) and the generated
+[command reference](../usage/cli-reference.md). Its `--json` view
+(`ora.experiment-lineage-view.v1`) also lists the namespaces, legacy aliases
+and `reviewed_migrations` of the selected generations. The Viewer does not
+group runs by family or generation: its run registry filters by the RunPlan's
+`experiment` field. `experiment_identity.project_identity` gives a run's
+read-only projection with `binding: plan`, `historical_alias`,
+`reviewed_migration`, `family_only`, `unmapped` or `invalid`. The binding
+distinguishes an immutable recorded field from a read-only retrospective label.
+A `reviewed_migration` projection also carries `recorded`, the `plan` or
+`historical_alias` projection it replaces.
 
 Creating a family, generation, branch or Git commit never resets a consumed
 admission cell, bypasses its retry policy, changes resource leases or grants

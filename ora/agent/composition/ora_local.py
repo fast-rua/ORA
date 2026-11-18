@@ -13,14 +13,16 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .baseline import load_native_baseline
-from .environment_context import resolve_environment_prompt_profile
-from .prompt_bundle import load_prompt_bundle
+from .context_scheme import CONTEXT_FIELDS, load_context_scheme
+from .embodiment.environment_context import resolve_environment_prompt_profile
+from .prompt.bundle import load_prompt_bundle
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LOCAL_COMPOSITION = {
     "id": "ora_local_cpu_v1",
     "tool_surface": "local_atomic_cpu_v1",
+    "context_scheme": "context_lossless_v6",
     "prompt_bundle": "ora/policy/prompt_bundles/local_cpu_v1/libero-panda-native-api.yaml",
     "environment_prompt_profile": "libero_pro_local_cpu_v1",
     "action_codec": "runtime_action_v3",
@@ -34,10 +36,9 @@ SOURCE_FIELDS = (
 )
 BASE_SUITES = ("libero_object", "libero_goal", "libero_spatial", "libero_10")
 _ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_CONTEXT_FIELDS = (
-    "context_profile", "context_composition", "context_retention", "summary_policy",
-    "memory_policy", "provider_continuation_replay", "initial_observation", "timeout_s",
-    "max_model_calls_per_observation", "context_management", "require_live_marker", "provider_recovery",
+#: The maintained baseline's settings the local composition shares besides its context scheme.
+SHARED_POLICY_FIELDS = (
+    "timeout_s", "max_model_calls_per_observation", "require_live_marker", "provider_recovery",
 )
 
 
@@ -73,7 +74,8 @@ def compose_local_spec(*, task: Mapping[str, Any], source: Mapping[str, Any],
     for name in SOURCE_FIELDS[:2]:
         if source[name] != source_contract[name]:
             raise ValueError(f"local CPU bundle has not been reviewed for another {name}")
-    fixed_policy = {"tool_surface", "baseline", "action_codec", *_CONTEXT_FIELDS}
+    fixed_policy = {"tool_surface", "baseline", "action_codec", "context_scheme", *CONTEXT_FIELDS,
+                    *SHARED_POLICY_FIELDS}
     if set(provider) & fixed_policy or provider.get("kind") != "native_api" or provider.get("supports_images") is not True:
         raise ValueError("local composition requires an image-capable native Provider policy without composition overrides")
     placement = dict(resources or {})
@@ -89,12 +91,16 @@ def compose_local_spec(*, task: Mapping[str, Any], source: Mapping[str, Any],
     binding = resolve_environment_prompt_profile(
         public, project_root=root, profile_id=DEFAULT_LOCAL_COMPOSITION["environment_prompt_profile"],
     )
-    # Share the maintained Context defaults, not its GPU tools, runtime,
-    # embodiment or service prerequisites. Every resulting value is explicit
-    # in the local RunSpec and its content-addressed RunPlan.
+    # The named context scheme's fields and the maintained baseline's shared
+    # settings, not its GPU tools, runtime, embodiment or service prerequisites.
+    # Every resulting value is explicit in the local RunSpec and its
+    # content-addressed RunPlan: a RunSpec with its own tool surface takes no
+    # policy.context_scheme, so the scheme's fields are written out.
+    scheme = load_context_scheme(root, DEFAULT_LOCAL_COMPOSITION["context_scheme"])
     shared = maintained["policy"]
     policy = {**copy.deepcopy(dict(provider)),
-              **{key: copy.deepcopy(shared[key]) for key in _CONTEXT_FIELDS},
+              **copy.deepcopy(scheme["policy"]),
+              **{key: copy.deepcopy(shared[key]) for key in SHARED_POLICY_FIELDS},
               "action_codec": DEFAULT_LOCAL_COMPOSITION["action_codec"],
               "tool_surface": {"profile": DEFAULT_LOCAL_COMPOSITION["tool_surface"], "component_overrides": {}}}
     runtime = {

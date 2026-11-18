@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ora.orchestrator import policy_lock
+from ora.orchestrator.spec import policy_lock
 
 ROOT = Path(__file__).resolve().parents[2]
 LINE = re.compile(r"^[0-9a-f]{64}  [^\s].*$")
@@ -186,11 +186,11 @@ def test_coverage_includes_each_path_loaded_asset_class():
     """Each loader that reads a policy asset by path finds its file in the lock."""
 
     from ora.agent.composition import baseline
-    from ora.agent.composition.embodiment_geometry import PUBLIC_GEOMETRY_DESCRIPTOR_VERSIONS
-    from ora.agent.composition.profile_catalog import PROFILE_CATALOG
-    from ora.agent.composition.robodojo_layout_compatibility import LAYOUT_CATALOG_PATH
-    from ora.agent.composition.robodojo_task_contract import REGISTRY_PATH
-    from ora.agent.composition.task_contract import REGISTRIES
+    from ora.agent.composition.embodiment.geometry import PUBLIC_GEOMETRY_DESCRIPTOR_VERSIONS
+    from ora.agent.composition.surface.profile_catalog import PROFILE_CATALOG
+    from ora.agent.composition.task_contract.robodojo_layouts import LAYOUT_CATALOG_PATH
+    from ora.agent.composition.task_contract.robodojo import REGISTRY_PATH
+    from ora.agent.composition.task_contract.delivery import REGISTRIES
 
     covered, tracked = _covered(), _tracked()
     expected = {

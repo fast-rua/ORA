@@ -1,0 +1,47 @@
+{
+  "schema": "ora.evaluation-sets.v1",
+  "purpose": "The episodes each benchmark's official evaluation draws from. A practice plan whose episode falls in one of these sets is refused; practice draws only from the practice side of each rule. ora/environment/benchmarks/evaluation_sets.py applies the match rules to a RunPlan.",
+  "environments": {
+    "libero_pro": {
+      "evaluation_set": {
+        "rule": "every episode whose runtime.environment_driver is not the practice driver: it loads official initial state seed % trial_count of its task",
+        "official_initial_states_per_task": 50,
+        "official_initial_state_indices": [0, 49],
+        "source": "LIBERO-Pro data revision c86fc3b8293185a6f373677018ff3e37f8391602, init_states/<suite>/<task>.pruned_init; every base and core suite of ora/environment/benchmarks/libero_pro.py"
+      },
+      "practice": {
+        "runtime.environment_driver": "direct_libero_practice_v1",
+        "seed_minimum": 1000000,
+        "initial_state": "placed by the task's BDDL region samplers from the episode (or round) seed; no official state is loaded; a sample equal to an official state of the task (atol 1e-6) is refused; reset.json and round-resets record initial_state.source practice_sampled with the seed and the sampled-state sha256",
+        "not_qualified": "robustness cases"
+      },
+      "match": {"field": "runtime.environment_driver", "practice_values": ["direct_libero_practice_v1"]}
+    },
+    "robotwin": {
+      "evaluation_set": {
+        "rule": "requested seeds from 100000 * (1 + outer_seed) upward; a seed is an evaluation trial when the expert plan succeeds and check_success holds, and every requested seed advances by one; the first 100 accepted seeds of a task are its evaluation trials",
+        "seed_minimum": 100000,
+        "task_configs": ["demo_clean", "demo_randomized"],
+        "background_split": "unseen",
+        "source": "RoboTwin cf4872cc90538fd4bca761c8db912d8f65e49f2b script/eval_policy.py (st_seed = 100000 * (1 + seed); now_seed += 1 per candidate; expert_check); ora/environment/benchmarks/robotwin.py evaluation_protocol"
+      },
+      "practice": {
+        "seed_maximum_exclusive": 100000,
+        "note": "RoboTwin's own demonstration collection draws seeds from 0 upward"
+      },
+      "match": {"field": "seed", "evaluation_minimum": 100000}
+    },
+    "robocasa": {
+      "evaluation_set": {
+        "rule": "the target split: target object instances and kitchen layout/style pairs (1, 1) to (10, 10)",
+        "source": "robocasa a9e152e2 robocasa/utils/env_utils.py create_env(split='target'); the ORA backend constructs only this split"
+      },
+      "practice": {
+        "split": "pretrain",
+        "note": "pretrain object instances with layout_ids and style_ids -2 (SceneRegistry pretrain scenes); the ORA backend does not construct it yet"
+      },
+      "match": {"field": "runtime.split", "evaluation_values": ["target"], "default": "target"}
+    }
+  },
+  "unlisted_environments": "no practice side is defined: a practice plan on robolab, robodojo or any other environment is refused"
+}

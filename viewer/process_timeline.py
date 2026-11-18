@@ -13,6 +13,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from ora.agent.evidence.agent_events import library_op
+from ora.agent.evidence.trace_verify import is_supervisor_refusal
 from viewer.rounds import PERSISTENT_CADENCE, integer, iter_records, round_ledger, scene_label
 
 
@@ -145,6 +147,26 @@ def compile_process_timeline(root: Path, trajectory: Mapping[str, Any] | None = 
     step_ordinals = {step["state_step"]: index for index, step in enumerate(steps)}
     native_calls = 0
     native_actions: set[str] = set()
+    # Proposals a round budget ended before execution: never joined to a Runtime action.
+    discarded = {
+        str((event.get("payload") or {}).get("action_id")): str((event.get("payload") or {}).get("reason"))
+        for _, event in iter_records(root / "agent-events.jsonl")
+        if event.get("type") == "action_discarded" and isinstance(event.get("payload"), Mapping)
+    }
+    # Proposals the Supervisor refused before they started, by proposal event, and their receipts: never joined
+    # to a Runtime action, which the next proposal on the same observation (a code-mode script's) may name.
+    refused: dict[Any, Mapping[str, Any]] = {}
+    refusal_receipts: dict[Any, Mapping[str, Any]] = {}
+    for _, event in iter_records(root / "agent-events.jsonl"):
+        if event.get("type") != "environment_receipt":
+            continue
+        path, _issue = verified_artifact(root, event.get("artifact_ref"))
+        try:
+            body = json.loads(path.read_text(encoding="utf-8")) if path else None
+        except (OSError, ValueError):
+            body = None
+        if is_supervisor_refusal(body):
+            refused[event.get("causal_parent_id")] = refusal_receipts[event.get("event_id")] = body
 
     for line, event in iter_records(root / "agent-events.jsonl"):
         kind = event.get("type")
@@ -159,12 +181,15 @@ def compile_process_timeline(root: Path, trajectory: Mapping[str, Any] | None = 
                 requests[str(event.get("model_call_id"))] = event["unix_s"]
             continue
         call = event.get("tool_call_id")
+        if kind in {"tool_call_proposed", "tool_result"} and library_op(event):
+            continue  # a code-mode script's library request (robot.query, robot.explain): no tool call
         if kind == "tool_call_proposed" and isinstance(call, str):
             if call in proposals:
                 errors.append({"source": _source(line, event), "issue": "duplicate_tool_call_id"})
             proposals[call] = (line, event)
             continue
-        if kind not in {"provider_response", "tool_result", "tool_image", "action_proposed", "environment_receipt"} and not contextual:
+        if kind not in {"provider_response", "tool_result", "tool_image", "action_proposed", "action_discarded",
+                        "environment_receipt"} and not contextual:
             continue
         if target not in by_step:
             unmapped.append({"source": _source(line, event), "type": kind, "issue": "no_recorded_observation_join"})
@@ -247,17 +272,31 @@ def compile_process_timeline(root: Path, trajectory: Mapping[str, Any] | None = 
         elif kind == "action_proposed":
             action_id = payload.get("action_id")
             bound = by_action.get(action_id)
-            if bound is None or bound["state_step"] != target or action_id in native_actions:
+            if event.get("event_id") in refused:
+                reason = str(refused[event.get("event_id")].get("reason") or "refusal").replace("_", " ")
+                block.update(phase="execution", title="Action proposal",
+                             text=f"not executed: the Supervisor refused it ({reason})")
+            elif bound is None and action_id in discarded:
+                block.update(phase="execution", title="Action proposal",
+                             text=f"not executed: the round ended on its {discarded[action_id].replace('_', ' ')}")
+            elif bound is None or bound["state_step"] != target or action_id in native_actions:
                 block.update(phase="unmatched", title="Unmatched action proposal")
                 block["issues"].append("action_identity_join_failed")
             else:
                 native_actions.add(action_id)
                 block.update(phase="execution", title=bound["action"]["kind"], action_id=action_id,
                              text=_short_payload(bound["action"].get("arguments")), action=bound["action"], visibility="control_only")
+        elif kind == "action_discarded":
+            block.update(phase="outcome", title="Action not executed",
+                         text=f"The round ended on its {str(payload.get('reason')).replace('_', ' ')}",
+                         visibility="control_only")
         elif kind == "environment_receipt":
             action_id = payload.get("action_id")
             bound = by_action.get(action_id)
-            if bound is None or bound["state_step"] != target:
+            if event.get("event_id") in refusal_receipts:
+                block.update(phase="outcome", title="Action refused",
+                             text=_short_payload(refusal_receipts[event.get("event_id")]), visibility="control_only")
+            elif bound is None or bound["state_step"] != target:
                 block.update(phase="unmatched", title="Unmatched execution receipt")
                 block["issues"].append("receipt_identity_join_failed")
             else:

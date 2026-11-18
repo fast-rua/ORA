@@ -277,9 +277,18 @@ class RoboTwinMotionTransactionMixin:
                     gripper_values = np.asarray(
                         issued_gripper[arm], dtype=np.float64,
                     )
+                    # ``before_step`` passed the planned path's ``per_step`` to
+                    # ``robot.set_gripper``, which limits each change of the drive
+                    # target to it; a replay needs the same limit to close the
+                    # jaws at the same rate.
+                    planned = control_sequence.get(f"{arm}_gripper")
                     replay[f"{arm}_gripper"] = {
                         "num_step": int(gripper_values.shape[0]),
-                        "per_step": 0.0,
+                        "per_step": (
+                            float(planned["per_step"])
+                            if isinstance(planned, Mapping) and planned.get("per_step") is not None
+                            else 0.0
+                        ),
                         "result": gripper_values,
                         "target": float(gripper_values[-1]),
                     }

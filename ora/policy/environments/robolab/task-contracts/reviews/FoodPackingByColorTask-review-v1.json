@@ -1,0 +1,257 @@
+{
+ "schema": "ora.task-contract-review.v1",
+ "backend": "robolab",
+ "task": "FoodPackingByColorTask",
+ "status": "reviewed",
+ "reviewer": "Seed-0 witness review (ora qualify robolab contract-witness)",
+ "reviewed_at": "2026-11-05",
+ "scope": "robolab FoodPackingByColorTask at the pinned revision; generated per predicate family (groups_in_containers); seed-0 witness pending. Semantic projection of the official termination, not physical qualification.",
+ "verified_revisions": [
+  "ad45d4f974725d020f82c2b0d77d78533aeba2b3"
+ ],
+ "task_language": "Pack yellow objects in right container and blue object in the left container",
+ "family": "groups_in_containers",
+ "source_dependencies": [
+  {
+   "role": "task_predicate_and_reset",
+   "path": "robolab/tasks/benchmark/food_packing_by_color_task.py",
+   "sha256": "bfa191a0876ec31ea019b49703a1b38887f4335302f55ab185c74f39898c08cb"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/conditionals.py",
+   "sha256": "b51316e81f50071574af4a0df17c953576b3f59e55e6783c920b2ed3a21c21d6"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/predicate_logic.py",
+   "sha256": "7d2ff47b07caed3a2cdf188951a431e999bba75ed995bed074d68e86b777399c"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/task/hull_check.py",
+   "sha256": "738f840e0c7a14900a2a18aac2836cb2b858e227c118a29516a3ba6619d7f4df"
+  },
+  {
+   "role": "shared_semantic_helper",
+   "path": "robolab/core/world/world_state.py",
+   "sha256": "133a3e6289bb650b7bf9c6164fe19f2ebfe06a0154f6cd6c578c010d931c125a"
+  },
+  {
+   "role": "official_verdict_boundary",
+   "path": "robolab/core/environments/env.py",
+   "sha256": "c35a1aced26a30de1fde21f8db28f87910757d090b677172f9915432f3b45f12"
+  },
+  {
+   "role": "scene_reset_state",
+   "path": "assets/scenes/food_packing.usda",
+   "sha256": "9833aa206f9d7d2c8020843e27cb49f262b90c75a7ff957ec88667fcf8becc8c"
+  }
+ ],
+ "evidence": [
+  {
+   "role": "private_success_witness_and_counterexamples",
+   "path": "outputs/ora-backends/task-contract-witness/robolab/FoodPackingByColorTask-s0-witness.json",
+   "sha256": "63c4594d724d77f7fb2b23a8bc27573d29f694b76bfccc4dc840e0a133f73e5e"
+  }
+ ],
+ "checks": {
+  "predicate_and_helpers": {
+   "status": "passed",
+   "basis": "Read FoodPackingByColorTask terminations: success = object_groups_in_containers(groups=[{'object': ['coffee_can'], 'container': 'bin_a06', 'logical': 'all', 'require_contact_with': False, 'require_gripper_detached': True}, {'object': ['mustard', 'sugar_box'], 'container': 'bin_b03', 'logical': 'all', 'require_contact_with': False, 'require_gripper_detached': True}]), and the helpers in conditionals.py and predicate_logic.py; RobolabEnv records success as the TerminationManager's terminated flag, the OR of every non-timeout term."
+  },
+  "reset_and_randomization": {
+   "status": "passed",
+   "basis": "Scene food_packing.usda: coffee_can, mustard, sugar_box, bin_a06, bin_b03 among 10 contact objects. The env's only event is reset_scene_to_default and the task adds none, so every seed resets to the same authored layout; a seed varies physics only."
+  },
+  "assets_and_frames": {
+   "status": "passed",
+   "basis": "Each group uses object_in_container: hull centroid in the container's open-top hull, in the container's local frame."
+  },
+  "success_timing": {
+   "status": "passed",
+   "basis": "DoneTerm success is evaluated every control step; RobolabEnv freezes the env at the first true step (a termination within its first two steps is reset as a physics artifact) and the ORA session latches it."
+  },
+  "public_observability": {
+   "status": "passed",
+   "basis": "At reset every named object (5) projects into the over-shoulder or wrist camera with a depth reading that does not hide it (witness sha256 63c4594d724d)."
+  },
+  "success_witness": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 63c4594d724d): sorted -> True; each case from a fresh reset, objects placed by direct state edits with the robot held."
+  },
+  "counterexamples": {
+   "status": "passed",
+   "basis": "Witness (seed 0, sha256 63c4594d724d): reset_state -> False; swapped -> False."
+  },
+  "no_expert_strategy": {
+   "status": "passed",
+   "basis": "Clauses state end conditions only; no approach, grasp, route or motion advice."
+  },
+  "privacy": {
+   "status": "passed",
+   "basis": "No coordinates, thresholds, fixture or object identifiers, joint values or predicate names enter the public text; numeric limits stay in this private record."
+  }
+ },
+ "conditions": [
+  {
+   "id": "c1",
+   "source_basis": "success = object_groups_in_containers(groups=[{'object': ['coffee_can'], 'container': 'bin_a06', 'logical': 'all', 'require_contact_with': False, 'require_gripper_detached': True}, {'object': ['mustard', 'sugar_box'], 'container': 'bin_b03', 'logical': 'all', 'require_contact_with': False, 'require_gripper_detached': True}]): per group, object_in_container's hull-centroid test against that group's container.",
+   "interpretation": "Each group in its own container.",
+   "disposition": "included",
+   "public_clause_indices": [
+    0
+   ]
+  },
+  {
+   "id": "c2",
+   "source_basis": "require_gripper_detached=True: gripper_detached checks that no gripper body touches the object above 0.1 N.",
+   "interpretation": "Release: the gripper touches none of the named objects.",
+   "disposition": "included",
+   "public_clause_indices": [
+    1
+   ]
+  },
+  {
+   "id": "object_identity",
+   "source_basis": "The instruction 'Pack yellow objects in right container and blue object in the left container' refers by descriptor; the termination names ['coffee_can', 'mustard', 'sugar_box'].",
+   "interpretation": "Which objects the descriptor covers is the task's own inference.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Naming the objects would answer the task (no privileged information); the public clauses keep the instruction's descriptor (the blue object; the yellow objects)."
+  },
+  {
+   "id": "private_limits",
+   "source_basis": "conditionals.object_groups_in_containers and its predicate_logic helpers.",
+   "interpretation": "Hull slack, contact force bar and the open-top hull construction withheld.",
+   "disposition": "withheld_private",
+   "public_clause_indices": [],
+   "omission_reason": "Numeric limits stay off-policy."
+  }
+ ],
+ "public_clauses": [
+  "The blue object must end up inside the bin on the left, and the yellow objects inside the bin on the right.",
+  "Let go of them there: the task is not complete while the gripper still touches any of them."
+ ],
+ "counterexamples": [
+  {
+   "case": "reset_state: false.",
+   "expected": "witness case reset_state"
+  },
+  {
+   "case": "swapped: false.",
+   "expected": "witness case swapped"
+  },
+  {
+   "case": "Objects in place while one is still gripped: false by gripper_detached (source-derived, not executed).",
+   "expected": "source-derived"
+  }
+ ],
+ "termination_vs_subtasks": {
+  "differs": true,
+  "subtasks": "pick_and_place(groups=['mustard'], logical=all) score=0.5; pick_and_place(groups=['coffee_can'], logical=all) score=0.5",
+  "notes": [
+   "relation: subtasks score ['object_in_container'], the termination checks ['object_groups_in_containers']",
+   "objects: the termination adds ['sugar_box']"
+  ]
+ },
+ "compatibility": {
+  "status": "ready_with_note",
+  "blocked": [],
+  "notes": [
+   {
+    "code": "long_horizon",
+    "detail": "official limit 1800 native actions (120 s at 15 Hz; 5400 under the default extended budget), against 900 for the longest task admitted before"
+   },
+   {
+    "code": "wide_object",
+    "detail": "no face of the blue coffee can fits the open gripper (85 mm); a grasp needs a rim, handle, stem or edge"
+   }
+  ]
+ },
+ "witness_plan": {
+  "schema": "ora.robolab-witness-plan.v1",
+  "seed": 0,
+  "cases": [
+   {
+    "case": "reset_state",
+    "expected": false,
+    "ops": [],
+    "ticks": 3
+   },
+   {
+    "case": "swapped",
+    "expected": false,
+    "ops": [
+     {
+      "op": "place",
+      "object": "coffee_can",
+      "into": "bin_b03",
+      "slot": 0,
+      "slots": 1
+     },
+     {
+      "op": "place",
+      "object": "mustard",
+      "into": "bin_a06",
+      "slot": 0,
+      "slots": 2
+     },
+     {
+      "op": "place",
+      "object": "sugar_box",
+      "into": "bin_a06",
+      "slot": 1,
+      "slots": 2
+     }
+    ],
+    "ticks": 60
+   },
+   {
+    "case": "sorted",
+    "expected": true,
+    "ops": [
+     {
+      "op": "place",
+      "object": "coffee_can",
+      "into": "bin_a06",
+      "slot": 0,
+      "slots": 1
+     },
+     {
+      "op": "place",
+      "object": "mustard",
+      "into": "bin_b03",
+      "slot": 0,
+      "slots": 2
+     },
+     {
+      "op": "place",
+      "object": "sugar_box",
+      "into": "bin_b03",
+      "slot": 1,
+      "slots": 2
+     }
+    ],
+    "ticks": 60
+   }
+  ],
+  "visibility_objects": [
+   "coffee_can",
+   "mustard",
+   "sugar_box",
+   "bin_a06",
+   "bin_b03"
+  ],
+  "note": "each case starts from a fresh reset of seed 0; the robot holds its reset pose with the gripper open unless a case grasps; success is any official result over the case's ticks"
+ },
+ "limitations": "Generated from the pinned source; the witness (phase B) covers seed 0 only and uses direct state edits or scripted moves, never a policy rollout. Source-derived negative cases marked as such are not executed.",
+ "forbidden_public_claims": [],
+ "witness_result": {
+  "run_unix_s": 1793858570.7801607,
+  "all_cases_match": true,
+  "path": "outputs/ora-backends/task-contract-witness/robolab/FoodPackingByColorTask-s0-witness.json",
+  "sha256": "63c4594d724d77f7fb2b23a8bc27573d29f694b76bfccc4dc840e0a133f73e5e",
+  "plan_sha256": "9f2392f75c2092e7dc64f3f8b928085d8e105d410cc4e21592635cfbda0f297e"
+ }
+}

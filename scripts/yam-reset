@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# Kept for muscle memory: the operator's verbs now live in `ora cell` (ora/cell/operator/actions.py).
+# `scripts/yam-reset` alone diagnoses; `scripts/yam-reset home` is `ora cell home`.
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ "$#" -eq 0 ]; then set -- diagnose; fi
+exec "$ROOT/scripts/ora" cell "$@"

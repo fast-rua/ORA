@@ -6,12 +6,18 @@ authors:
   - family-names: Yang
     given-names: Yuanbo
   - family-names: Chen
-    given-names: Siyi
-  - family-names: Gao
-    given-names: Jun
+    given-names: Junda
+  - family-names: Peng
+    given-names: Quanquan
+  - family-names: Wu
+    given-names: Yulun
+  - family-names: Duan
+    given-names: Shaoxiong
   - family-names: Zhang
     given-names: Hao
-date-released: "2026-10-15"
-url: "https://haoailab.com/blogs/ora/"
-repository-code: "https://github.com/hao-ai-lab/ORA"
+version: "0.1.0"
+# Set date-released to the release date in the last commit before the cut; the cut refuses an older date.
+date-released: "2026-11-18"
+url: "https://fastrua.ai/ora/"
+repository-code: "https://github.com/fast-rua/ORA"
 license: Apache-2.0

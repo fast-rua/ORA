@@ -1,0 +1,143 @@
+{
+ "description": "Moves cut short by their native-action budget, from sealed RoboDojo toolkit-v5 code-mode runs of 2026-11-01: the receipt as the policy received it, pruned to what the action summary and a typed result read. pose_error is the cut point's; motion_progress.remaining_to_goal_m is what was left. recorded_summary is the line those runs delivered.",
+ "receipts": [
+  {
+   "run": "ora-glue-code-robodojo-29bf58e8f8e8--20261101T052524Z",
+   "recorded_summary": "left arm 0.1 mm / 0.0° from target, not reached: controller timeout, TCP moved 222 mm",
+   "receipt": {
+    "action": "bash",
+    "status": "not_reached",
+    "failure_stage": "execution",
+    "failure_code": "controller_timeout",
+    "physical_cause": "unknown",
+    "round_terminated": false,
+    "native_actions": 47,
+    "detail": {
+     "target_arms": [
+      "left"
+     ],
+     "execution_window": {
+      "native_action_budget": 50,
+      "native_actions_used": 47
+     },
+     "synchronization": {
+      "executed": true,
+      "mode": "single_arm",
+      "requested": false
+     },
+     "arms": {
+      "left": {
+       "targeted": true,
+       "pose_error": {
+        "orientation_deg": 0.021715,
+        "translation_m": 8.837595555063397e-05
+       },
+       "realized_translation_world_m": [
+        0.17252624034881592,
+        0.12441959977149963,
+        0.06208771467208862
+       ],
+       "motion_progress": {
+        "outcome": "cut_short",
+        "remaining_to_goal_m": 0.115744,
+        "native_actions": 47
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "run": "ora-glue-code-robodojo-1517b2ead505--20261101T061808Z",
+   "recorded_summary": "right arm 0.1 mm / 0.0° from target, not reached: controller timeout, TCP moved 270 mm",
+   "receipt": {
+    "action": "bash",
+    "status": "not_reached",
+    "failure_stage": "execution",
+    "failure_code": "controller_timeout",
+    "physical_cause": "unknown",
+    "round_terminated": false,
+    "native_actions": 16,
+    "detail": {
+     "target_arms": [
+      "right"
+     ],
+     "execution_window": {
+      "native_action_budget": 20,
+      "native_actions_used": 16
+     },
+     "synchronization": {
+      "executed": true,
+      "mode": "single_arm",
+      "requested": false
+     },
+     "arms": {
+      "right": {
+       "targeted": true,
+       "pose_error": {
+        "orientation_deg": 0.017282,
+        "translation_m": 8.651354712511784e-05
+       },
+       "realized_translation_world_m": [
+        -0.10261514782905579,
+        0.17103566229343414,
+        0.18138378858566284
+       ],
+       "motion_progress": {
+        "outcome": "cut_short",
+        "remaining_to_goal_m": 0.262122,
+        "native_actions": 16
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "run": "ora-glue-code-robodojo-7e12da474aa1--20261101T052323Z",
+   "recorded_summary": "right arm 0.1 mm / 0.0° from target, not reached: controller timeout, TCP moved 332 mm",
+   "receipt": {
+    "action": "bash",
+    "status": "not_reached",
+    "failure_stage": "execution",
+    "failure_code": "controller_timeout",
+    "physical_cause": "unknown",
+    "round_terminated": false,
+    "native_actions": 47,
+    "detail": {
+     "target_arms": [
+      "right"
+     ],
+     "execution_window": {
+      "native_action_budget": 50,
+      "native_actions_used": 47
+     },
+     "synchronization": {
+      "executed": true,
+      "mode": "single_arm",
+      "requested": false
+     },
+     "arms": {
+      "right": {
+       "targeted": true,
+       "pose_error": {
+        "orientation_deg": 0.020209,
+        "translation_m": 0.00010620134178445224
+       },
+       "realized_translation_world_m": [
+        -0.2981557981111109,
+        0.11144065856933594,
+        0.09382659196853638
+       ],
+       "motion_progress": {
+        "outcome": "cut_short",
+        "remaining_to_goal_m": 0.002592,
+        "native_actions": 47
+       }
+      }
+     }
+    }
+   }
+  }
+ ]
+}

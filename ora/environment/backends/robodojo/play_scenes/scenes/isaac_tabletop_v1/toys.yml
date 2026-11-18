@@ -1,0 +1,61 @@
+# ORA free-play scene isaac-tabletop-v1/toys: a kids' toy table.
+#
+# RoboDojo task-config format (Articulation / Clutter / Rigid blocks with xlim/ylim, rotate_deg and
+# relative_plane), read only by ORA's layout generator (benchmarks/robodojo_play_layouts.py), which writes a
+# saved layout per seed in RoboDojo's Eval_Layout record format. Table-relative xlim/ylim are
+# episode-frame metres; a block whose relative_plane names another label is placed in that
+# object's yawed frame on top of it (or with its bottom zlim above the parent's base).
+# gripper_keep_out: every table-level footprint keeps clearance_m from the home-pose gripper
+# footprints of the two ARX X5 arms (zones: x/y ranges on the table plane).
+# Only RoboDojo assets. No reward, no instruction, no task: free play.
+
+gripper_keep_out:
+  clearance_m: 0.08
+  zones:
+    - {xlim: [-0.387, -0.212], ylim: [-0.48, -0.194]}
+    - {xlim: [0.212, 0.388], ylim: [-0.48, -0.194]}
+
+Rigid:
+  - common: {xlim: [-0.34, -0.27], ylim: [0.00, 0.06], rotate_rand: true, rotate_deg: [-25, 25], relative_plane: Table}
+    category: [{name: teddy_bear, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [teddy_bear]}
+
+  - common: {xlim: [-0.14, -0.08], ylim: [0.02, 0.07], rotate_rand: true, rotate_deg: [-40, 40], relative_plane: Table}
+    category: [{name: chick, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [chick]}
+
+  - common: {xlim: [0.00, 0.05], ylim: [0.00, 0.06], rotate_rand: true, rotate_deg: [-40, 40], relative_plane: Table}
+    category: [{name: wooden_toy, index: [0, 1, 3]}]
+    select_mode: {nums: 1, mode: unique, label: [wooden_toy]}
+
+  - common: {xlim: [0.13, 0.19], ylim: [0.02, 0.07], rotate_rand: true, rotate_deg: [-40, 40], relative_plane: Table}
+    category: [{name: owl, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [owl]}
+
+  - common: {xlim: [0.31, 0.35], ylim: [0.065, 0.080], rotate_rand: true, rotate_deg: [-180, 180], relative_plane: Table}
+    category: [{name: matryoshka_dolls, index: [0, 5]}]
+    select_mode: {nums: 1, mode: unique, label: [matryoshka_doll]}
+
+  # three building blocks: two loose, one stacked on the first
+  - common: {xlim: [-0.36, -0.31], ylim: [-0.088, -0.080], rotate_rand: true, rotate_deg: [-45, 45], relative_plane: Table}
+    category: [{name: cube, index: [0]}]
+    select_mode: {nums: 1, mode: unique, label: [block_0]}
+  - common: {xlim: [-0.003, 0.003], ylim: [-0.003, 0.003], rotate_rand: true, rotate_deg: [-10, 10], relative_plane: block_0}
+    category: [{name: cube, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [block_1]}
+  - common: {xlim: [-0.19, -0.17], ylim: [-0.088, -0.078], rotate_rand: true, rotate_deg: [-45, 45], relative_plane: Table}
+    category: [{name: cube, index: [2]}]
+    select_mode: {nums: 1, mode: unique, label: [block_2]}
+
+  - common: {xlim: [-0.07, -0.05], ylim: [-0.200, -0.180], rotate_rand: true, rotate_deg: [-30, 30], relative_plane: Table}
+    category: [{name: toy_car, index: [1]}]
+    select_mode: {nums: 1, mode: unique, label: [toy_car_0]}
+  - common: {xlim: [0.05, 0.07], ylim: [-0.260, -0.240], rotate_rand: true, rotate_deg: [150, 210], relative_plane: Table}
+    category: [{name: toy_car, index: [3]}]
+    select_mode: {nums: 1, mode: unique, label: [toy_car_1]}
+
+Clutter:
+  - common: {xlim: [0.31, 0.36], ylim: [-0.055, -0.050], rotate_rand: true, rotate_deg: [-45, 45], relative_plane: Table}
+    category: [{name: minecraft_blocks, index: [0, 3, 7]}]
+    physics: {mass: 0.15, static_friction: 0.6, dynamic_friction: 0.8}
+    select_mode: {nums: 1, mode: unique, label: [toy_block_big]}

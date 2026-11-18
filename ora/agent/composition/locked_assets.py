@@ -1,7 +1,7 @@
 """Resolve a path-only asset reference to the bytes and hash a RunPlan records.
 
 Maintained policy assets name each other by path only. A ToolSurface component
-is ``"../explicit_motion_v2/robotwin-visual_help.json"``, a context profile's
+is ``"observe.json"`` beside its manifest, a context profile's
 compiled descriptor is ``"ora/policy/embodiments/..."``; neither
 carries a hand-written sha256. Integrity comes from ``policy.lock``, which CI
 checks against the tree, and every loader hashes the bytes it actually reads

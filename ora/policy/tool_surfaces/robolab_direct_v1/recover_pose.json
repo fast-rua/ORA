@@ -1,0 +1,44 @@
+{
+  "schema": "ora.toolkit-tool.v1",
+  "name": "recover_pose",
+  "description": "Move the right arm to a named recovery pose while preserving the gripper command.\nUse when: a planner or execution failure, or a poor configuration, makes ordinary waypoint correction inappropriate; choose previous to return to the TCP pose measured at the start of the last arm motion, or home to return to the pose measured at episode start.\nEffect: world mutation as a free_space move, planned as move_pose describes; it reaches a pose, not joint angles. One robot decision. It runs at move_pose's default speed.\nReturns: the submitted strategy; the next receipt and fresh observation report actual planning, residuals and preservation evidence. The later receipt separates refusal, arrival and recoverable non-arrival; available contact feedback includes requested versus measured motion, force/progress evidence and truthful unknown values.\nDoes not: reset the episode, restore moved objects or evaluator state, release the gripper, reverse an old trajectory, act as an emergency stop, or guarantee escape from contact.\nOn error: Refused: a strategy other than previous and home; an unknown field; the episode's terminal boundary (episode_terminal). An unavailable recovery state is not a refusal: the receipt reports plan_rejected with recovery_state_unavailable, as for previous before any arm motion; try the other strategy only when physically sensible, otherwise finish_episode names the accepted outcomes. Cost: previous undoes only the last arm motion, so the arm travels about as far as that action did; home travels to the start pose wherever the task stands and gives up the approach already made. Prefer previous when the last motion left a poor configuration; choose home only when the configuration before that motion is unusable too.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "strategy": {
+        "description": "previous returns to the TCP pose measured at the start of the last arm motion; home returns to the pose measured at episode start.",
+        "enum": [
+          "previous",
+          "home"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "strategy"
+    ],
+    "type": "object"
+  },
+  "resultSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "const": "submitted"
+      },
+      "action": {
+        "type": "string",
+        "const": "recover_pose"
+      },
+      "compiled_pose": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "status",
+      "action",
+      "compiled_pose"
+    ],
+    "additionalProperties": false
+  }
+}
